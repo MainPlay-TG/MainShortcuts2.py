@@ -81,6 +81,7 @@ def rewrite(path: PATH_TYPES, **kw) -> int:
 
 def write(path: PATH_TYPES, data: JSON_TYPES, **kw) -> int:
   f_kw = {}
+  kw["data"] = data
   for i in ["encoding", "force"]:
     if i in kw:
       f_kw[i] = kw.pop(i)

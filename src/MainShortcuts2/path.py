@@ -47,21 +47,21 @@ def cwd(v):
 class Path:
   # 2.0.0
   def __init__(self, path: PATH_TYPES):
-    self._base_name = None
-    self._ext = None
-    self._full_name = None
-    self._parent_dir = None
-    self._path = path2str(path, True)
-    self._split = None
     self.cp = self.copy
     self.ln = self.link
     self.mv = self.move
     self.rm = self.delete
     self.rn = self.rename
-    self.reload()
+    self.path = path
 
-  def reload(self):
+  def reload(self, full: bool = False):
     """Обнуление кешированной информации"""
+    if full:
+      self._base_name = None
+      self._ext = None
+      self._full_name = None
+      self._parent_dir = None
+      self._split = None
     self._created_at = None
     self._exists = None
     self._is_dir = None
@@ -77,6 +77,12 @@ class Path:
   def path(self) -> str:
     """Абсолютный путь к объекту"""
     return self._path
+
+  @path.setter
+  def path(self, v):
+    """Абсолютный путь к объекту"""
+    self._path = path2str(v, to_abs=True)
+    self.reload(True)
 
   @property
   def base_name(self) -> str:
@@ -194,56 +200,77 @@ class Path:
       self._used_at = os.path.getatime(self.path)
     return self._used_at
 
-  def copy(self, dest: PATH_TYPES, **kw):
+  def copy(self, dest: PATH_TYPES, follow: bool = False, **kw) -> str:
+    """Копирование объекта"""
     kw["dest"] = dest
     kw["path"] = self.path
-    return copy(**kw)
+    r = copy(**kw)
+    if follow:
+      self.path = r
+    return r
 
   def delete(self, **kw):
+    """Безвозвратное удаление объекта"""
     kw["path"] = self.path
-    return delete(**kw)
+    delete(**kw)
+    self.reload()
 
   def in_dir(self, dir: PATH_TYPES, **kw) -> bool:
-    kw["dir"] = self.dir
+    """Находится ли объект в папке"""
+    kw["dir"] = dir
     kw["path"] = self.path
     return in_dir(**kw)
 
-  def link(self, dest: PATH_TYPES, **kw):
+  def link(self, dest: PATH_TYPES, follow: bool = False, **kw) -> str:
+    """Создать символическую ссылку на объект"""
     kw["dest"] = dest
     kw["path"] = self.path
-    return link(**kw)
+    r = link(**kw)
+    if follow:
+      self.path = r
+    return r
 
-  def move(self, dest: PATH_TYPES, **kw):
+  def move(self, dest: PATH_TYPES, follow: bool = True, **kw) -> str:
+    """Переместить объект"""
     kw["dest"] = dest
     kw["path"] = self.path
-    return move(**kw)
+    r = move(**kw)
+    if follow:
+      self.path = r
+    return r
 
-  def rename(self, name: str, **kw):
+  def rename(self, name: str, follow: bool = True, **kw) -> str:
+    """Переименовать объект"""
     kw["name"] = name
     kw["path"] = self.path
-    return rename(**kw)
+    r = rename(**kw)
+    if follow:
+      self.path = r
+    return r
 
 
-def copy(path: PATH_TYPES, dest: PATH_TYPES, **kw):
+def copy(path: PATH_TYPES, dest: PATH_TYPES, **kw) -> str:
   kw["src"] = path2str(path)
   kw["dst"] = path2str(dest)
   if os.path.isfile(kw["src"]):
-    return shutil.copy(**kw)
+    shutil.copy(**kw)
+    return kw["dst"]
   if os.path.isdir(kw["src"]):
-    return shutil.copytree(**kw)
+    shutil.copytree(**kw)
+    return kw["dst"]
 
 
 def delete(path: PATH_TYPES, **kw):
   kw["path"] = path2str(path)
   if os.path.islink(kw["path"]):
-    os.unlink(**kw)
+    return os.unlink(**kw)
   if os.path.isdir(kw["path"]):
-    shutil.rmtree(**kw)
+    return shutil.rmtree(**kw)
   if os.path.isfile(kw["path"]):
-    os.remove(**kw)
+    return os.remove(**kw)
 
 
-def exists(path: PATH_TYPES):
+def exists(path: PATH_TYPES) -> bool:
   return os.path.exists(path2str(path))
 
 
@@ -274,25 +301,27 @@ def is_link(path: PATH_TYPES) -> bool:
   return os.path.islink(path2str(path))
 
 
-def link(path: PATH_TYPES, dest: PATH_TYPES, force: bool = False, **kw):
+def link(path: PATH_TYPES, dest: PATH_TYPES, force: bool = False, **kw) -> str:
   kw["dst"] = path2str(dest, True)
   kw["src"] = path2str(path, True)
   if force:
     if exists(kw["dst"]):
       delete(kw["dst"])
-  return os.symlink(**kw)
+  os.symlink(**kw)
+  return kw["dst"]
 
 
-def move(path: PATH_TYPES, dest: PATH_TYPES, force: bool = False, **kw):
+def move(path: PATH_TYPES, dest: PATH_TYPES, force: bool = False, **kw) -> str:
   kw["dst"] = path2str(dest, True)
   kw["src"] = path2str(path, True)
   if force:
     if exists(kw["dst"]):
       delete(kw["dst"])
-  return shutil.move(**kw)
+  shutil.move(**kw)
+  return kw["dst"]
 
 
-def rename(path: PATH_TYPES, name: PATH_TYPES, **kw):
+def rename(path: PATH_TYPES, name: PATH_TYPES, **kw) -> str:
   kw["path"] = path
   kw["dest"] = os.path.dirname(path2str(path)) + "/" + name
   return move(**kw)
