@@ -75,7 +75,7 @@ def rewrite(path: PATH_TYPES, **kw) -> int:
     de_kw["like_json5"] = kw.pop("like_json5")
   de_kw["path"] = path
   kw["path"] = path
-  kw["text"] = read(**de_kw)
+  kw["data"] = read(**de_kw)
   return write(**kw)
 
 
@@ -86,5 +86,5 @@ def write(path: PATH_TYPES, data: JSON_TYPES, **kw) -> int:
     if i in kw:
       f_kw[i] = kw.pop(i)
   f_kw["path"] = path
-  f_kw["text"] = encode(**kw)
+  f_kw["data"] = encode(**kw)
   return ms.file.write(**f_kw)

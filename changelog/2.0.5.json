@@ -1,0 +1,11 @@
+{
+  "added": [],
+  "changed": [],
+  "fixed": [
+    "Исправлена функция `.json.rewrite`",
+    "Исправлена функция `.json.write`"
+  ],
+  "removed": [],
+  "version": "2.0.5",
+  "version_id": 5
+}
