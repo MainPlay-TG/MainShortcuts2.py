@@ -1,0 +1,20 @@
+[tool.poetry]
+version = "2.0.0"
+name = "MainShortcuts2"
+description = "Сокращение и улучшение функций"
+authors = [ "MainPlay TG <xbox.roman6666666666@gmail.com>",]
+readme = "README.md"
+repository = "https://github.com/MainPlay-TG/MainShortcuts2.py"
+packages = [
+    { include = "MainShortcuts2", from = "src" },
+]
+
+[tool.poetry.scripts]
+ms2-import_example = "MainShortcuts2.__main__:import_example"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+
+[build-system]
+requires = [ "poetry-core",]
+build-backend = "poetry.core.masonry.api"
