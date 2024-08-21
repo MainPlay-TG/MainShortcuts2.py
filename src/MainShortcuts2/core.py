@@ -130,3 +130,6 @@ class MS2:
       from . import win
       self._win = win
     return self._win
+
+
+ms = MS2()
