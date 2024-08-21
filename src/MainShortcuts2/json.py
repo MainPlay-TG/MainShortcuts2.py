@@ -1,13 +1,12 @@
 import json
 import builtins
-from .core import MS2
+from .core import ms
 from .path import PATH_TYPES
 from typing import *
 try:
   import json5
 except Exception:
   json5 = None
-ms: MS2 = None
 # 2.0.0
 JSON_TYPES = Union[bool, dict, float, int, list, None, str]
 

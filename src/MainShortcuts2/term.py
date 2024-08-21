@@ -1,13 +1,12 @@
 import os
 import sys
-from .core import MS2
+from .core import ms
 from typing import *
 try:
   import colorama
   colorama.init()
 except Exception:
   colorama = None
-ms: MS2 = None
 # 2.0.0
 COLOR_NAMES = ["BG_BLACK", "BG_BLUE", "BG_GREEN", "BG_LIGHTBLACK", "BG_LIGHTBLUE", "BG_LIGHTGREEN", "BG_LIGHTPINK", "BG_LIGHTRED", "BG_LIGHTWHITE", "BG_LIGHTYELLOW", "BG_PINK", "BG_RED", "BG_WHITE", "BG_YELLOW", "BLACK", "BLUE", "GREEN", "HIGH", "LIGHTBLACK", "LIGHTBLUE", "LIGHTGREEN", "LIGHTPINK", "LIGHTRED", "LIGHTWHITE", "LIGHTYELLOW", "LOW", "PINK", "RED", "RESET", "WHITE", "YELLOW"]
 COLORS: dict[str, str] = {}
@@ -79,7 +78,7 @@ def color_test(colors: list[str] = None):
   if colors is None:
     colors = COLOR_NAMES
   for i in colors:
-    cprint("$COLOR_RESET%s: $COLOR_%sEXAMPLE ░▒▓ ███" % (i, i))
+    cprint("$COLOR_RESET%s: $COLOR_%sEXAMPLE \u2591\u2592\u2593 \u2588\u2588\u2588" % (i, i))
 
 
 def clear():

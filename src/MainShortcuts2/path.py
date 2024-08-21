@@ -2,9 +2,8 @@ import io
 import os
 import pathlib
 import shutil
-from .core import MS2
+from .core import ms
 from typing import *
-ms: MS2 = None
 # 2.0.0
 EXTSEP = "."
 FORBIDDEN_SYMBOLS = [":", "!", "?", "@", "*", "\"", "\n", "%", "+", "<", ">", "|"]

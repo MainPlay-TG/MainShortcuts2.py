@@ -1,8 +1,7 @@
 import os
-from .core import MS2
+from .core import ms
 from .path import Path, PATH_TYPES, path2str
 from typing import *
-ms: MS2 = None
 # 2.0.0
 
 

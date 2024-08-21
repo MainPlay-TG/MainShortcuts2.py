@@ -1,10 +1,9 @@
 import os
 import subprocess
 import sys
-from .core import MS2
+from .core import ms
 from functools import wraps
 from typing import *
-ms: MS2 = None
 # 2.0.0
 Popen_kw = {
     "stderr": subprocess.PIPE,
