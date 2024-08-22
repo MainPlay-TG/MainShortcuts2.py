@@ -1,3 +1,4 @@
+"""Различные утилиты, требующие сторонних модулей"""
 import os
 import sys
 from .core import ms
@@ -7,6 +8,8 @@ from typing import *
 
 
 class MiddlewareBase:
+  """middleware для функции"""
+
   def __init__(self, func):
     self._init(func)
 
@@ -91,6 +94,7 @@ class MiddlewareBase:
 
 
 def args2kwargs(func: Callable, args: Iterable = (), kwargs: dict[str, Any] = {}) -> tuple[tuple, dict[str, Any]]:
+  """Преобразовать `args` в `kwargs` | `inspect`"""
   import inspect
   kw = kwargs.copy()
   args = list(args)
@@ -107,6 +111,7 @@ def args2kwargs(func: Callable, args: Iterable = (), kwargs: dict[str, Any] = {}
 
 
 async def async_download_file(url: str, path: str, *, delete_on_error: bool = True, chunk_size: int = 1024, **kw) -> int:
+  """Асинхронная функция для скачивания файла | `aiohttp`"""
   kw["url"] = url
   if not "method" in kw:
     kw["method"] = "GET"
@@ -126,7 +131,7 @@ async def async_download_file(url: str, path: str, *, delete_on_error: bool = Tr
 
 
 async def async_request(method: str, url: str, *, ignore_status: bool = False, **kw):
-  """aiohttp request"""
+  """Асинхронный HTTP запрос | `aiohttp`"""
   import aiohttp
   kw["method"] = method
   kw["url"] = url
@@ -137,7 +142,7 @@ async def async_request(method: str, url: str, *, ignore_status: bool = False, *
 
 
 def async2sync(func: Callable) -> Callable:
-  """Превратить асинхронную функцию в синхронную"""
+  """Превратить асинхронную функцию в синхронную | `asyncio`, `concurrent`"""
   import asyncio
   import concurrent.futures
   pool = concurrent.futures.ThreadPoolExecutor()
@@ -148,6 +153,7 @@ def async2sync(func: Callable) -> Callable:
 
 
 def get_my_ip() -> str:
+  """Получить глобальный IP | `requests`"""
   import requests
   with requests.get("https://api.ipify.org?format=json") as resp:
     ip = resp.json()["ip"]
@@ -155,15 +161,18 @@ def get_my_ip() -> str:
 
 
 def is_async(func: Callable) -> bool:
+  """Является ли функция асинхронной | `inspect`"""
   import inspect
   return inspect.iscoroutinefunction(func)
 
 
 def is_sync(func: Callable) -> bool:
+  """Является ли функция синхронной | `inspect`"""
   return not is_async(func)
 
 
 def middleware(cls: MiddlewareBase):
+  """middleware для функции в виде декоратора"""
   def decorator(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -173,6 +182,7 @@ def middleware(cls: MiddlewareBase):
 
 
 def randfloat(min: float, max: float = None) -> float:
+  """Случайное число | `random`"""
   from random import random
   if max == None:
     max = min
@@ -181,6 +191,7 @@ def randfloat(min: float, max: float = None) -> float:
 
 
 def randstr(length: int, symbols: str = "0123456789abcdefghijklmnopqrstuvwxyz") -> str:
+  """Случайная строка | `random`"""
   from random import choice
   t = ""
   while len(t) < length:
@@ -189,19 +200,22 @@ def randstr(length: int, symbols: str = "0123456789abcdefghijklmnopqrstuvwxyz") 
 
 
 def return_False(*a, **b):
+  """Вернуть False при любых аргументах"""
   return False
 
 
 def return_None(*a, **b):
+  """Вернуть None при любых аргументах"""
   return None
 
 
 def return_True(*a, **b):
+  """Вернуть True при любых аргументах"""
   return True
 
 
 def riop(**p_kw):
-  """Run In Another Process (multiprocessing)"""
+  """Запустить функцию в отдельном процессе | `multiprocessing`"""
   import multiprocessing
   if not "daemon" in p_kw:
     p_kw["daemon"] = False
@@ -209,6 +223,7 @@ def riop(**p_kw):
   def decorator(func):
     p_kw["target"] = func
 
+    @wraps(func)
     def wrapper(*args, **kwargs) -> multiprocessing.Process:
       p_kw["args"] = args
       p_kw["kwargs"] = kwargs
@@ -220,7 +235,7 @@ def riop(**p_kw):
 
 
 def riot(**t_kw):
-  """Run In Another Thread (threading)"""
+  """Запустить функцию в отдельном потоке | `threading`"""
   import threading
   if not "daemon" in t_kw:
     t_kw["daemon"] = False
@@ -228,6 +243,7 @@ def riot(**t_kw):
   def decorator(func):
     t_kw["target"] = func
 
+    @wraps(func)
     def wrapper(*args, **kwargs) -> threading.Thread:
       t_kw["args"] = args
       t_kw["kwargs"] = kwargs
@@ -239,6 +255,7 @@ def riot(**t_kw):
 
 
 def sync_download_file(url: str, path: str, *, delete_on_error: bool = True, chunk_size: int = 1024, **kw) -> int:
+  """Синхронная функция для скачивания файла | `requests`"""
   kw["stream"] = True
   kw["url"] = url
   if not "method" in kw:
@@ -259,7 +276,7 @@ def sync_download_file(url: str, path: str, *, delete_on_error: bool = True, chu
 
 
 def sync_request(method: str, url: str, *, ignore_status: bool = False, **kw):
-  """requests request"""
+  """Синхронный HTTP запрос | `requests`"""
   import requests
   kw["method"] = method
   kw["url"] = url
@@ -277,11 +294,13 @@ def sync2async(func: Callable) -> Callable:
 
 
 def uuid() -> str:
+  """Сгенерировать UUID | `uuid`"""
   from uuid import uuid4
   return str(uuid4())
 
 
 def timedelta(time: Union[int, float, dict]):
+  """Превратить число/словарь в `timedelta` | `datetime`"""
   import datetime
   if type(time) == datetime.timedelta:
     return time

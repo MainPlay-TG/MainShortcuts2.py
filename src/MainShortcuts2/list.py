@@ -1,3 +1,4 @@
+"""Работа со списками"""
 import re
 from .core import ms
 from typing import *
@@ -5,10 +6,7 @@ from typing import *
 
 
 def filter(a: list, whitelist: list = None, blacklist: list = [], regex: str = False, begin: str = None, end: str = None):
-  """Фильтровать список
-  whitelist - удалить всё, чего нет в этом списке
-  blacklist - удалить всё, что есть в этом списке
-  regex - сортировка с регулярным выражением (строки)"""
+  """Фильтровать список"""
   a = list(a)
   if whitelist == None:
     whitelist = a
@@ -55,12 +53,7 @@ def filter(a: list, whitelist: list = None, blacklist: list = [], regex: str = F
 
 
 def rm_duplicates(a: list, trim: bool = False, case: bool = False, func=lambda i: i):
-  """Удалить дублирующиеся элементы
-  trim - True: использовать strip()
-         l: использовать lstrip()
-         r: использовать rstrip()
-  case - lower/upper/capitalize
-  func - обработать каждый элемент этой функцией"""
+  """Удалить дублирующиеся элементы"""
   b = []
   trim = str(trim).lower()
   case = str(case).lower()

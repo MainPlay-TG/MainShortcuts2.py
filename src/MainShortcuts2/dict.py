@@ -1,3 +1,4 @@
+"""Работа со словарями"""
 from .core import ms
 from typing import *
 # 2.0.0

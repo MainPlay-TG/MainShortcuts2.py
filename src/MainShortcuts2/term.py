@@ -1,3 +1,4 @@
+"""Работа с терминалом"""
 import os
 import sys
 from .core import ms
@@ -47,6 +48,7 @@ if not colorama is None:
 
 
 def cformat(text: str, *, end: str = None, format: str = "$COLOR_%s", start: str = None) -> str:
+  """Сделать цветной текст"""
   for i in COLORS:
     text = text.replace(format % i, COLORS[i])
   if not start is None:
@@ -57,6 +59,7 @@ def cformat(text: str, *, end: str = None, format: str = "$COLOR_%s", start: str
 
 
 def cprint(*texts, format: str = None, reset: bool = True, start: str = None, **kw):
+  """Напечатать цветной текст"""
   fm_kw = {}
   if not format is None:
     fm_kw["format"] = format
@@ -75,18 +78,31 @@ def cprint(*texts, format: str = None, reset: bool = True, start: str = None, **
 
 
 def color_test(colors: list[str] = None):
+  """Тестирование цветов"""
   if colors is None:
     colors = COLOR_NAMES
   for i in colors:
     cprint("$COLOR_RESET%s: $COLOR_%sEXAMPLE \u2591\u2592\u2593 \u2588\u2588\u2588" % (i, i))
 
 
-def clear():
-  if sys.platform == "win32":
-    return os.system("clear")
-  if sys.platform == "linux":
-    return os.system("cls")
+def _clear():
+  """Если функция недоступна для ОС, дать ошибку"""
   raise OSError("The function is not available on %s" % sys.platform)
+
+
+if sys.platform == "win32":
+  def _clear():
+    """Windows"""
+    os.system("clear")
+if sys.platform == "linux":
+  def _clear():
+    """Linux"""
+    os.system("cls")
+
+
+def clear():
+  """Очистить терминал (только Windows и Linux)"""
+  _clear()
 
 
 cls = clear

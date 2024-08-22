@@ -1,3 +1,4 @@
+"""Работа только с папками"""
 import os
 from .core import ms
 from .path import Path, PATH_TYPES, path2str
@@ -18,7 +19,8 @@ def _check(path, **kw) -> str:
   return path
 
 
-def create(path: PATH_TYPES, force: bool = True, **kw):
+def create(path: PATH_TYPES, force: bool = False, **kw):
+  """Создать папку если её не существует"""
   path = path2str(path)
   if os.path.isdir(path):
     return
@@ -46,6 +48,7 @@ def _list_filter(path: Path, *, exts: Iterable[str], func: Callable[[Path], bool
 
 
 def list(path: PATH_TYPES = ".", *, exts: Iterable[str] = None, func: Callable[[Path], bool] = None, links: bool = None, type: str = None) -> list[Path]:
+  """Список содержимого папки"""
   r = []
   kw = {}
   kw["exts"] = list(exts)
@@ -60,35 +63,41 @@ def list(path: PATH_TYPES = ".", *, exts: Iterable[str] = None, func: Callable[[
 
 
 def copy(path: PATH_TYPES, dest: PATH_TYPES, **kw):
+  """Копировать папку"""
   kw["dest"] = dest
   kw["path"] = _check(path)
   return ms.path.copy(**kw)
 
 
 def delete(path: PATH_TYPES, **kw):
+  """Удалить папку с содержимым"""
   kw["path"] = _check(path)
   return ms.path.delete(**kw)
 
 
 def in_dir(path: str, dir: str, **kw) -> bool:
+  """Находится ли папка в указанной папке"""
   kw["dir"] = dir
   kw["path"] = _check(path)
   return ms.path.in_dir(**kw)
 
 
 def link(path: PATH_TYPES, dest: PATH_TYPES, **kw):
+  """Сделать символическую ссылку на папку"""
   kw["dest"] = dest
   kw["path"] = _check(path)
   return ms.path.link(**kw)
 
 
 def move(path: PATH_TYPES, dest: PATH_TYPES, **kw):
+  """Переместить папку"""
   kw["dest"] = dest
   kw["path"] = _check(path)
   return ms.path.move(**kw)
 
 
 def rename(path: PATH_TYPES, name: PATH_TYPES, **kw):
+  """Переименовать папку"""
   kw["name"] = name
   kw["path"] = _check(path)
   return ms.path.rename(**kw)

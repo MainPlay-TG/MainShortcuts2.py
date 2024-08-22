@@ -1,3 +1,4 @@
+"""Работа с JSON"""
 import json
 import builtins
 from .core import ms
@@ -12,6 +13,7 @@ JSON_TYPES = Union[bool, dict, float, int, list, None, str]
 
 
 def decode(text: str, *, like_json5: bool = False, **kw) -> JSON_TYPES:
+  """Прочитать текстовый JSON"""
   kw["s"] = text
   if like_json5:
     if not json5 is None:
@@ -20,6 +22,7 @@ def decode(text: str, *, like_json5: bool = False, **kw) -> JSON_TYPES:
 
 
 def encode(data: JSON_TYPES, mode: str = "c", **kw):
+  """Создать текстовый JSON"""
   kw["obj"] = data
   mode = mode.lower()
   if "force" in kw:
@@ -40,6 +43,7 @@ def encode(data: JSON_TYPES, mode: str = "c", **kw):
 
 
 def print(data: JSON_TYPES, mode: str = "p", **kw):
+  """Напечатать данные в виде текстового JSON"""
   pr_kw = {}
   for i in ["end", "file", "flush", "sep"]:
     if i in kw:
@@ -50,6 +54,7 @@ def print(data: JSON_TYPES, mode: str = "p", **kw):
 
 
 def read(path: PATH_TYPES, **kw) -> JSON_TYPES:
+  """Прочитать JSON файл"""
   f_kw = {}
   if "encoding" in kw:
     f_kw["encoding"] = kw.pop("encoding")
@@ -59,6 +64,7 @@ def read(path: PATH_TYPES, **kw) -> JSON_TYPES:
 
 
 def rebuild(text: str, **kw) -> str:
+  """Перестроить текстовый JSON"""
   de_kw = {}
   if "like_json5" in kw:
     de_kw["like_json5"] = kw.pop("like_json5")
@@ -68,6 +74,7 @@ def rebuild(text: str, **kw) -> str:
 
 
 def rewrite(path: PATH_TYPES, **kw) -> int:
+  """Перестроить JSON файл"""
   de_kw = {}
   if "encoding" in kw:
     de_kw["encoding"] = kw["encoding"]
@@ -80,6 +87,7 @@ def rewrite(path: PATH_TYPES, **kw) -> int:
 
 
 def write(path: PATH_TYPES, data: JSON_TYPES, **kw) -> int:
+  """Прочитать JSON файл"""
   f_kw = {}
   kw["data"] = data
   for i in ["encoding", "force"]:

@@ -1,10 +1,11 @@
+"""Работа со строками"""
 from .core import ms
 from typing import *
 # 2.0.0
 
 
 def list2str(a: Union[Iterable]) -> list:
-  """Преобразовать каждый элемент в строку"""
+  """Преобразовать каждый элемент списка в строку"""
   b = []
   for i in a:
     b.append(str(i))
@@ -12,7 +13,7 @@ def list2str(a: Union[Iterable]) -> list:
 
 
 def dict2str(a: dict) -> dict:
-  """Преобразовать каждое значение в строку"""
+  """Преобразовать каждое значение словаря в строку"""
   b = {}
   for key, value in a.items():
     b[key] = str(value)
@@ -20,6 +21,8 @@ def dict2str(a: dict) -> dict:
 
 
 class _Replace:
+  """Функции для замены текста"""
+
   def __init__(self):
     pass
 

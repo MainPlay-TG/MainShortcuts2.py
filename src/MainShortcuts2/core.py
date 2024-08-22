@@ -1,3 +1,4 @@
+import _module_info
 import os
 import sys
 from logging import Logger
@@ -13,6 +14,8 @@ class NoLogger:
 
 
 class MS2:
+  version = _module_info.version
+
   def __init__(self, *,
                __file__: str = None,
                __name__: str = None,
@@ -46,6 +49,28 @@ class MS2:
     if not self.prog_name is None:
       self.imported = self.prog_name != "__main__"
       self.running = self.prog_name == "__main__"
+
+  @property
+  def credits(self) -> str:
+    line = "------------------------------------------------"
+    l = []
+    l.append(line)
+    l.append(("MainShortcuts2 %s" % self.version).center(len(line)))
+    l.append("https://github.com/MainPlay-TG/MainShortcuts2.py")
+    l.append(line)
+    l.append("Разработчик: MainPlay TG")
+    l.append("- Telegram - https://t.me/MainPlay_TG")
+    l.append("- GitHub - https://github.com/MainPlay-TG")
+    l.append("- Пожертвования - https://www.donationalerts.com/r/mainplay_tg (не знаю зачем, всё равно никто и копейки не даст)")
+    l.append(line)
+    l.append("Тестеры:")
+    l.append("- MainPlay TG (https://t.me/MainPlay_TG)")
+    l.append("- Кларк (https://t.me/Klark_Anthrofox)")
+    l.append("- FOX (https://t.me/black_fox404)")
+    l.append("- Ты (напиши мне в Telegram и в ближайшем обновлении тут будет твоя ссылка)")
+    l.append(line)
+    l.append("Спасибо за использование моей библиотеки".center(len(line)))
+    return "\n".join(l)
 
   @property
   def cfg(self):

@@ -1,5 +1,7 @@
+"""Работа с компонентами Windows"""
 import win32com.client
 from .core import ms
+from .path import PATH_TYPES, path2str
 from typing import *
 # 2.0.0
 shell = {}
@@ -8,11 +10,11 @@ _names = {}
 _names["lnk"] = {"args": "Arguments", "cwd": "WorkingDirectory", "desc": "Description", "hotkey": "Hotkey", "icon": "IconLocation", "lnk": "FullName", "target": "TargetPath"}
 
 
-def read_lnk(path: str) -> dict:
-  """Читает ярлык .lnk"""
+def read_lnk(path: PATH_TYPES) -> dict:
+  """Прочитать ярлык .lnk"""
   r = {}
-  lnk = shell["WScript"].CreateShortcut(path.replace("/", "\\"))
-  r.src = lnk
+  lnk = shell["WScript"].CreateShortcut(path2str(path, True).replace("/", "\\"))
+  r["src"] = lnk
   for k, v in _names["lnk"].items():
     if hasattr(lnk, v):
       r[k] = getattr(lnk, v)
@@ -21,9 +23,9 @@ def read_lnk(path: str) -> dict:
   return r
 
 
-def write_lnk(path: str, target: str, args: str = None, cwd: str = None, desc: str = None, hotkey: str = None, icon: str = None,):
-  """Создаёт ярлык .lnk"""
-  lnk = shell["WScript"].CreateShortCut(path.replace("/", "\\"))
+def write_lnk(path: PATH_TYPES, target: str, args: str = None, cwd: str = None, desc: str = None, hotkey: str = None, icon: str = None):
+  """Создать ярлык .lnk"""
+  lnk = shell["WScript"].CreateShortCut(path2str(path, True).replace("/", "\\"))
   lnk.TargetPath = target.replace("/", "\\")
   if args != None:
     lnk.Arguments = args
@@ -36,3 +38,4 @@ def write_lnk(path: str, target: str, args: str = None, cwd: str = None, desc: s
   if icon != None:
     lnk.IconLocation = icon.replace("/", "\\")
   lnk.Save()
+  return lnk

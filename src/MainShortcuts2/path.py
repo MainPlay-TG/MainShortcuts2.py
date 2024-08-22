@@ -1,3 +1,4 @@
+"""Работа с объектами файловой системы и путями к ним"""
 import io
 import os
 import pathlib
@@ -23,6 +24,7 @@ def _path2str(path):
 
 
 def path2str(path: PATH_TYPES, to_abs: bool = False, replace_forbidden_to: str = None) -> str:
+  """Преобразовать объект Python в строковый путь"""
   result = _path2str(path).replace("\\", PATHSEP)
   if not replace_forbidden_to is None:
     for i in FORBIDDEN_SYMBOLS:
@@ -36,16 +38,20 @@ def path2str(path: PATH_TYPES, to_abs: bool = False, replace_forbidden_to: str =
 
 @property
 def cwd():
+  """Текущая рабочая папка. Можно изменять"""
   return os.getcwd().replace("\\", PATHSEP)
 
 
 @cwd.setter
 def cwd(v):
+  """Текущая рабочая папка. Можно изменять"""
   os.chdir(path2str(v))
 
 
 class Path:
+  """Информация и действия с объектом файловой системы"""
   # 2.0.0
+
   def __init__(self, path: PATH_TYPES):
     self.cp = self.copy
     self.ln = self.link
@@ -55,7 +61,7 @@ class Path:
     self.path = path
 
   def reload(self, full: bool = False):
-    """Обнуление кешированной информации"""
+    """Удаление кешированной информации"""
     if full:
       self._base_name = None
       self._ext = None
@@ -86,7 +92,7 @@ class Path:
 
   @property
   def base_name(self) -> str:
-    """Имя объекта без расширения"""
+    """Имя объекта без расширения (`example.txt` -> `example`)"""
     if self._base_name is None:
       self._base_name, self._ext = os.path.splitext(self.full_name)
     return self._base_name
@@ -106,14 +112,14 @@ class Path:
 
   @property
   def ext(self) -> str:
-    """Расширение объекта (включая точку)"""
+    """Расширение объекта включая точку (`example.txt` -> `.txt`)"""
     if self._ext is None:
       self._base_name, self._ext = os.path.splitext(self.full_name)
     return self._ext
 
   @property
   def full_name(self) -> str:
-    """Полное имя объекта (включая расширение)"""
+    """Полное имя объекта включая расширение (`/home/example.txt` -> `example.txt`)"""
     if self._full_name is None:
       self._parent_dir, self._full_name = os.path.split(self.path)
     return self._full_name
@@ -152,7 +158,7 @@ class Path:
 
   @property
   def parent_dir(self) -> str:
-    """Путь к родительской папке"""
+    """Путь к родительской папке (`/home/exaple.txt` -> `/home`)"""
     if self._parent_dir is None:
       self._parent_dir, self._full_name = os.path.split(self.path)
     return self._parent_dir
@@ -183,7 +189,7 @@ class Path:
 
   @property
   def type(self) -> str:
-    """Тип объекта ('dir'|'file')"""
+    """Тип объекта (`dir` | `file`)"""
     if self._type is None:
       if self.is_dir:
         self._type = "dir"
@@ -250,6 +256,7 @@ class Path:
 
 
 def copy(path: PATH_TYPES, dest: PATH_TYPES, **kw) -> str:
+  """Копировать объект"""
   kw["src"] = path2str(path)
   kw["dst"] = path2str(dest)
   if os.path.isfile(kw["src"]):
@@ -261,6 +268,7 @@ def copy(path: PATH_TYPES, dest: PATH_TYPES, **kw) -> str:
 
 
 def delete(path: PATH_TYPES, **kw):
+  """Удалить объект с содержимым"""
   kw["path"] = path2str(path)
   if os.path.islink(kw["path"]):
     return os.unlink(**kw)
@@ -271,10 +279,12 @@ def delete(path: PATH_TYPES, **kw):
 
 
 def exists(path: PATH_TYPES) -> bool:
+  """Существует ли объект"""
   return os.path.exists(path2str(path))
 
 
 def in_dir(path: str, dir: str, recursion_limit: int = 1000) -> bool:
+  """Находится ли объект в указанной папке"""
   dir = path2str(dir, True)
   path = path2str(path, True)
   while True:
@@ -290,18 +300,22 @@ def in_dir(path: str, dir: str, recursion_limit: int = 1000) -> bool:
 
 
 def is_dir(path: PATH_TYPES) -> bool:
+  """Является ли объект папкой"""
   return os.path.isdir(path2str(path))
 
 
 def is_file(path: PATH_TYPES) -> bool:
+  """Является ли объект файлом"""
   return os.path.isfile(path2str(path))
 
 
 def is_link(path: PATH_TYPES) -> bool:
+  """Является ли объект ссылкой на другой объект"""
   return os.path.islink(path2str(path))
 
 
 def link(path: PATH_TYPES, dest: PATH_TYPES, force: bool = False, **kw) -> str:
+  """Сделать символическую ссылку на объект"""
   kw["dst"] = path2str(dest, True)
   kw["src"] = path2str(path, True)
   if force:
@@ -312,6 +326,7 @@ def link(path: PATH_TYPES, dest: PATH_TYPES, force: bool = False, **kw) -> str:
 
 
 def move(path: PATH_TYPES, dest: PATH_TYPES, force: bool = False, **kw) -> str:
+  """Переместить объект"""
   kw["dst"] = path2str(dest, True)
   kw["src"] = path2str(path, True)
   if force:
@@ -322,6 +337,7 @@ def move(path: PATH_TYPES, dest: PATH_TYPES, force: bool = False, **kw) -> str:
 
 
 def rename(path: PATH_TYPES, name: PATH_TYPES, **kw) -> str:
+  """Переименовать объект"""
   kw["path"] = path
   kw["dest"] = os.path.dirname(path2str(path)) + "/" + name
   return move(**kw)

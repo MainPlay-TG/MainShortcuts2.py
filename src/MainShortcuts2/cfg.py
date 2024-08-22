@@ -77,7 +77,9 @@ def _load_type(cfg):
 
 
 class cfg:
+  """Загрузка, использование и сохранение конфигов"""
   # 2.0.0
+
   def __init__(self, path: PATH_TYPES, data: dict = None, default: dict = None, type=None):
     self.data = {} if data is None else data
     self.default = {} if default is None else default
@@ -86,20 +88,27 @@ class cfg:
     self._load_func, self._save_func = _load_type(self)
 
   def load(self, **kw):
+    """Загрузить конфиг из файла"""
     self.data = self._load_func(**kw)
   read = load
 
   def save(self, **kw) -> int:
+    """Сохранить конфиг в файл"""
     return self._save_func(**kw)
   write = save
 
   def fill_defaults(self):
+    """Заполнить пустые значения значениями по умолчанию"""
     for i in self.default:
       if not i in self:
         self[i] = self.default[i]
 
   def dload(self, **kw):
-    self.load(**kw)
+    """Загрузить конфиг если файл существует, и заполнить пустые значения"""
+    if os.path.isfile(self.path):
+      self.load(**kw)
+    else:
+      self.data = {}
     self.fill_defaults()
 
   def __contains__(self, k):
@@ -114,11 +123,18 @@ class cfg:
   def __setitem__(self, k, v):
     self.data[k] = v
 
+  def get(self, k, default=None):
+    """Если значение существует, получить его"""
+    return self[k] if k in self else default
+
   def items(self):
+    """dict.items()"""
     return self.data.items()
 
   def keys(self):
+    """dict.keys()"""
     return self.data.keys()
 
   def values(self):
+    """dict.values()"""
     return self.data.values()
