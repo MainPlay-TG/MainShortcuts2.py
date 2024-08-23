@@ -57,7 +57,7 @@ def list(path: PATH_TYPES = ".", *, exts: Iterable[str] = None, func: Callable[[
   kw["links"] = links
   kw["type"] = type
   for i in os.listdir(_check(path)):
-    i = _check(path) + "/" + Path(i)
+    i = Path(_check(path) + "/" + i)
     if _list_filter(i, **kw):
       r.append(i)
   return r
