@@ -1,4 +1,5 @@
 """Работа только с папками"""
+import builtins
 import os
 from .core import ms
 from .path import Path, PATH_TYPES, path2str
@@ -51,15 +52,15 @@ def list(path: PATH_TYPES = ".", *, exts: Iterable[str] = None, func: Callable[[
   """Список содержимого папки"""
   r = []
   kw = {}
-  kw["exts"] = list(exts)
+  kw["exts"] = None if exts is None else builtins.list(exts)
   kw["func"] = func
-  kw["links"] = bool(links)
+  kw["links"] = links
   kw["type"] = type
   for i in os.listdir(_check(path)):
     i = Path(i)
     if _list_filter(i, **kw):
       r.append(i)
-  return i
+  return r
 
 
 def copy(path: PATH_TYPES, dest: PATH_TYPES, **kw):

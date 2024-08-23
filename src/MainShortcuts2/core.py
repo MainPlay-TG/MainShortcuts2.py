@@ -1,6 +1,6 @@
-import _module_info
 import os
 import sys
+from . import _module_info
 from logging import Logger
 # 2.0.0
 
