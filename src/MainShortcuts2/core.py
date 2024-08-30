@@ -31,6 +31,7 @@ class MS2:
     self._proc = None
     self._str = None
     self._term = None
+    self._types = None
     self._utils = None
     self._win = None
     self.args = sys.argv
@@ -141,6 +142,13 @@ class MS2:
       from . import term
       self._term = term
     return self._term
+
+  @property
+  def types(self):
+    if self._types is None:
+      from . import types
+      self._types = types
+    return self._types
 
   @property
   def utils(self):

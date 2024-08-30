@@ -154,8 +154,8 @@ def async2sync(func: Callable) -> Callable:
 
 def get_my_ip() -> str:
   """Получить глобальный IP | `requests`"""
-  import requests
-  with requests.get("https://api.ipify.org?format=json") as resp:
+
+  with sync_request("GET", "https://api.ipify.org?format=json") as resp:
     ip = resp.json()["ip"]
   return ip
 
@@ -277,7 +277,13 @@ def sync_download_file(url: str, path: str, *, delete_on_error: bool = True, chu
 
 def sync_request(method: str, url: str, *, ignore_status: bool = False, **kw):
   """Синхронный HTTP запрос | `requests`"""
-  import requests
+  try:
+    import requests
+  except ImportError as err:
+    try:
+      from pip._vendor import requests
+    except ImportError:
+      raise err
   kw["method"] = method
   kw["url"] = url
   resp = requests.request(**kw)
