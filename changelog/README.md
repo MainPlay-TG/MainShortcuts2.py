@@ -1,4 +1,13 @@
 # MainShortcuts2
+## 2.1.1 (11)
+### Добавлено:
+- Функция `.term.disable_colors`
+- Функция `.term.enable_colors`
+- Функция `.win.hide_file`
+- Функция `.win.unhide_file`
+### Изменено:
+- Добавлен аргумент `save_if_edited` к методу `.cfg.dload`
+- Добавлен аргумент `save_if_edited` к методу `.cfg.fill_defaults`
 ## 2.1.0 (10)
 ### Добавлено:
 - Подмодуль `.types`

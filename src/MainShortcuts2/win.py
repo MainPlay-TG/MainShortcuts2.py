@@ -1,4 +1,5 @@
 """Работа с компонентами Windows"""
+import subprocess
 import win32com.client
 from .core import ms
 from .path import PATH_TYPES, path2str
@@ -39,3 +40,19 @@ def write_lnk(path: PATH_TYPES, target: str, args: str = None, cwd: str = None, 
     lnk.IconLocation = icon.replace("/", "\\")
   lnk.Save()
   return lnk
+# 2.1.1
+
+
+def hide_file(path: PATH_TYPES, *, recursive: bool = False, unhide: bool = False):
+  """Скрыть файл используя системную команду `attrib`"""
+  args = ["attrib"]
+  args.append("-H" if unhide else "+H")
+  args.append(path2str(path, True).replace("/", "\\"))
+  if recursive:
+    args += ["/S", "/D"]
+  subprocess.run(args, check=True)
+
+
+def unhide_file(path: PATH_TYPES, *, recursive: bool = False, hide: bool = False):
+  """Противоположность функции скрытия файла"""
+  return hide_file(path, recursive=recursive, unhide=not hide)

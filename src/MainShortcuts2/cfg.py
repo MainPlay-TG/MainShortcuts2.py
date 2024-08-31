@@ -97,19 +97,23 @@ class cfg:
     return self._save_func(**kw)
   write = save
 
-  def fill_defaults(self):
+  def fill_defaults(self, save_if_edited: bool = False):
     """Заполнить пустые значения значениями по умолчанию"""
+    edited = False
     for i in self.default:
       if not i in self:
+        edited = True
         self[i] = self.default[i]
+    if edited and save_if_edited:
+      self.save()
 
-  def dload(self, **kw):
+  def dload(self, save_if_edited: bool = False, **kw):
     """Загрузить конфиг если файл существует, и заполнить пустые значения"""
     if os.path.isfile(self.path):
       self.load(**kw)
     else:
       self.data = {}
-    self.fill_defaults()
+    self.fill_defaults(save_if_edited)
 
   def __contains__(self, k):
     return k in self.data

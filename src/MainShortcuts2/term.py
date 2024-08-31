@@ -8,12 +8,18 @@ try:
   colorama.init()
 except Exception:
   colorama = None
-# 2.0.0
 COLOR_NAMES = ["BG_BLACK", "BG_BLUE", "BG_GREEN", "BG_LIGHTBLACK", "BG_LIGHTBLUE", "BG_LIGHTGREEN", "BG_LIGHTPINK", "BG_LIGHTRED", "BG_LIGHTWHITE", "BG_LIGHTYELLOW", "BG_PINK", "BG_RED", "BG_WHITE", "BG_YELLOW", "BLACK", "BLUE", "GREEN", "HIGH", "LIGHTBLACK", "LIGHTBLUE", "LIGHTGREEN", "LIGHTPINK", "LIGHTRED", "LIGHTWHITE", "LIGHTYELLOW", "LOW", "PINK", "RED", "RESET", "WHITE", "YELLOW"]
 COLORS: dict[str, str] = {}
 for i in COLOR_NAMES:
   COLORS[i] = ""
-if not colorama is None:
+
+
+def disable_colors():
+  for i in COLOR_NAMES:
+    COLORS[i] = ""
+
+
+def enable_colors():
   COLORS["BG_BLACK"] = colorama.Back.BLACK
   COLORS["BG_BLUE"] = colorama.Back.BLUE
   COLORS["BG_GREEN"] = colorama.Back.GREEN
@@ -45,6 +51,10 @@ if not colorama is None:
   COLORS["RESET"] = colorama.Style.RESET_ALL
   COLORS["WHITE"] = colorama.Fore.WHITE
   COLORS["YELLOW"] = colorama.Fore.YELLOW
+
+
+if not colorama is None:
+  enable_colors()
 
 
 def cformat(text: str, *, end: str = None, format: str = "$COLOR_%s", start: str = None) -> str:
