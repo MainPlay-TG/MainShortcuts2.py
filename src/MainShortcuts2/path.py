@@ -38,13 +38,13 @@ def path2str(path: PATH_TYPES, to_abs: bool = False, replace_forbidden_to: str =
 
 @property
 def cwd():
-  """Текущая рабочая папка. Можно изменять"""
+  """Текущая рабочая папка"""
   return os.getcwd().replace("\\", PATHSEP)
 
 
 @cwd.setter
 def cwd(v):
-  """Текущая рабочая папка. Можно изменять"""
+  """Текущая рабочая папка. Можно изменять (наверное)"""
   os.chdir(path2str(v))
 
 
@@ -255,10 +255,12 @@ class Path:
     return r
 
 
-def copy(path: PATH_TYPES, dest: PATH_TYPES, **kw) -> str:
+def copy(path: PATH_TYPES, dest: PATH_TYPES, mkdir: bool = False, **kw) -> str:
   """Копировать объект"""
-  kw["src"] = path2str(path)
   kw["dst"] = path2str(dest)
+  kw["src"] = path2str(path)
+  if mkdir:
+    ms.dir.create(os.path.dirname(kw["dst"]))
   if os.path.isfile(kw["src"]):
     shutil.copy(**kw)
     return kw["dst"]
@@ -314,24 +316,30 @@ def is_link(path: PATH_TYPES) -> bool:
   return os.path.islink(path2str(path))
 
 
-def link(path: PATH_TYPES, dest: PATH_TYPES, force: bool = False, **kw) -> str:
+def link(path: PATH_TYPES, dest: PATH_TYPES, force: bool = False, mkdir: bool = False, **kw) -> str:
   """Сделать символическую ссылку на объект"""
   kw["dst"] = path2str(dest, True)
   kw["src"] = path2str(path, True)
   if force:
+    mkdir = True
     if exists(kw["dst"]):
       delete(kw["dst"])
+  if mkdir:
+    ms.dir.create(os.path.dirname(kw["dst"]))
   os.symlink(**kw)
   return kw["dst"]
 
 
-def move(path: PATH_TYPES, dest: PATH_TYPES, force: bool = False, **kw) -> str:
+def move(path: PATH_TYPES, dest: PATH_TYPES, force: bool = False, mkdir: bool = False, **kw) -> str:
   """Переместить объект"""
-  kw["dst"] = path2str(dest, True)
-  kw["src"] = path2str(path, True)
+  kw["dst"] = path2str(dest)
+  kw["src"] = path2str(path)
   if force:
+    mkdir = True
     if exists(kw["dst"]):
       delete(kw["dst"])
+  if mkdir:
+    ms.dir.create(os.path.dirname(kw["dst"]))
   shutil.move(**kw)
   return kw["dst"]
 

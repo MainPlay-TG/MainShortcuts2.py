@@ -1,4 +1,12 @@
 # MainShortcuts2
+## 2.1.2 (12)
+### Добавлено:
+- Аргумент `mkdir` у функции `.file.save`
+- Аргумент `mkdir` у функции `.file.write`
+- Аргумент `mkdir` у функции `.path.copy`
+- Аргумент `mkdir` у функции `.path.link`
+- Аргумент `mkdir` у функции `.path.move`
+- Класс `.dir.TempDir`
 ## 2.1.1 (11)
 ### Добавлено:
 - Функция `.term.disable_colors`

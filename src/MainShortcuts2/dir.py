@@ -102,6 +102,34 @@ def rename(path: PATH_TYPES, name: PATH_TYPES, **kw):
   kw["name"] = name
   kw["path"] = _check(path)
   return ms.path.rename(**kw)
+# 2.1.2
+
+
+class TempDir:
+  """Временная папка, которая будет удалена по окончании использования (используйте через `with`)"""
+
+  def __init__(self, path: PATH_TYPES, *, create: bool = True, ignore_error: bool = True):
+    self.ignore_error = ignore_error
+    self.path: str = path2str(path, True)
+    if create:
+      self.create()
+
+  def __enter__(self):
+    self.create()
+
+  def __exit__(self, type, value, trace):
+    if not value is None:
+      if not self.ignore_error:
+        return
+    self.delete()
+
+  def create(self):
+    """Создать папку если она не существует"""
+    ms.dir.create(self.path)
+
+  def delete(self):
+    """Удалить папку вместе с содержимым"""
+    ms.path.delete(self.path)
 
 
 cp = copy

@@ -29,11 +29,13 @@ def read(path: PATH_TYPES, encoding: str = None, **kw) -> str:
     return f.read()
 
 
-def write(path: PATH_TYPES, data: str, encoding: str = None, **kw) -> int:
+def write(path: PATH_TYPES, data: str, encoding: str = None, mkdir: bool = False, **kw) -> int:
   """Записать текст в файл"""
   kw["encoding"] = ms.encoding if encoding is None else encoding
   kw["file"] = _check(path)
   kw["mode"] = "w"
+  if mkdir:
+    ms.dir.create(os.path.dirname(kw["file"]))
   with builtins.open(**kw) as f:
     return f.write(data)
 
@@ -46,10 +48,12 @@ def load(path: PATH_TYPES, **kw) -> bytes:
     return f.read()
 
 
-def save(path: PATH_TYPES, data: bytes, **kw) -> int:
+def save(path: PATH_TYPES, data: bytes, mkdir: bool = False, **kw) -> int:
   """Записать байты в файл"""
   kw["file"] = _check(path)
   kw["mode"] = "wb"
+  if mkdir:
+    ms.dir.create(os.path.dirname(kw["file"]))
   with builtins.open(**kw) as f:
     return f.write(data)
 
