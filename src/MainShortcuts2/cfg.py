@@ -14,8 +14,8 @@ ext2type = {
 
 
 def _check_type(path: str, type: Union[str, None]):
-  type = type.lower()
   if not type is None:
+    type = type.lower()
     if not type in types:
       raise Exception("Type %r not supported" % type)
     return type
@@ -80,7 +80,7 @@ class cfg:
   """Загрузка, использование и сохранение конфигов"""
   # 2.0.0
 
-  def __init__(self, path: PATH_TYPES, data: dict = None, default: dict = None, type=None):
+  def __init__(self, path: PATH_TYPES, data: dict = None, default: dict = None, type: str = None):
     self.data = {} if data is None else data
     self.default = {} if default is None else default
     self.path = path2str(path, True)

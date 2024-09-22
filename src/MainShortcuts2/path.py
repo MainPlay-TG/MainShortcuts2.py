@@ -36,29 +36,23 @@ def path2str(path: PATH_TYPES, to_abs: bool = False, replace_forbidden_to: str =
   return result
 
 
-@property
-def cwd():
-  """Текущая рабочая папка"""
+def cwd(set_to: PATH_TYPES = None) -> str:
+  """Получить путь к рабочей папке"""
+  if not set_to is None:
+    os.chdir(path2str(set_to))
   return os.getcwd().replace("\\", PATHSEP)
-
-
-@cwd.setter
-def cwd(v):
-  """Текущая рабочая папка. Можно изменять (наверное)"""
-  os.chdir(path2str(v))
 
 
 class Path:
   """Информация и действия с объектом файловой системы"""
-  # 2.0.0
 
   def __init__(self, path: PATH_TYPES):
     self.cp = self.copy
     self.ln = self.link
     self.mv = self.move
+    self.path = path2str(path, to_abs=True)
     self.rm = self.delete
     self.rn = self.rename
-    self.path = path
 
   def reload(self, full: bool = False):
     """Удаление кешированной информации"""
@@ -349,6 +343,44 @@ def rename(path: PATH_TYPES, name: PATH_TYPES, **kw) -> str:
   kw["path"] = path
   kw["dest"] = os.path.dirname(path2str(path)) + "/" + name
   return move(**kw)
+
+
+class TempFiles:
+  """Удаление временных файлов по окончании операций с `with`"""
+
+  def __init__(self, *files: PATH_TYPES):
+    self.files: list[str] = []
+    self.add(*files)
+
+  def __enter__(self):
+    return self
+
+  def __exit__(self, a, b, c):
+    self.remove_files()
+
+  def __contains__(self, k):
+    return k in self.files
+
+  def __delitem__(self, k):
+    if type(k) == str:
+      k = self.files.index(k)
+    del self.files[k]
+
+  def add(self, *files: PATH_TYPES):
+    """Добавить файлы в список временных"""
+    for i in files:
+      path = path2str(i, to_abs=True)
+      if not path in self.files:
+        self.files.append(path)
+
+  def remove_files(self, ignore_errors: bool = True):
+    """Удалить все временные файлы"""
+    for i in self.files:
+      try:
+        delete(i)
+      except Exception:
+        if not ignore_errors:
+          raise
 
 
 cp = copy
