@@ -52,7 +52,7 @@ class MS2:
     self.encoding: str = "utf-8"
     self.env: dict[str, str] = os.environ
     self.import_code: str = "from MainShortcuts2 import ms\nms.prog_file,ms.prog_name=__file__,__name__\nms.reload()"
-    self.log: Logger = NoLogger() if logger is None else logger
+    self.log: Logger = NoLogger("MainShortcuts2") if logger is None else logger
     self.MAIN_FILE: Union[None, str] = _get_main_file()
     self.MAIN_DIR: Union[None, str] = None if self.MAIN_FILE is None else os.path.abspath(self.MAIN_FILE)
     self.prog_dir: Union[None, str] = None

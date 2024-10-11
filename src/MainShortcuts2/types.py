@@ -8,6 +8,11 @@ class Base:
     self.type = type(self)
 
 
+class UserError(Exception):
+  pass
+  """Ошибка, которую допустил пользователь. Например неправильно указал входные данные"""
+
+
 class AccessDeniedError(UserError):
   pass
   """Ошибка доступа"""
@@ -41,11 +46,6 @@ class NotFound(Base):
 class NotFoundError(Exception):
   pass
   """Ошибка 'не найдено'"""
-
-
-class UserError(Exception):
-  pass
-  """Ошибка, которую допустил пользователь. Например неправильно указал входные данные"""
 
 
 Error401 = AccessDeniedError
