@@ -1,7 +1,6 @@
 """Работа со строками"""
 from .core import ms
 from typing import *
-# 2.0.0
 
 
 def list2str(a: Union[Iterable]) -> list:

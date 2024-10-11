@@ -2,7 +2,6 @@
 import re
 from .core import ms
 from typing import *
-# 2.0.0
 
 
 def filter(a: list, whitelist: list = None, blacklist: list = [], regex: str = False, begin: str = None, end: str = None):

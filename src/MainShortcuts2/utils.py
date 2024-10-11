@@ -4,7 +4,6 @@ import sys
 from .core import ms
 from functools import wraps
 from typing import *
-# 2.0.0
 
 
 class MiddlewareBase:
@@ -19,22 +18,24 @@ class MiddlewareBase:
     self._kwargs = None
     self._result = None
     self._traceback = None
-    self.completed_with_exc = None
-    self.completed = False
+    self.completed_with_exc: Union[None, bool] = None
+    self.completed: bool = False
     self.func = func
-    self.launched = False
+    self.launched: bool = False
     if not hasattr(self, "ignore_exceptions"):
-      self.ignore_exceptions = False
+      self.ignore_exceptions: bool = False
 
   def _check_completed(self):
     if not self.completed:
       raise RuntimeError("The function has not yet been completed")
 
   def _check_launched(self):
-    if not self.completed:
+    if not self.launched:
       raise RuntimeError("The function has not yet been launched")
 
   def _run(self, args, kwargs):
+    if self.launched:
+      raise RuntimeError("You can only start a function once once")
     self._args = args
     self._kwargs = kwargs
     self.launched = True
@@ -70,10 +71,10 @@ class MiddlewareBase:
     return self._kwargs
 
   @property
-  def result(self) -> Any:
+  def result(self) -> Union[Any, NoReturn]:
     self._check_completed()
     if self.completed_with_exc:
-      raise self.exception
+      raise self.exception  # type: ignore
     return self._result
 
   @property
@@ -115,7 +116,7 @@ async def async_download_file(url: str, path: str, *, delete_on_error: bool = Tr
   kw["url"] = url
   if not "method" in kw:
     kw["method"] = "GET"
-  async with async_request(**kw) as resp:
+  async with async_request(**kw) as resp:  # type: ignore
     with open(path, "wb") as fd:
       size = 0
       try:
@@ -286,7 +287,7 @@ def sync_request(method: str, url: str, *, ignore_status: bool = False, **kw):
       raise err
   kw["method"] = method
   kw["url"] = url
-  resp = requests.request(**kw)
+  resp = requests.request(**kw)  # type: ignore
   if not ignore_status:
     resp.raise_for_status()
   return resp
@@ -313,6 +314,35 @@ def timedelta(time: Union[int, float, dict]):
   if type(time) == dict:
     return datetime.timedelta(**time)
   return datetime.timedelta(seconds=time)
+
+
+def shebang_code(code: str, *, exe_name: Union[None, str] = None, exe_path: Union[None, str] = None, none_if_no_changes: bool = False) -> Union[None, str]:
+  """Вставить/заменить шебанг в коде. Если указать имя интерпретатора, путь будет найден с помощью `shutil.which`"""
+  if (exe_name is None) and (exe_path is None):
+    raise TypeError("Specify exe_name or exe_path")
+  if not exe_name is None:
+    if not exe_path is None:
+      raise TypeError("exe_name and exe_path cannot be used together")
+  if exe_path is None:
+    import shutil
+    exe_path = shutil.which(exe_name)
+    if exe_path is None:
+      raise Exception("Command %s not found in PATH" % exe_name)
+  lines = code.split("\n")
+  if none_if_no_changes:
+    if lines[0] == "#!" + exe_path:
+      return None
+  while len(lines[0].strip()) == 0 or lines[0].startswith("#!"):
+    del lines[0]
+  return "#!" + exe_path + "\n" + "\n".join(lines)
+
+
+def shebang_file(path: str, *, exe_name: Union[None, str] = None, exe_path: Union[None, str] = None) -> int:
+  """Вставить/заменить шебанг в файле кода"""
+  result = shebang_code(ms.file.read(path), exe_name=exe_name, exe_path=exe_path, none_if_no_changes=True)
+  if result is None:
+    return 0
+  return ms.file.write(path, result)
 
 
 download_file = sync_download_file

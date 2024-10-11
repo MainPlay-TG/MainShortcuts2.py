@@ -8,7 +8,6 @@ try:
   import json5
 except Exception:
   json5 = None
-# 2.0.0
 JSON_TYPES = Union[bool, dict, float, int, list, None, str]
 
 
@@ -42,7 +41,7 @@ def encode(data: JSON_TYPES, mode: str = "c", **kw):
   return json.dumps(**kw)
 
 
-def print(data: JSON_TYPES, mode: str = "p", **kw):
+def print(data: JSON_TYPES, **kw):
   """Напечатать данные в виде текстового JSON"""
   pr_kw = {}
   for i in ["end", "file", "flush", "sep"]:
@@ -50,6 +49,10 @@ def print(data: JSON_TYPES, mode: str = "p", **kw):
       pr_kw[i] = kw.pop(i)
   kw["data"] = data
   kw["mode"] = mode
+  if not "ensure_ascii" in kw:
+    kw["ensure_ascii"] = False
+  if not "mode" in kw:
+    kw["mode"] = "p"
   builtins.print(encode(**kw), **pr_kw)
 
 

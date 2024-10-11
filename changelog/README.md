@@ -1,4 +1,15 @@
 # MainShortcuts2
+## 2.2.0 (14)
+### Добавлено:
+- Атрибут `.MAIN_DIR`
+- Атрибут `.MAIN_FILE`
+- Подмодуль `.advanced`
+- Подмодуль `.regex`
+- Подмодуль `.special_chars`
+- Функция `.utils.shebang_code`
+- Функция `.utils.shebang_file`
+### Изменено:
+- Добавлено значение по умолчанию `ensure_ascii = False` в `.json.print`
 ## 2.1.3 (13)
 ### Добавлено:
 - Класс `.path.TempFiles`

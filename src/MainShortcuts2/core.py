@@ -2,15 +2,26 @@ import os
 import sys
 from . import _module_info
 from logging import Logger
-# 2.0.0
+from typing import Union
 
 
-class NoLogger:
-  def __init__(*a, **b):
+def _get_main_file():
+  def func():
+    if hasattr(sys, "frozen"):
+      if sys.frozen:
+        return sys.executable
+    if "__main__" in sys.modules:
+      if hasattr(sys.modules["__main__"], "__file__"):
+        return sys.modules["__main__"].__file__
+  result = func()
+  if result is None:
+    return
+  return os.path.abspath(result).replace("\\", "/")
+
+
+class NoLogger(Logger):
+  def _log(self, level, msg, args, exc_info=None, extra=None, stack_info=False, stacklevel=1):
     pass
-
-  def __getattr__(self, k):
-    return lambda *a, **b: None
 
 
 class MS2:
@@ -21,6 +32,7 @@ class MS2:
                __name__: str = None,
                logger: Logger = None,
                **kw):
+    self._advanced = None
     self._cfg = None
     self._dict = None
     self._dir = None
@@ -29,18 +41,23 @@ class MS2:
     self._list = None
     self._path = None
     self._proc = None
+    self._regex = None
+    self._special_chars = None
     self._str = None
     self._term = None
     self._types = None
     self._utils = None
     self._win = None
-    self.args = sys.argv
-    self.encoding = "utf-8"
-    self.env = os.environ
-    self.import_code = "from MainShortcuts2 import ms\nms.prog_file,ms.prog_name=__file__,__name__\nms.reload()"
+    self.args: list[str] = sys.argv
+    self.encoding: str = "utf-8"
+    self.env: dict[str, str] = os.environ
+    self.import_code: str = "from MainShortcuts2 import ms\nms.prog_file,ms.prog_name=__file__,__name__\nms.reload()"
     self.log: Logger = NoLogger() if logger is None else logger
-    self.prog_file = __file__
-    self.prog_name = __name__
+    self.MAIN_FILE: Union[None, str] = _get_main_file()
+    self.MAIN_DIR: Union[None, str] = None if self.MAIN_FILE is None else os.path.abspath(self.MAIN_FILE)
+    self.prog_dir: Union[None, str] = None
+    self.prog_file: Union[None, str] = __file__
+    self.prog_name: Union[None, str] = __name__
     self.reload()
 
   def reload(self):
@@ -48,8 +65,8 @@ class MS2:
     if not self.prog_file is None:
       self.prog_dir = os.path.dirname(self.prog_file)
     if not self.prog_name is None:
-      self.imported = self.prog_name != "__main__"
-      self.running = self.prog_name == "__main__"
+      self.imported: bool = self.prog_name != "__main__"
+      self.running: bool = self.prog_name == "__main__"
 
   @property
   def credits(self) -> str:
@@ -72,6 +89,13 @@ class MS2:
     l.append(line)
     l.append("Спасибо за использование моей библиотеки".center(len(line)))
     return "\n".join(l)
+
+  @property
+  def advanced(self):
+    if self._advanced is None:
+      from . import advanced
+      self._advanced = advanced
+    return self._advanced
 
   @property
   def cfg(self):
@@ -128,6 +152,20 @@ class MS2:
       from . import proc
       self._proc = proc
     return self._proc
+
+  @property
+  def regex(self):
+    if self._regex is None:
+      from . import regex
+      self._regex = regex
+    return self._regex
+
+  @property
+  def special_chars(self):
+    if self._special_chars is None:
+      from . import special_chars
+      self._special_chars = special_chars
+    return self._special_chars
 
   @property
   def str(self):

@@ -3,12 +3,8 @@ import builtins
 import os
 from .core import ms
 from .path import PATH_TYPES, path2str
+from .types import NotAFileError
 from typing import *
-# 2.0.0
-
-
-class NotAFileError(Exception):
-  pass
 
 
 def _check(path, **kw) -> str:

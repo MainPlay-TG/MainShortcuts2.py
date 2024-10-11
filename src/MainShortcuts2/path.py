@@ -5,7 +5,6 @@ import pathlib
 import shutil
 from .core import ms
 from typing import *
-# 2.0.0
 EXTSEP = "."
 FORBIDDEN_SYMBOLS = [":", "!", "?", "@", "*", "\"", "\n", "%", "+", "<", ">", "|"]
 PATH_TYPES = Union[io.FileIO, pathlib.Path, str]
@@ -25,7 +24,7 @@ def _path2str(path):
 
 def path2str(path: PATH_TYPES, to_abs: bool = False, replace_forbidden_to: str = None) -> str:
   """Преобразовать объект Python в строковый путь"""
-  result = _path2str(path).replace("\\", PATHSEP)
+  result = _path2str(path)
   if not replace_forbidden_to is None:
     for i in FORBIDDEN_SYMBOLS:
       if i in replace_forbidden_to:
@@ -33,7 +32,7 @@ def path2str(path: PATH_TYPES, to_abs: bool = False, replace_forbidden_to: str =
       result = result.replace(i, replace_forbidden_to)
   if to_abs:
     result = os.path.abspath(result)
-  return result
+  return result.replace("\\", PATHSEP)
 
 
 def cwd(set_to: PATH_TYPES = None) -> str:

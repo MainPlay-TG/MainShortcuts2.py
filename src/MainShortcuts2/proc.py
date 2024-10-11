@@ -3,7 +3,6 @@ import subprocess
 from .core import ms
 from functools import wraps
 from typing import *
-# 2.0.0
 Popen_kw = {
     "stderr": subprocess.PIPE,
     "stdin": subprocess.PIPE,
