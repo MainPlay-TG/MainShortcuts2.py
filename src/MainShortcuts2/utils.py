@@ -4,6 +4,7 @@ import sys
 from .core import ms
 from functools import wraps
 from typing import *
+cache = {}
 
 
 class MiddlewareBase:
@@ -343,6 +344,89 @@ def shebang_file(path: str, *, exe_name: Union[None, str] = None, exe_path: Unio
   if result is None:
     return 0
   return ms.file.write(path, result)
+
+
+def remove_ANSI(text: str) -> str:
+  """Убрать ANSI коды из текста | `re`"""
+  cache_id = "remove_ANSI", 0
+  if not cache_id in cache:
+    import re
+    cache[cache_id] = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+  return cache[cache_id].sub("", text)
+
+
+OnlyOneInstanceError = ms.types.OnlyOneInstanceError
+
+
+class OnlyOneInstance:
+  """Запретить запуск одной программы несколько раз | `tempfile`, `fcntl`"""
+  _win = sys.platform == "win32"
+
+  def __init__(self, name: str = "main", lock_path: str = None):
+    import tempfile
+    self.name: str = name
+    if lock_path is None:
+      lock_path = tempfile.gettempdir() + "/" + ms.MAIN_FILE.replace(":", "").replace("/", "_") + "." + name + ".lock"
+    self.lock = ms.path.Path(lock_path, use_cache=False)
+    if self._win:
+      flags = os.O_CREAT | os.O_EXCL | os.O_RDWR
+
+      def _enter():
+        try:
+          if self.lock.exists:
+            os.unlink(self.lock.path)
+          self.fd = os.open(self.lockfile, flags)
+        except OSError as err:
+          if err.errno == 13:
+            raise OnlyOneInstanceError()
+          raise
+
+      def _exit():
+        os.close(self.fd)
+        os.unlink(self.lock.path)
+    else:
+      import fcntl
+      flags = fcntl.LOCK_EX | fcntl.LOCK_NB
+
+      def _enter():
+        self.fp = open(self.lock.path, "w")
+        self.fp.flush()
+        try:
+          fcntl.lockf(self.fp, flags)
+        except IOError:
+          raise OnlyOneInstanceError()
+
+      def _exit():
+        fcntl.lockf(self.fp, fcntl.LOCK_UN)
+        os.close(self.fp)
+        if self.lock.exists:
+          os.unlink(self.lock.path)
+    self._enter = _enter
+    self._exit = _exit
+
+  def __enter__(self):
+    if self.running:
+      raise OnlyOneInstanceError()
+    self._enter()
+    self.running = True
+    try:
+      self.on_enter()
+    except Exception:
+      pass
+    return self
+
+  def __exit__(self, a, b, c):
+    if not self.running:
+      return
+    self._exit()
+    self.running = False
+    self.on_exit()
+
+  def on_enter(self):
+    pass
+
+  def on_exit(self):
+    pass
 
 
 download_file = sync_download_file

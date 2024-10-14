@@ -1,0 +1,15 @@
+{
+  "version": "2.2.3",
+  "version_id": 17,
+  "changed": [],
+  "fixed": [
+    "Определение типа в `.cfg`"
+  ],
+  "added": [
+    "Аргумент `use_cache` в `.path.Path`",
+    "Класс `.types.Action`",
+    "Класс `.utils.OnlyOneInstance`",
+    "Функция `.utils.remove_ANSI`"
+  ],
+  "removed": []
+}

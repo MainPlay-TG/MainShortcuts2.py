@@ -1,10 +1,10 @@
 {
   "version": "2.2.2",
   "version_id": 16,
-  "changed": [
+  "changed": [],
+  "fixed": [
+    "\u0410\u0442\u0440\u0438\u0431\u0443\u0442 `.MAIN_DIR`"
   ],
-  "fixed": ["Атрибут `.MAIN_DIR`"],
-  "added": [
-  ],
+  "added": [],
   "removed": []
 }

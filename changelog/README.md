@@ -1,4 +1,12 @@
 # MainShortcuts2
+## 2.2.3 (17)
+### Добавлено:
+- Аргумент `use_cache` в `.path.Path`
+- Класс `.types.Action`
+- Класс `.utils.OnlyOneInstance`
+- Функция `.utils.remove_ANSI`
+### Исправлено:
+- Определение типа в `.cfg`
 ## 2.2.2 (16)
 ### Исправлено:
 - Атрибут `.MAIN_DIR`

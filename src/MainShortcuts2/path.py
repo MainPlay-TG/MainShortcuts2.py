@@ -45,13 +45,15 @@ def cwd(set_to: PATH_TYPES = None) -> str:
 class Path:
   """Информация и действия с объектом файловой системы"""
 
-  def __init__(self, path: PATH_TYPES):
+  def __init__(self, path: PATH_TYPES, use_cache: bool = True):
+    self._path = path2str(path, to_abs=True)
     self.cp = self.copy
     self.ln = self.link
     self.mv = self.move
-    self.path = path2str(path, to_abs=True)
+    self.reload(full=True)
     self.rm = self.delete
     self.rn = self.rename
+    self.use_cache = use_cache
 
   def reload(self, full: bool = False):
     """Удаление кешированной информации"""
@@ -81,7 +83,7 @@ class Path:
   def path(self, v):
     """Абсолютный путь к объекту"""
     self._path = path2str(v, to_abs=True)
-    self.reload(True)
+    self.reload(full=True)
 
   @property
   def base_name(self) -> str:
@@ -93,14 +95,14 @@ class Path:
   @property
   def created_at(self) -> float:
     """timestamp создания объекта"""
-    if self._created_at is None:
+    if self._created_at is None or (not self.use_cache):
       self._created_at = os.path.getctime(self.path)
     return self._created_at
 
   @property
   def exists(self) -> bool:
     """Существует ли объект"""
-    if self._exists is None:
+    if self._exists is None or (not self.use_cache):
       self._exists = os.path.exists(self.path)
 
   @property
@@ -120,7 +122,7 @@ class Path:
   @property
   def is_dir(self) -> bool:
     """Является ли объект папкой"""
-    if self._is_dir is None:
+    if self._is_dir is None or (not self.use_cache):
       self._is_dir = os.path.isdir(self.path)
       if self._is_dir:
         self._type = "dir"
@@ -129,7 +131,7 @@ class Path:
   @property
   def is_file(self) -> bool:
     """Является ли объект файлом"""
-    if self._is_file is None:
+    if self._is_file is None or (not self.use_cache):
       self._is_file = os.path.isfile(self.path)
       if self._is_file:
         self._type = "file"
@@ -138,14 +140,14 @@ class Path:
   @property
   def is_link(self) -> bool:
     """Является ли объект ссылкой на другой объект"""
-    if self._is_link is None:
+    if self._is_link is None or (not self.use_cache):
       self._is_link = os.path.islink(self.path)
     return self._is_link
 
   @property
   def modified_at(self) -> float:
     """timestamp изменения объекта"""
-    if self._modified_at is None:
+    if self._modified_at is None or (not self.use_cache):
       self._modified_at = os.path.getmtime(self.path)
     return self._modified_at
 
@@ -159,7 +161,7 @@ class Path:
   @property
   def realpath(self) -> str:
     """Настоящий путь к объекту, если это ссылка (может быть неправильным)"""
-    if self._realpath is None:
+    if self._realpath is None or (not self.use_cache):
       if self.is_link:
         self._realpath = os.readlink(self.path)
       else:
@@ -169,7 +171,7 @@ class Path:
   @property
   def size(self) -> int:
     """Размер объекта в байтах"""
-    if self._size is None:
+    if self._size is None or (not self.use_cache):
       self._size = os.path.getsize(self.path)
     return self._size
 
@@ -183,7 +185,7 @@ class Path:
   @property
   def type(self) -> str:
     """Тип объекта (`dir` | `file`)"""
-    if self._type is None:
+    if self._type is None or (not self.use_cache):
       if self.is_dir:
         self._type = "dir"
       if self.is_file:
@@ -195,7 +197,7 @@ class Path:
   @property
   def used_at(self) -> float:
     """timestamp последнего использования объекта"""
-    if self._used_at is None:
+    if self._used_at is None or (not self.use_cache):
       self._used_at = os.path.getatime(self.path)
     return self._used_at
 

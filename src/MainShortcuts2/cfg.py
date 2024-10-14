@@ -19,7 +19,8 @@ def _check_type(path: str, type: Union[str, None]):
     if not type in types:
       raise Exception("Type %r not supported" % type)
     return type
-  _, ext = os.path.splitext(path).lower()
+  _, ext = os.path.splitext(path)
+  ext = ext[1:].lower()
   if ext in ext2type:
     return ext2type[ext]
   raise Exception("Cannot determine type by extension %r" % ext)
