@@ -1,4 +1,8 @@
 # MainShortcuts2
+## 2.2.4 (18)
+### Исправлено:
+- Инициализация `.utils.OnlyOneInstance`
+- Фильтрация расширений в `.dir.list`
 ## 2.2.3 (17)
 ### Добавлено:
 - Аргумент `use_cache` в `.path.Path`

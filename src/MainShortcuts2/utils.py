@@ -365,6 +365,7 @@ class OnlyOneInstance:
   def __init__(self, name: str = "main", lock_path: str = None):
     import tempfile
     self.name: str = name
+    self.running = False
     if lock_path is None:
       lock_path = tempfile.gettempdir() + "/" + ms.MAIN_FILE.replace(":", "").replace("/", "_") + "." + name + ".lock"
     self.lock = ms.path.Path(lock_path, use_cache=False)
@@ -375,7 +376,7 @@ class OnlyOneInstance:
         try:
           if self.lock.exists:
             os.unlink(self.lock.path)
-          self.fd = os.open(self.lockfile, flags)
+          self.fd = os.open(self.lock.path, flags)
         except OSError as err:
           if err.errno == 13:
             raise OnlyOneInstanceError()

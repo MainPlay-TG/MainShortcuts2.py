@@ -34,7 +34,7 @@ def create(path: PATH_TYPES, force: bool = False, **kw):
 
 def _list_filter(path: Path, *, exts: Iterable[str], func: Callable[[Path], bool], links: bool, type: str):
   if not exts is None:
-    if not path.ext in exts:
+    if not path.ext.lower() in exts:
       return False
   if not func is None:
     if not func(path):
@@ -50,14 +50,20 @@ def _list_filter(path: Path, *, exts: Iterable[str], func: Callable[[Path], bool
 
 def list(path: PATH_TYPES = ".", *, exts: Iterable[str] = None, func: Callable[[Path], bool] = None, links: bool = None, type: str = None) -> list[Path]:
   """Список содержимого папки"""
-  r = []
   kw = {}
-  kw["exts"] = None if exts is None else builtins.list(exts)
+  path = _check(path)
+  r = []
   kw["func"] = func
   kw["links"] = links
   kw["type"] = type
-  for i in os.listdir(_check(path)):
-    i = Path(_check(path) + "/" + i)
+  if exts is None:
+    kw["exts"] = None
+  else:
+    kw["exts"] = []
+    for i in exts:
+      kw["exts"].append((i if i.startswith(".") else "." + i).lower())
+  for i in os.listdir(path):
+    i = Path(path + "/" + i)
     if _list_filter(i, **kw):
       r.append(i)
   return r
