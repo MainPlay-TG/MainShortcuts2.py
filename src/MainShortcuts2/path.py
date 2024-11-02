@@ -55,6 +55,9 @@ class Path:
     self.rn = self.rename
     self.use_cache = use_cache
 
+  def __fspath__(self) -> str:
+    return self.path
+
   def reload(self, full: bool = False):
     """Удаление кешированной информации"""
     if full:

@@ -115,4 +115,10 @@ def clear():
   _clear()
 
 
+def set_title(title: str):
+  """Установить заголовок окна"""
+  # Не работает на bpython: AssertionError
+  print("\u001b]2;" + title + "\u0007", end="")
+
+
 cls = clear

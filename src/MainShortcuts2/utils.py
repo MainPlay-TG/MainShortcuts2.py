@@ -374,7 +374,7 @@ class OnlyOneInstance:
 
       def _enter():
         try:
-          if self.lock.exists:
+          if os.path.exists(self.lock.path):
             os.unlink(self.lock.path)
           self.fd = os.open(self.lock.path, flags)
         except OSError as err:
@@ -399,8 +399,8 @@ class OnlyOneInstance:
 
       def _exit():
         fcntl.lockf(self.fp, fcntl.LOCK_UN)
-        os.close(self.fp)
-        if self.lock.exists:
+        self.fp.close()
+        if os.path.exists(self.lock.path):
           os.unlink(self.lock.path)
     self._enter = _enter
     self._exit = _exit
@@ -428,6 +428,28 @@ class OnlyOneInstance:
 
   def on_exit(self):
     pass
+
+
+def multi_and(*values: bool) -> bool:
+  for i in values:
+    if not i:
+      return False
+  return True
+
+
+def multi_or(*values: bool) -> bool:
+  for i in values:
+    if i:
+      return True
+  return False
+
+
+def is_int(value: float) -> bool:
+  return value == int(value)
+
+
+def get_self_module(__name__: str):
+  return sys.modules[__name__]
 
 
 download_file = sync_download_file

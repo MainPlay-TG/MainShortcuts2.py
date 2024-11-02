@@ -1,0 +1,18 @@
+{
+  "added": [
+    "Метод `.path.Path.__fspath__`",
+    "Подмодуль `.api`, импортируется вручную",
+    "Функция `.term.set_title`",
+    "Функция `.utils.get_self_module`",
+    "Функция `.utils.multi_and`",
+    "Функция `.utils.multi_or`"
+  ],
+  "changed": [],
+  "fixed": [
+    "Выход в `.utils.OnlyOneInstance` на других ОС",
+    "Проверка в `.utils.OnlyOneInstance` на Windows"
+  ],
+  "removed": [],
+  "version_id": 19,
+  "version": "2.3.0"
+}

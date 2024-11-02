@@ -1,4 +1,15 @@
 # MainShortcuts2
+## 2.3.0 (19)
+### Добавлено:
+- Метод `.path.Path.__fspath__`
+- Подмодуль `.api`, импортируется вручную
+- Функция `.term.set_title`
+- Функция `.utils.get_self_module`
+- Функция `.utils.multi_and`
+- Функция `.utils.multi_or`
+### Исправлено:
+- Выход в `.utils.OnlyOneInstance` на других ОС
+- Проверка в `.utils.OnlyOneInstance` на Windows
 ## 2.2.4 (18)
 ### Исправлено:
 - Инициализация `.utils.OnlyOneInstance`
