@@ -5,6 +5,7 @@ from .core import ms
 from .path import PATH_TYPES, path2str
 from .types import NotAFileError
 from typing import *
+TMP_SUFFIX = ".MS2_TMP"
 
 
 def _check(path, **kw) -> str:
@@ -25,15 +26,24 @@ def read(path: PATH_TYPES, encoding: str = None, **kw) -> str:
     return f.read()
 
 
-def write(path: PATH_TYPES, data: str, encoding: str = None, mkdir: bool = False, **kw) -> int:
+def write(path: PATH_TYPES, data: str, encoding: str = None, mkdir: bool = False, use_tmp_file: bool = None, **kw) -> int:
   """Записать текст в файл"""
+  file = _check(path)
+  if use_tmp_file is None:
+    use_tmp_file = ms.use_tmp_file
   kw["encoding"] = ms.encoding if encoding is None else encoding
-  kw["file"] = _check(path)
+  kw["file"] = file
   kw["mode"] = "w"
   if mkdir:
     ms.dir.create(os.path.dirname(kw["file"]))
+  if use_tmp_file:
+    kw["file"] += TMP_SUFFIX
   with builtins.open(**kw) as f:
-    return f.write(data)
+    result = f.write(data)
+  if use_tmp_file:
+    delete(file)
+    move(kw["file"], file)
+  return result
 
 
 def load(path: PATH_TYPES, **kw) -> bytes:
@@ -44,14 +54,23 @@ def load(path: PATH_TYPES, **kw) -> bytes:
     return f.read()
 
 
-def save(path: PATH_TYPES, data: bytes, mkdir: bool = False, **kw) -> int:
+def save(path: PATH_TYPES, data: bytes, mkdir: bool = False, use_tmp_file: bool = None, **kw) -> int:
   """Записать байты в файл"""
-  kw["file"] = _check(path)
+  file = _check(path)
+  if use_tmp_file is None:
+    use_tmp_file = ms.use_tmp_file
+  kw["file"] = file
   kw["mode"] = "wb"
   if mkdir:
     ms.dir.create(os.path.dirname(kw["file"]))
+  if use_tmp_file:
+    kw["file"] += TMP_SUFFIX
   with builtins.open(**kw) as f:
-    return f.write(data)
+    result = f.write(data)
+  if use_tmp_file:
+    delete(file)
+    move(kw["file"], file)
+  return result
 
 
 def copy(path: PATH_TYPES, dest: PATH_TYPES, **kw):

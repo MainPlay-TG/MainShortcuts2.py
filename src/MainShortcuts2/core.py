@@ -58,6 +58,7 @@ class MS2:
     self.prog_dir: Union[None, str] = None
     self.prog_file: Union[None, str] = __file__
     self.prog_name: Union[None, str] = __name__
+    self.use_tmp_file: bool = False
     self.reload()
 
   def reload(self):

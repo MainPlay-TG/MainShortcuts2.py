@@ -1,0 +1,20 @@
+{
+  "added": [
+    "Аргумент `use_tmp_file` у функции `.file.save`",
+    "Аргумент `use_tmp_file` у функции `.file.write`",
+    "Атрибут `.use_tmp_file`",
+    "Класс `.json.JsonFile`",
+    "Константа `.json.MODES`",
+    "Программа `nano-json`",
+    "Программа `nginx-reload`",
+    "Программа `nginx-restart`",
+    "Функция `.utils.check_programs`"
+  ],
+  "changed": [
+    "Поведение при аргументе `mode='print'` в `.json.encode`"
+  ],
+  "fixed": [],
+  "removed": [],
+  "version_id": 20,
+  "version": "2.3.1"
+}

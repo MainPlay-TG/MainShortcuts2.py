@@ -1,6 +1,7 @@
 """Работа с JSON"""
-import json
+import atexit
 import builtins
+import json
 from .core import ms
 from .path import PATH_TYPES
 from typing import *
@@ -9,6 +10,7 @@ try:
 except Exception:
   json5 = None
 JSON_TYPES = Union[bool, dict, float, int, list, None, str]
+MODES = ["c", "compress", "mainplay_tg", "mainplay", "max", "min", "mp_tg", "mp", "p", "pretty", "print", "zip"]
 
 
 def decode(text: str, *, like_json5: bool = False, **kw) -> JSON_TYPES:
@@ -26,18 +28,21 @@ def encode(data: JSON_TYPES, mode: str = "c", **kw):
   mode = mode.lower()
   if "force" in kw:
     del kw["force"]
+    import warnings
+    warnings.warn("The argument 'force' is no longer used", DeprecationWarning)
   if "sort" in kw:
     kw["sort_keys"] = kw.pop("sort")
   if mode in ["c", "compress", "min", "zip"]:  # Сжатый
-    kw["indent"] = None
-    kw["separators"] = [",", ":"]
+    kw.setdefault("indent", None)
+    kw.setdefault("separators", [",", ":"])
   if mode in ["p", "pretty", "max", "print"]:  # Развёрнутый
-    if not "indent" in kw:
-      kw["indent"] = 2
-    kw["separators"] = None
+    kw.setdefault("indent", 2)
+    kw.setdefault("separators", [",", ": "])
+    if mode == "print":
+      kw.setdefault("ensure_ascii", False)
   if mode in ["mp", "mp_tg", "mainplay", "mainplay_tg"]:  # Стиль MainPlay TG
-    kw["indent"] = 2
-    kw["separators"] = [",", ":"]
+    kw.setdefault("indent", 2)
+    kw.setdefault("separators", [",", ":"])
   return json.dumps(**kw)
 
 
@@ -48,11 +53,7 @@ def print(data: JSON_TYPES, **kw):
     if i in kw:
       pr_kw[i] = kw.pop(i)
   kw["data"] = data
-  kw["mode"] = mode
-  if not "ensure_ascii" in kw:
-    kw["ensure_ascii"] = False
-  if not "mode" in kw:
-    kw["mode"] = "p"
+  kw.setdefault("mode", "print")
   builtins.print(encode(**kw), **pr_kw)
 
 
@@ -93,9 +94,73 @@ def write(path: PATH_TYPES, data: JSON_TYPES, **kw) -> int:
   """Прочитать JSON файл"""
   f_kw = {}
   kw["data"] = data
-  for i in ["encoding", "force"]:
+  for i in ["encoding", "force", "use_tmp_file"]:
     if i in kw:
       f_kw[i] = kw.pop(i)
   f_kw["path"] = path
   f_kw["data"] = encode(**kw)
   return ms.file.write(**f_kw)
+
+
+class JsonFile:
+  def __init__(self, path: str, autoload: bool = True, save_at_exit: bool = False, **kw):
+    atexit.register(self.__exit__)
+    self._data = None
+    self._loaded = False
+    self._path = None
+    self.load_kw = {}
+    self.save_kw = kw
+    self.path = ms.path.Path(path)
+    self.save_at_exit = save_at_exit
+    if "like_json5" in self.save_kw:
+      self.load_kw["like_json5"] = self.save_kw.pop("like_json5")
+    if autoload:
+      self.load()
+
+  def __contains__(self, k) -> bool:
+    return k in self.data
+
+  def __delitem__(self, k):
+    del self.data[k]
+
+  def __enter__(self):
+    return self
+
+  def __exit__(self, *a):
+    if self.save_at_exit:
+      self.save()
+
+  def __getitem__(self, k):
+    return self.data[k]
+
+  def __setitem__(self, k, v):
+    self.data[k] = v
+
+  @property
+  def path(self) -> ms.path.Path:
+    return self._path
+
+  @path.setter
+  def path(self, v):
+    self._path = ms.path.Path(v)
+    self.load_kw["path"] = self._path.path
+    self.save_kw["path"] = self._path.path
+
+  @property
+  def data(self):
+    if not self._loaded:
+      self.load()
+    return self._data
+
+  @data.setter
+  def data(self, v):
+    self._data = v
+    self._loaded = True
+
+  def load(self):
+    self._data = read(**self.load_kw)
+    self._loaded = True
+
+  def save(self):
+    self.save_kw["data"] = self.data
+    return write(**self.save_kw)

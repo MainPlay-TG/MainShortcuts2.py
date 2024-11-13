@@ -452,5 +452,20 @@ def get_self_module(__name__: str):
   return sys.modules[__name__]
 
 
+def check_programs(*progs: str, raise_error: bool = True) -> list[str]:
+  """Проверить наличие программ в `$PATH` | `shutil`"""
+  from shutil import which
+  failed = []
+  for i in progs:
+    if which(i) is None:
+      if not i in failed:
+        failed.append(i)
+  failed.sort()
+  if raise_error:
+    if len(failed) > 0:
+      raise OSError("Failed to find programs " + (", ".join(failed)) + " in $PATH")
+  return failed
+
+
 download_file = sync_download_file
 request = sync_request

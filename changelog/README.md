@@ -1,4 +1,17 @@
 # MainShortcuts2
+## 2.3.1 (20)
+### Добавлено:
+- Аргумент `use_tmp_file` у функции `.file.save`
+- Аргумент `use_tmp_file` у функции `.file.write`
+- Атрибут `.use_tmp_file`
+- Класс `.json.JsonFile`
+- Константа `.json.MODES`
+- Программа `nano-json`
+- Программа `nginx-reload`
+- Программа `nginx-restart`
+- Функция `.utils.check_programs`
+### Изменено:
+- Поведение при аргументе `mode='print'` в `.json.encode`
 ## 2.3.0 (19)
 ### Добавлено:
 - Метод `.path.Path.__fspath__`

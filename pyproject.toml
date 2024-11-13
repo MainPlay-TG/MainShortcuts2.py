@@ -1,7 +1,7 @@
 [tool.poetry]
-version = "2.3.0"
+version = "2.3.1"
 name = "MainShortcuts2"
-description = "Сокращение и улучшение функций"
+description = "Сокращение и улучшение функций + консольные утилиты"
 authors = [ "MainPlay TG <xbox.roman6666666666@gmail.com>",]
 readme = "README.md"
 repository = "https://github.com/MainPlay-TG/MainShortcuts2.py"
@@ -11,6 +11,9 @@ packages = [
 
 [tool.poetry.scripts]
 ms2-import_example = "MainShortcuts2.__main__:import_example"
+nano-json = "MainShortcuts2.__main__:nano_json"
+nginx-reload = "MainShortcuts2.__main__:nginx_reload"
+nginx-restart = "MainShortcuts2.__main__:nginx_restart"
 
 [tool.poetry.dependencies]
 python = "^3.6"
