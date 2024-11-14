@@ -1,0 +1,10 @@
+{
+  "added": [],
+  "changed": [],
+  "fixed": [
+"Забыл поставить скобку в `__main__.py`"
+  ],
+  "removed": [],
+  "version_id": 24,
+  "version": "2.4.1"
+}
