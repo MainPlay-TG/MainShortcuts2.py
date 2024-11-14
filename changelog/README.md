@@ -1,4 +1,9 @@
 # MainShortcuts2
+## 2.3.2 (21)
+### Исправлено:
+- Глупая ошибка в скрипте `nano-json`
+- Скрипт `ms2-hash_check`
+- Скрипт `ms2-hash_gen`
 ## 2.3.1 (20)
 ### Добавлено:
 - Аргумент `use_tmp_file` у функции `.file.save`
@@ -6,9 +11,9 @@
 - Атрибут `.use_tmp_file`
 - Класс `.json.JsonFile`
 - Константа `.json.MODES`
-- Программа `nano-json`
-- Программа `nginx-reload`
-- Программа `nginx-restart`
+- Скрипт `nano-json`
+- Скрипт `nginx-reload`
+- Скрипт `nginx-restart`
 - Функция `.utils.check_programs`
 ### Изменено:
 - Поведение при аргументе `mode='print'` в `.json.encode`

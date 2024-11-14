@@ -463,6 +463,8 @@ def check_programs(*progs: str, raise_error: bool = True) -> list[str]:
   failed.sort()
   if raise_error:
     if len(failed) > 0:
+      if len(failed) == 1:
+        raise OSError("Failed to find program " + failed[0] + " in $PATH")
       raise OSError("Failed to find programs " + (", ".join(failed)) + " in $PATH")
   return failed
 

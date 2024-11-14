@@ -1,5 +1,5 @@
 [tool.poetry]
-version = "2.3.1"
+version = "2.3.2"
 name = "MainShortcuts2"
 description = "Сокращение и улучшение функций + консольные утилиты"
 authors = [ "MainPlay TG <xbox.roman6666666666@gmail.com>",]
@@ -10,6 +10,8 @@ packages = [
 ]
 
 [tool.poetry.scripts]
+ms2-hash_check = "MainShortcuts2.__main__:hash_check"
+ms2-hash_gen = "MainShortcuts2.__main__:hash_gen"
 ms2-import_example = "MainShortcuts2.__main__:import_example"
 nano-json = "MainShortcuts2.__main__:nano_json"
 nginx-reload = "MainShortcuts2.__main__:nginx_reload"
