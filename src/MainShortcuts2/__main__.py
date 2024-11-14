@@ -99,16 +99,14 @@ def hash_gen():
     ms.json.write(file + HASH_SUFFIX, data)
 
 
-def hash_check()
-
-
-import hashlib
-import os
-import shlex
-argp = argparse.ArgumentParser("ms2-hash-check", description="проверка размера и контрольной суммы файла")
-argp.add_argument("files", nargs="+", help="пути к файлам")
-args = argp.parse_args()
-for file in args.files:
+def hash_check():
+  import hashlib
+  import os
+  import shlex
+  argp = argparse.ArgumentParser("ms2-hash-check", description="проверка размера и контрольной суммы файла")
+  argp.add_argument("files", nargs="+", help="пути к файлам")
+  args = argp.parse_args()
+  for file in args.files:
     if file.lower().endswith(HASH_SUFFIX.lower()):
       file = file[:0 - len(HASH_SUFFIX)]
     if not os.path.exists(file + HASH_SUFFIX):

@@ -1,0 +1,10 @@
+{
+  "added": [],
+  "changed": [],
+  "fixed": [
+"Забыл двоеточие поставить в `__main__.py`"
+  ],
+  "removed": [],
+  "version_id": 22,
+  "version": "2.3.3"
+}
