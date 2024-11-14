@@ -1,12 +1,12 @@
 [tool.poetry]
-version = "2.3.3"
+version = "2.4.0"
 name = "MainShortcuts2"
 description = "Сокращение и улучшение функций + консольные утилиты"
 authors = [ "MainPlay TG <xbox.roman6666666666@gmail.com>",]
 readme = "README.md"
 repository = "https://github.com/MainPlay-TG/MainShortcuts2.py"
 packages = [
-    { include = "MainShortcuts2", from = "src" },
+  { include = "MainShortcuts2", from = "src" },
 ]
 
 [tool.poetry.scripts]

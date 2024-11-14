@@ -2,10 +2,10 @@
   "added": [],
   "changed": [],
   "fixed": [
-    "Глупая ошибка в скрипте `nano-json`",
-    "Скрипт `ms2-hash_check`",
-    "Скрипт `ms2-hash_gen`"
-    ],
+    "\u0413\u043b\u0443\u043f\u0430\u044f \u043e\u0448\u0438\u0431\u043a\u0430 \u0432 \u0441\u043a\u0440\u0438\u043f\u0442\u0435 `nano-json`",
+    "\u0421\u043a\u0440\u0438\u043f\u0442 `ms2-hash_check`",
+    "\u0421\u043a\u0440\u0438\u043f\u0442 `ms2-hash_gen`"
+  ],
   "removed": [],
   "version_id": 21,
   "version": "2.3.2"

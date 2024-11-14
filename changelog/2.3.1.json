@@ -1,17 +1,17 @@
 {
   "added": [
-    "Аргумент `use_tmp_file` у функции `.file.save`",
-    "Аргумент `use_tmp_file` у функции `.file.write`",
-    "Атрибут `.use_tmp_file`",
-    "Класс `.json.JsonFile`",
-    "Константа `.json.MODES`",
-    "Скрипт `nano-json`",
-    "Скрипт `nginx-reload`",
-    "Скрипт `nginx-restart`",
-    "Функция `.utils.check_programs`"
+    "\u0410\u0440\u0433\u0443\u043c\u0435\u043d\u0442 `use_tmp_file` \u0443 \u0444\u0443\u043d\u043a\u0446\u0438\u0438 `.file.save`",
+    "\u0410\u0440\u0433\u0443\u043c\u0435\u043d\u0442 `use_tmp_file` \u0443 \u0444\u0443\u043d\u043a\u0446\u0438\u0438 `.file.write`",
+    "\u0410\u0442\u0440\u0438\u0431\u0443\u0442 `.use_tmp_file`",
+    "\u041a\u043b\u0430\u0441\u0441 `.json.JsonFile`",
+    "\u041a\u043e\u043d\u0441\u0442\u0430\u043d\u0442\u0430 `.json.MODES`",
+    "\u0421\u043a\u0440\u0438\u043f\u0442 `nano-json`",
+    "\u0421\u043a\u0440\u0438\u043f\u0442 `nginx-reload`",
+    "\u0421\u043a\u0440\u0438\u043f\u0442 `nginx-restart`",
+    "\u0424\u0443\u043d\u043a\u0446\u0438\u044f `.utils.check_programs`"
   ],
   "changed": [
-    "Поведение при аргументе `mode='print'` в `.json.encode`"
+    "\u041f\u043e\u0432\u0435\u0434\u0435\u043d\u0438\u0435 \u043f\u0440\u0438 \u0430\u0440\u0433\u0443\u043c\u0435\u043d\u0442\u0435 `mode='print'` \u0432 `.json.encode`"
   ],
   "fixed": [],
   "removed": [],

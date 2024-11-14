@@ -3,13 +3,13 @@
   "version_id": 17,
   "changed": [],
   "fixed": [
-    "Определение типа в `.cfg`"
+    "\u041e\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u0435 \u0442\u0438\u043f\u0430 \u0432 `.cfg`"
   ],
   "added": [
-    "Аргумент `use_cache` в `.path.Path`",
-    "Класс `.types.Action`",
-    "Класс `.utils.OnlyOneInstance`",
-    "Функция `.utils.remove_ANSI`"
+    "\u0410\u0440\u0433\u0443\u043c\u0435\u043d\u0442 `use_cache` \u0432 `.path.Path`",
+    "\u041a\u043b\u0430\u0441\u0441 `.types.Action`",
+    "\u041a\u043b\u0430\u0441\u0441 `.utils.OnlyOneInstance`",
+    "\u0424\u0443\u043d\u043a\u0446\u0438\u044f `.utils.remove_ANSI`"
   ],
   "removed": []
 }

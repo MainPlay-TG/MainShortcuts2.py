@@ -33,6 +33,7 @@ class MS2:
                logger: Logger = None,
                **kw):
     self._advanced = None
+    self._any2json = None
     self._cfg = None
     self._dict = None
     self._dir = None
@@ -97,6 +98,13 @@ class MS2:
       from . import advanced
       self._advanced = advanced
     return self._advanced
+
+  @property
+  def any2json(self):
+    if self._any2json is None:
+      from . import any2json
+      self._any2json = any2json
+    return self._any2json
 
   @property
   def cfg(self):

@@ -1,16 +1,16 @@
 {
   "added": [
-    "Метод `.path.Path.__fspath__`",
-    "Подмодуль `.api`, импортируется вручную",
-    "Функция `.term.set_title`",
-    "Функция `.utils.get_self_module`",
-    "Функция `.utils.multi_and`",
-    "Функция `.utils.multi_or`"
+    "\u041c\u0435\u0442\u043e\u0434 `.path.Path.__fspath__`",
+    "\u041f\u043e\u0434\u043c\u043e\u0434\u0443\u043b\u044c `.api`, \u0438\u043c\u043f\u043e\u0440\u0442\u0438\u0440\u0443\u0435\u0442\u0441\u044f \u0432\u0440\u0443\u0447\u043d\u0443\u044e",
+    "\u0424\u0443\u043d\u043a\u0446\u0438\u044f `.term.set_title`",
+    "\u0424\u0443\u043d\u043a\u0446\u0438\u044f `.utils.get_self_module`",
+    "\u0424\u0443\u043d\u043a\u0446\u0438\u044f `.utils.multi_and`",
+    "\u0424\u0443\u043d\u043a\u0446\u0438\u044f `.utils.multi_or`"
   ],
   "changed": [],
   "fixed": [
-    "Выход в `.utils.OnlyOneInstance` на других ОС",
-    "Проверка в `.utils.OnlyOneInstance` на Windows"
+    "\u0412\u044b\u0445\u043e\u0434 \u0432 `.utils.OnlyOneInstance` \u043d\u0430 \u0434\u0440\u0443\u0433\u0438\u0445 \u041e\u0421",
+    "\u041f\u0440\u043e\u0432\u0435\u0440\u043a\u0430 \u0432 `.utils.OnlyOneInstance` \u043d\u0430 Windows"
   ],
   "removed": [],
   "version_id": 19,
