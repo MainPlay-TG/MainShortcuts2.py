@@ -18,15 +18,21 @@ class MultiLang:
     self.files: dict[str, Path] = {}
     self.langs: dict[Union[None, str], dict[str, dict[str, Any]]] = {}
 
-    def cb_lines(text: list[str]) -> str:
+    @self.add_cache_builder("lines")
+    def _(text: list[str]) -> str:
       return "\n".join(text)
 
-    def cb_normal(text: str) -> str:
+    @self.add_cache_builder("normal")
+    def _(text: str) -> str:
       assert type(text) == str
       return text
-    self.cache_builders["lines"] = cb_lines
-    self.cache_builders["normal"] = cb_normal
     self.add_lang(None, default_lang, load=True)
+
+  def add_cache_builder(self, name: str):
+    def deco(func):
+      self.cache_builders[name] = func
+      return func
+    return deco
 
   def add_langs(self, langs: dict[str, Union[dict, Path, str]], check_count: bool = True, load: bool = True):
     """Добавить языки (`dict`) или пути к языковым файлам (`str`, `ms.path.Path`)"""
@@ -252,3 +258,104 @@ class PermissionSystem:
             del user["perms"][k]
           else:
             user["perms"][k] = v
+
+
+class DictScriptAction:
+  def __init__(self, name: str, args: list = None, kwargs: dict = None, save_to: str = None, comment: str = None):
+    self.__getitem__ = self.__getattr__
+    self.args: list = args
+    self.comment: str = comment
+    self.kwargs: dict = kwargs
+    self.name: str = name
+    self.save_to: str = save_to
+
+  @classmethod
+  def from_dict(cls, data: dict):
+    kw = {}
+    for k in ["args", "comment", "kwargs", "name", "save_to"]:
+      kw[k] = data.get(k)
+    return cls(**kw)
+
+  def to_dict(self) -> dict:
+    result = {}
+    for k in ["args", "comment", "kwargs", "name", "save_to"]:
+      v = getattr(self, k)
+      if not v is None:
+        result[k] = v
+    return result
+
+
+class DictScriptVariable:
+  def __init__(self, name: str):
+    self.name: str = name
+
+
+@ms.any2json.reg_decoder(DictScriptVariable)
+def _(obj):
+  return DictScriptVariable(obj)
+
+
+@ms.any2json.reg_encoder(DictScriptVariable)
+def _(obj: DictScriptVariable):
+  if isinstance(obj, DictScriptVariable):
+    return obj.name
+
+
+class DictScriptRunner:
+  VERSION = 1
+
+  def __init__(self, functions: dict = None, add_default_functions: bool = True):
+    self.globals = {}
+    if add_default_functions:
+      import time
+      for i in [bool, bytes, dict, float, int, list, str, tuple]:
+        self.reg_class()(i)
+      self.reg_function("sleep")(time.sleep)
+      self.reg_function("sum")(sum)
+      self.reg_function("time.sleep")(time.sleep)
+      self.reg_function("time.time")(time.time)
+    if not functions is None:
+      for name, func in functions.items():
+        self.reg_function(name)(func)
+
+  def reg_class(self, name: str = None, overwrite: bool = False):
+    def deco(cls: type):
+      if name is None:  # type: ignore
+        name = cls.__module__ + "." + cls.__name__
+      if callable(cls):
+        self.reg_function(name, overwrite=overwrite)(cls)  # type: ignore
+      for k in dir(cls):
+        v = getattr(cls, k)
+        if callable(v):
+          self.reg_function(name + "." + k, overwrite=overwrite)  # type: ignore
+      return cls
+    return deco
+
+  def reg_function(self, name: str, overwrite: bool = False):
+    if not overwrite:
+      if name in self.globals:
+        raise ValueError("The %r function already exists. Perhaps you wanted to overwrite it?" % name)
+
+    def deco(func):
+      if not callable(func):
+        raise TypeError("Function %r is not callable" % name)
+      self.globals[name] = func
+      return func
+    return deco
+
+  def run_script(self, script: list[dict]) -> dict:
+    """Выполнить скрипт (список действий)"""
+    for act in script:
+      if not act["name"] in self.globals:
+        raise KeyError("Function %r not exists" % act["name"])
+    locals = self.globals.copy()
+    for act in script:
+      if act["name"] == "exit":
+        break
+      args = act["args"] if "args" in act else []
+      func = locals[act["name"]]
+      kwargs = act["kwargs"] if "kwargs" in act else {}
+      result = func(*args, **kwargs)
+      if "save_to" in act:
+        locals[act["save_to"]] = result
+    return locals

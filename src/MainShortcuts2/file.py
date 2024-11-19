@@ -114,6 +114,38 @@ def rename(path: PATH_TYPES, name: PATH_TYPES, **kw):
   return ms.path.rename(**kw)
 
 
+def compare(path1: PATH_TYPES, path2: PATH_TYPES, method: str = "binary") -> bool:
+  """Одинаковые ли файлы"""
+  p1 = _check(path1)
+  p2 = _check(path2)
+  if os.path.getsize(p1) != os.path.getsize(p2):
+    return False
+  if method == "binary":  # Сравнение по байтам
+    with open(p1, "rb") as f1:
+      with open(p2, "rb") as f2:
+        while True:
+          b1 = f1.read(1024)
+          l = len(b1)
+          if l == 0:
+            return True
+          if b1 != f2.read(l):
+            return False
+  from .__main__ import HASH_TYPES
+  if method in HASH_TYPES:  # Сравнение контрольной суммы
+    import hashlib
+    Hash = getattr(hashlib, method)
+    with open(p1, "rb") as f1:
+      hash1 = Hash()
+      for chunk in f1:
+        hash1.update(chunk)
+    with open(p2, "rb") as f2:
+      hash2 = Hash()
+      for chunk in f2:
+        hash2.update(chunk)
+    return hash1.digest() == hash2.digest()
+  raise ValueError("Unknown method: " + repr(method))
+
+
 cp = copy
 ln = link
 mv = move

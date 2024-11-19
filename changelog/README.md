@@ -1,4 +1,11 @@
 # MainShortcuts2
+## 2.4.2 (25)
+### Добавлено:
+- Декоратор `.advanced.MultiLang.add_cache_builder`
+- Класс `.advanced.DictScriptAction`
+- Класс `.advanced.DictScriptRunner`
+- Класс `.advanced.DictScriptVariable`
+- Функция `.file.compare`
 ## 2.4.1 (24)
 ### Исправлено:
 - Забыл поставить скобку в `__main__.py`
