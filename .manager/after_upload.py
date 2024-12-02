@@ -1,7 +1,6 @@
 import subprocess
 import tomli
 from MainShortcuts2 import ms
-exec(ms.import_code)
 def run(*args,**kw)->subprocess.Popen:
   kw["args"]=args
   p=subprocess.Popen(**kw)

@@ -1,4 +1,10 @@
 # MainShortcuts2
+## 2.4.3 (26)
+### Добавлено:
+- Аргумент `--sort` в скрипте `nano-json`
+- Класс `.types.Color`
+- Класс `.types.DotDict`
+- Константа `.types.COLORS`
 ## 2.4.2 (25)
 ### Добавлено:
 - Декоратор `.advanced.MultiLang.add_cache_builder`

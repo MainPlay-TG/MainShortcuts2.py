@@ -11,17 +11,19 @@ def import_example():
   print("from MainShortcuts2 import ms")
 
 
-def nano_json():
+def nano_json(args: argparse.Namespace = None):
   ms.utils.check_programs("nano")
   import subprocess
-  argp = argparse.ArgumentParser("nano-json", description="форматирование JSON файлов и редактирование в GNU NANO")
-  argp.add_argument("files", nargs="+", help="пути к файлам JSON")
-  argp.add_argument("--encoding", default="utf-8", help="кодировка файлов")
-  argp.add_argument("--nano-help", action="store_true", help="показать помощь nano")
-  argp.add_argument("--no-escape", action="store_false", help="не использовать Unicode Escape")
-  argp.add_argument("-f", "--rcfile", help="использовать только этот файл для настройки nano")
-  argp.add_argument("-m", "--mode", choices=ms.json.MODES, default="p", help="режим сохранения редактирования")
-  args = argp.parse_args()
+  if args is None:
+    argp = argparse.ArgumentParser("nano-json", description="форматирование JSON файлов и редактирование в GNU NANO")
+    argp.add_argument("files", nargs="+", help="пути к файлам JSON")
+    argp.add_argument("--nano-help", action="store_true", help="показать помощь nano")
+    argp.add_argument("-e", "--encoding", default="utf-8", help="кодировка файлов")
+    argp.add_argument("-f", "--rcfile", help="использовать только этот файл для настройки nano")
+    argp.add_argument("-m", "--mode", choices=ms.json.MODES, default="p", help="режим сохранения редактирования")
+    argp.add_argument("-s", "--sort", action="store_true", help="сортировать ключи словаря")
+    argp.add_argument("-u", "--no-escape", action="store_false", help="не использовать Unicode Escape")
+    args = argp.parse_args()
   if args.nano_help:
     return subprocess.call(["nano", "--help"])
   nano_args = ["nano"]
@@ -78,20 +80,22 @@ def nginx_restart():
   sys.exit(subprocess.call(["systemctl", "restart", "nginx"]))
 
 
-def hash_gen():
+def hash_gen(args: argparse.Namespace = None):
   import os
   import hashlib
-  argp = argparse.ArgumentParser("ms2-hash-gen", description="создание контрольной суммы для файла")
-  argp.add_argument("files", nargs="+", help="пути к файлам")
-  argp.add_argument("-b", "--bar", action="store_true", help="показывать прогрессбар (нужен модуль progressbar2)")
-  argp.add_argument("-t", "--type", choices=HASH_TYPES, default="sha512", help="тип контрольной суммы")
-  args = argp.parse_args()
+  if args is None:
+    argp = argparse.ArgumentParser("ms2-hash-gen", description="создание контрольной суммы для файла")
+    argp.add_argument("files", nargs="+", help="пути к файлам")
+    argp.add_argument("-b", "--bar", action="store_true", help="показывать прогрессбар (нужен модуль progressbar2)")
+    argp.add_argument("-t", "--type", choices=HASH_TYPES, default="sha512", help="тип контрольной суммы")
+    args = argp.parse_args()
   if args.bar:
     import progressbar
     pbar_w = [
         progressbar.Percentage(),
         progressbar.GranularBar(left="(", right=")"),
         progressbar.FileTransferSpeed(),
+        " ",
         progressbar.ETA(format="%(eta)8s", format_finished="%(elapsed)8s", format_na="     N/A", format_not_started="--:--:--", format_zero="00:00:00"),
     ]
   data = {}
@@ -119,30 +123,35 @@ def hash_gen():
           c += len(chunk)
           pbar.update(c)
     if args.bar:
-      pbar.finish(dirty=True)
+      pbar.finish()
     data["hash"]["hex"] = hash.hexdigest()
     ms.json.write(file + HASH_SUFFIX, data)
 
 
-def hash_check():
+def hash_check(args: argparse.Namespace = None):
   import hashlib
   import os
   import shlex
-  argp = argparse.ArgumentParser("ms2-hash-check", description="проверка размера и контрольной суммы файла")
-  argp.add_argument("-b", "--bar", action="store_true", help="показывать прогрессбар (нужен модуль progressbar2)")
-  argp.add_argument("files", nargs="+", help="пути к файлам")
-  args = argp.parse_args()
+  if args is None:
+    argp = argparse.ArgumentParser("ms2-hash-check", description="проверка размера и контрольной суммы файла")
+    argp.add_argument("-b", "--bar", action="store_true", help="показывать прогрессбар (нужен модуль progressbar2)")
+    argp.add_argument("files", nargs="+", help="пути к файлам")
+    args = argp.parse_args()
   if args.bar:
     import progressbar
     pbar_w = [
         progressbar.Percentage(),
         progressbar.GranularBar(left="(", right=")"),
         progressbar.FileTransferSpeed(),
+        " ",
         progressbar.ETA(format="%(eta)8s", format_finished="%(elapsed)8s", format_na="     N/A", format_not_started="--:--:--", format_zero="00:00:00"),
     ]
+  completed = []
   for file in args.files:
     if file.lower().endswith(HASH_SUFFIX.lower()):
       file = file[:0 - len(HASH_SUFFIX)]
+    if file in completed:
+      continue
     if not os.path.exists(file + HASH_SUFFIX):
       print("Ошибка: не найден файл " + shlex.quote(file + HASH_SUFFIX), file=sys.stderr)
       continue
@@ -165,10 +174,11 @@ def hash_check():
         hash.update(chunk)
         if args.bar:
           c += len(chunk)
-          pbar.update()
+          pbar.update(c)
     if args.bar:
-      pbar.finish(dirty=True)
+      pbar.finish()
     if data["hash"]["hex"] == hash.hexdigest():
       print("Успех: файл " + shlex.quote(file) + " не изменён")
     else:
       print("Ошибка: файл " + shlex.quote(file) + " изменён")
+    completed.append(file)

@@ -95,7 +95,7 @@ def color_test(colors: list[str] = None):
     cprint("$COLOR_RESET%s: $COLOR_%sEXAMPLE \u2591\u2592\u2593 \u2588\u2588\u2588" % (i, i))
 
 
-def _clear():
+def _clear():  # type: ignore
   """Если функция недоступна для ОС, дать ошибку"""
   raise OSError("The function is not available on %s" % sys.platform)
 

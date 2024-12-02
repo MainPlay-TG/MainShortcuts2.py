@@ -9,7 +9,7 @@ class GigaChat(Base):
   def __init__(self, auth_data: str, client_id: str, *,
                cert_path: str = None,
                **kw):
-    Base.__init__(self, **kw)
+    self._init(**kw)
     self._access_token = {"expire_at": 0, "kw": None, "token": None}
     self._auth_data: str = auth_data
     self._client_id: str = client_id

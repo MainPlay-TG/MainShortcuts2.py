@@ -320,10 +320,10 @@ class DictScriptRunner:
 
   def reg_class(self, name: str = None, overwrite: bool = False):
     def deco(cls: type):
-      if name is None:  # type: ignore
+      if name is None:
         name = cls.__module__ + "." + cls.__name__
       if callable(cls):
-        self.reg_function(name, overwrite=overwrite)(cls)  # type: ignore
+        self.reg_function(name, overwrite=overwrite)(cls)
       for k in dir(cls):
         v = getattr(cls, k)
         if callable(v):

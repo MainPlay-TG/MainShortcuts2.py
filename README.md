@@ -1,4 +1,4 @@
-# MainShortcuts
+# MainShortcuts2
 ## Описание
 Сокращение и улучшение функций
 ## Установка
@@ -10,7 +10,6 @@ python3 -m pip install -U MainShortcuts2
 Импорт модуля
 ```python
 from MainShortcuts2 import ms
-exec(ms.import_code)
 ```
 Встроенная информация о модуле
 ```python
