@@ -319,15 +319,18 @@ class DictScriptRunner:
         self.reg_function(name)(func)
 
   def reg_class(self, name: str = None, overwrite: bool = False):
-    def deco(cls: type):
-      if name is None:
-        name = cls.__module__ + "." + cls.__name__
+    if not name is None:
+      import warnings
+      warnings.warn("The argument 'name' temporarily does not work", FutureWarning)
+
+    def deco(cls: type) -> type:
+      name = cls.__module__ + "." + cls.__name__
       if callable(cls):
         self.reg_function(name, overwrite=overwrite)(cls)
       for k in dir(cls):
         v = getattr(cls, k)
         if callable(v):
-          self.reg_function(name + "." + k, overwrite=overwrite)  # type: ignore
+          self.reg_function(name + "." + k, overwrite=overwrite)
       return cls
     return deco
 
@@ -359,3 +362,33 @@ class DictScriptRunner:
       if "save_to" in act:
         locals[act["save_to"]] = result
     return locals
+
+
+class CodeModule:
+  """Импорт модуля из исходного кода. Могут быть баги"""
+
+  def __init__(self, source: str, globals: dict = None, locals: dict = None):
+    if globals is None:
+      globals = {}
+    if locals is None:
+      locals = {}
+    args = (source, globals, locals)
+    exec(*args)
+    self.__dict__["source"] = args[0]
+    self.__dict__["globals"] = args[1]
+    self.__dict__["globals"].update(args[2])
+
+  def __delattr__(self, k):
+    del self.__dict__["globals"][k]
+
+  def __dir__(self) -> list[str]:
+    return list(self.__dict__["globals"])
+
+  def __getattr__(self, k):
+    return self.__dict__["globals"][k]
+
+  def __hasattr__(self, k) -> bool:
+    return k in self.__dict__["globals"]
+
+  def __setattr__(self, k, v):
+    self.__dict__["globals"][k] = v

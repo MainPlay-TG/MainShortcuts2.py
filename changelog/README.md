@@ -1,4 +1,10 @@
 # MainShortcuts2
+## 2.4.4 (27)
+### Добавлено:
+- Аргумент `use_env` у функции `.utils.shebang_code`
+- Декоратор `.utils.handle_exception`
+- Класс `.advanced.CodeModule`
+- Класс `.types.AutoaddDict`
 ## 2.4.3 (26)
 ### Добавлено:
 - Аргумент `--sort` в скрипте `nano-json`

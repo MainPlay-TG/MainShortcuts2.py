@@ -317,7 +317,7 @@ def timedelta(time: Union[int, float, dict]):
   return datetime.timedelta(seconds=time)
 
 
-def shebang_code(code: str, *, exe_name: Union[None, str] = None, exe_path: Union[None, str] = None, none_if_no_changes: bool = False) -> Union[None, str]:
+def shebang_code(code: str, *, exe_name: Union[None, str] = None, exe_path: Union[None, str] = None, none_if_no_changes: bool = False, use_env: bool = True) -> Union[None, str]:
   """Вставить/заменить шебанг в коде. Если указать имя интерпретатора, путь будет найден с помощью `shutil.which`"""
   if (exe_name is None) and (exe_path is None):
     raise TypeError("Specify exe_name or exe_path")
@@ -325,10 +325,13 @@ def shebang_code(code: str, *, exe_name: Union[None, str] = None, exe_path: Unio
     if not exe_path is None:
       raise TypeError("exe_name and exe_path cannot be used together")
   if exe_path is None:
-    import shutil
-    exe_path = shutil.which(exe_name)
-    if exe_path is None:
-      raise Exception("Command %s not found in PATH" % exe_name)
+    if use_env:
+      exe_path = "/bin/env " + exe_name
+    else:
+      import shutil
+      exe_path = shutil.which(exe_name)
+      if exe_path is None:
+        raise Exception("Command %s not found in PATH" % exe_name)
   lines = code.split("\n")
   if none_if_no_changes:
     if lines[0] == "#!" + exe_path:
@@ -338,9 +341,11 @@ def shebang_code(code: str, *, exe_name: Union[None, str] = None, exe_path: Unio
   return "#!" + exe_path + "\n" + "\n".join(lines)
 
 
-def shebang_file(path: str, *, exe_name: Union[None, str] = None, exe_path: Union[None, str] = None) -> int:
+def shebang_file(path: str, **kw) -> int:
   """Вставить/заменить шебанг в файле кода"""
-  result = shebang_code(ms.file.read(path), exe_name=exe_name, exe_path=exe_path, none_if_no_changes=True)
+  kw["code"] = ms.file.read(path)
+  kw["none_if_no_changes"] = True
+  result = shebang_code(**kw)
   if result is None:
     return 0
   return ms.file.write(path, result)
@@ -467,6 +472,21 @@ def check_programs(*progs: str, raise_error: bool = True) -> list[str]:
         raise OSError("Failed to find program " + failed[0] + " in $PATH")
       raise OSError("Failed to find programs " + (", ".join(failed)) + " in $PATH")
   return failed
+
+
+def handle_exception(on_exception=return_None, reraise: bool = True, exc_type: type[BaseException] = Exception):
+  """Обернуть функцию в `try`/`except`"""
+  def deco(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+      try:
+        return func(*args, **kwargs)
+      except exc_type as exc:
+        on_exception(exc)
+        if reraise:
+          raise
+    return wrapper
+  return deco
 
 
 download_file = sync_download_file

@@ -1,0 +1,13 @@
+{
+  "added": [
+    "Аргумент `use_env` у функции `.utils.shebang_code`",
+    "Декоратор `.utils.handle_exception`",
+    "Класс `.advanced.CodeModule`",
+    "Класс `.types.AutoaddDict`"
+  ],
+  "changed": [],
+  "fixed": [],
+  "removed": [],
+  "version_id": 27,
+  "version": "2.4.4"
+}

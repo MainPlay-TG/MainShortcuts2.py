@@ -400,6 +400,17 @@ class _COLORS:
     return self._colors[k.upper()]
 
 
+class AutoaddDict(dict):
+  def __init__(self, *args, default_value=None, **kwargs):
+    dict.__init__(self, *args, **kwargs)
+    self.default_value = default_value
+
+  def __getitem__(self, k):
+    if not k in self:
+      self[k] = self.default_value
+    return dict.__getitem__(self, k)
+
+
 COLORS = _COLORS()
 Error401 = AccessDeniedError
 Error403 = AccessDeniedError
