@@ -9,7 +9,7 @@ def merge(old: dict, new: dict) -> dict:
   out = old.copy()
   for k, v in new.items():
     if k in out:
-      if type(out[k]) == dict and type(v) == dict:
+      if isinstance(out[k], dict) and isinstance(v, dict):
         out[k] = merge(out[k], v)
       else:
         out[k] = v
@@ -27,9 +27,9 @@ def reverse(d: dict) -> dict:
   return r
 
 
-def sort(d: dict, *, key: None = None, reverse: bool = False) -> dict:
+def sort(d: dict, *, key=None, reverse: bool = False) -> dict:
   """Сортировать порядок ключей"""
-  keys = list(d.keys)
+  keys = list(d.keys())
   keys.sort(key=key, reverse=reverse)
   r = {}
   for k in keys:

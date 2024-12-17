@@ -1,4 +1,5 @@
 """Работа с терминалом"""
+import builtins
 import os
 import sys
 from .core import ms
@@ -119,6 +120,71 @@ def set_title(title: str):
   """Установить заголовок окна"""
   # Не работает на bpython: AssertionError
   print("\u001b]2;" + title + "\u0007", end="")
+
+
+def set_displayhook(func):
+  """Изменить `sys.displayhook`"""
+  if func is None:
+    def func(obj):
+      """Стандартный `displayhook` от Python"""
+      if not obj is None:
+        print(repr(obj))
+  setattr(sys, "displayhook", func)
+  return func
+
+
+def patch_shell(style: int):
+  """Изменить стиль консоли Python"""
+  displayhook = None
+  ps1 = ">>> "
+  ps2 = "... "
+  if style == 1:
+    def displayhook(obj):
+      if not obj is None:
+        print("%s: %r" % (type(obj), obj))
+    ps1 = "=> "
+    ps2 = "|> "
+  set_displayhook(displayhook)
+  setattr(sys, "ps1", ps1)
+  setattr(sys, "ps2", ps2)
+
+
+def iter_line(lines: Iterable[str], end: str = "\n", interval: float = None, **kw):
+  """Изменять последнюю строку в терминале"""
+  if interval is None:
+    sleep = ms.utils.return_None
+  else:
+    from datetime import timedelta
+    from time import sleep
+    if isinstance(interval, timedelta):
+      interval = interval.total_seconds()
+  kw["end"] = ""
+  maxlen = 0
+  for line in lines:
+    line = str(line)
+    lline = len(line)
+    if lline > maxlen:
+      maxlen = lline
+    print("\r" + line + " " * (maxlen - lline), **kw)
+    sleep(interval)
+  print(end, **kw)
+
+
+def countful_countdown(time: float, interval: float = 1, format: str = None, round: int = 2, **kw):
+  """Обратный отсчёт в терминале"""
+  if format is None:
+    format = "Осталось %s сек."
+  nums: list[float] = []
+  while time > 0:
+    time -= interval if time > interval else time
+    nums.append(time)
+
+  def generator():
+    for num in nums:
+      yield (format % builtins.round(num, round))
+  kw["interval"] = interval
+  kw["lines"] = generator()
+  return iter_line(**kw)
 
 
 cls = clear

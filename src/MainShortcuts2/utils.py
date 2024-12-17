@@ -18,6 +18,7 @@ class MiddlewareBase:
     self._exception = None
     self._kwargs = None
     self._result = None
+    self._time = None
     self._traceback = None
     self.completed_with_exc: Union[None, bool] = None
     self.completed: bool = False
@@ -35,6 +36,7 @@ class MiddlewareBase:
       raise RuntimeError("The function has not yet been launched")
 
   def _run(self, args, kwargs):
+    from time import time
     if self.launched:
       raise RuntimeError("You can only start a function once once")
     self._args = args
@@ -45,14 +47,16 @@ class MiddlewareBase:
     except Exception:
       if not self.ignore_exceptions:
         raise
+    started_at = time()
     try:
-      self._result = self.func(*args, **kwargs)
+      self._result = self.func(*self.args, **self.kwargs)
       self.completed_with_exc = False
     except Exception as e:
       from traceback import format_exc
       self._exception = e
       self._traceback = format_exc()
       self.completed_with_exc = True
+    self._time = time() - started_at
     self.completed = True
     try:
       self.after()
@@ -63,35 +67,61 @@ class MiddlewareBase:
 
   @property
   def args(self) -> tuple:
+    """Аргументы, переданные функции"""
     self._check_launched()
     return self._args
 
+  @args.setter
+  def args(self, value: Iterable):
+    if value is None:
+      value = []
+    self._args = tuple(value)
+
+  @property
+  def exception(self) -> None | Exception:
+    """Исключение, возникшее в процессе работы функции"""
+    self._check_completed()
+    return self._exception
+
   @property
   def kwargs(self) -> dict[str, Any]:
+    """Именованные аргументы, переданные функции"""
     self._check_launched()
     return self._kwargs
 
+  @kwargs.setter
+  def kwargs(self, value: dict[str, Any]):
+    if value is None:
+      value = {}
+    for k in value.keys():
+      assert type(k) == str
+    self._kwargs = value
+
   @property
-  def result(self) -> Union[Any, NoReturn]:
+  def result(self) -> Any:
+    """Результат работы функции"""
     self._check_completed()
     if self.completed_with_exc:
       raise self.exception  # type: ignore
     return self._result
 
   @property
-  def exception(self) -> Union[None, Exception]:
+  def time(self) -> float:
+    """Продолжительность работы функции (сек)"""
     self._check_completed()
-    return self._exception
+    return self._time
 
   @property
-  def traceback(self) -> Union[None, str]:
+  def traceback(self) -> None | str:
     self._check_completed()
     return self._traceback
 
   def before(self):
+    """Перед запуском функции. Можно обработать/изменить аргументы"""
     pass
 
   def after(self):
+    """После запуска функции. Можно обработать результат или исключение"""
     pass
 
 
@@ -173,7 +203,7 @@ def is_sync(func: Callable) -> bool:
   return not is_async(func)
 
 
-def middleware(cls: MiddlewareBase):
+def middleware(cls: type[MiddlewareBase]):
   """middleware для функции в виде декоратора"""
   def decorator(func):
     @wraps(func)
@@ -277,7 +307,7 @@ def sync_download_file(url: str, path: str, *, delete_on_error: bool = True, chu
   return size
 
 
-def sync_request(method: str, url: str, *, ignore_status: bool = False, **kw):
+def sync_request(method: str, url: str, *, ignore_status: bool = False, session=None, **kw):
   """Синхронный HTTP запрос | `requests`"""
   try:
     import requests
@@ -286,9 +316,11 @@ def sync_request(method: str, url: str, *, ignore_status: bool = False, **kw):
       from pip._vendor import requests
     except ImportError:
       raise err
+  if session is None:
+    session = requests.Session()  # type: ignore
   kw["method"] = method
   kw["url"] = url
-  resp = requests.request(**kw)  # type: ignore
+  resp = session.request(**kw)
   if not ignore_status:
     resp.raise_for_status()
   return resp
@@ -310,9 +342,9 @@ def uuid() -> str:
 def timedelta(time: Union[int, float, dict]):
   """Превратить число/словарь в `timedelta` | `datetime`"""
   import datetime
-  if type(time) == datetime.timedelta:
+  if isinstance(time, datetime.timedelta):
     return time
-  if type(time) == dict:
+  if isinstance(time, dict):
     return datetime.timedelta(**time)
   return datetime.timedelta(seconds=time)
 
@@ -487,6 +519,12 @@ def handle_exception(on_exception=return_None, reraise: bool = True, exc_type: t
           raise
     return wrapper
   return deco
+
+
+def disable_warnings():
+  """Отключить модуль `warnings`"""
+  import warnings
+  warnings.warn = return_None
 
 
 download_file = sync_download_file

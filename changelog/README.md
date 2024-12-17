@@ -1,4 +1,13 @@
 # MainShortcuts2
+## 2.4.5 (28)
+### Добавлено:
+- Аргумент `session` у функции `.utils.sync_request`
+- Свойство `time` у класса `.utils.MiddlewareBase`
+- Функция `.term.countful_countdown`
+- Функция `.term.iter_line`
+- Функция `.term.patch_shell`
+- Функция `.term.set_displayhook`
+- Функция `.utils.disable_warnings`
 ## 2.4.4 (27)
 ### Добавлено:
 - Аргумент `use_env` у функции `.utils.shebang_code`
