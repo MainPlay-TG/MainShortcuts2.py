@@ -1,4 +1,17 @@
 # MainShortcuts2
+## 2.4.6 (29)
+### Добавлено:
+- Аргумент `cb_end` у функции `.utils.async_download_file`
+- Аргумент `cb_end` у функции `.utils.sync_download_file`
+- Аргумент `cb_progress` у функции `.utils.async_download_file`
+- Аргумент `cb_progress` у функции `.utils.sync_download_file`
+- Аргумент `cb_start` у функции `.utils.async_download_file`
+- Аргумент `cb_start` у функции `.utils.sync_download_file`
+- Аргумент `format` у функции `.utils.uuid`
+- Класс `.api.base.BasicAuthClient`
+- Класс `.api.webdav.WebDAVClient`
+### Изменено:
+- `.api.base.Base` переименован в `BaseClient` (старое название всё ещё доступно)
 ## 2.4.5 (28)
 ### Добавлено:
 - Аргумент `session` у функции `.utils.sync_request`

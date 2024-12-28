@@ -7,6 +7,21 @@ from typing import *
 cache = {}
 
 
+def return_False(*a, **b):
+  """Вернуть False при любых аргументах"""
+  return False
+
+
+def return_None(*a, **b):
+  """Вернуть None при любых аргументах"""
+  return None
+
+
+def return_True(*a, **b):
+  """Вернуть True при любых аргументах"""
+  return True
+
+
 class MiddlewareBase:
   """middleware для функции"""
 
@@ -142,32 +157,50 @@ def args2kwargs(func: Callable, args: Iterable = (), kwargs: dict[str, Any] = {}
   return tuple(args), kw
 
 
-async def async_download_file(url: str, path: str, *, delete_on_error: bool = True, chunk_size: int = 1024, **kw) -> int:
+async def async_download_file(url: str, path: str, *, cb_end=return_None, cb_progress=return_None, cb_start=return_None, chunk_size: int = 1024, delete_on_error: bool = True, **kw) -> int:
   """Асинхронная функция для скачивания файла | `aiohttp`"""
   kw["url"] = url
   if not "method" in kw:
     kw["method"] = "GET"
   async with async_request(**kw) as resp:  # type: ignore
-    with open(path, "wb") as fd:
+    if callable(getattr(path, "write", None)):
+      f: IO[bytes] = path
+    else:
+      f = open(path, "wb")
+    with f:
       size = 0
+      await cb_start(f, resp, size)
       try:
         async for chunk in resp.content.iter_chunked(chunk_size):
-          fd.write(chunk)
-          size += len(chunk)
+          size += f.write(chunk)
+          await cb_progress(f, resp, size)
       except:
         if delete_on_error:
           if os.path.isfile(path):
             os.remove(path)
         raise
+      cb_end(f, resp, size)
   return size
 
 
-async def async_request(method: str, url: str, *, ignore_status: bool = False, **kw):
+async def async_request(method: str, url: str, *, ignore_status: bool = False, session=None, **kw):
   """Асинхронный HTTP запрос | `aiohttp`"""
-  import aiohttp
-  kw["method"] = method
-  kw["url"] = url
-  resp = aiohttp.request(**kw)
+  from importlib import import_module
+  aiohttp = import_module("aiohttp")
+  # import aiohttp
+  resp = None
+  if isinstance(method, aiohttp.ClientResponse):
+    resp = method
+  if isinstance(url, aiohttp.ClientResponse):
+    if not resp is None:
+      raise TypeError("Only one argument can be `Response`")
+    resp = url
+  if resp is None:
+    if session is None:
+      session = aiohttp.ClientSession()
+    kw["method"] = method
+    kw["url"] = url
+    resp = await session.request(**kw)
   if not ignore_status:
     resp.raise_for_status()
   return resp
@@ -186,7 +219,6 @@ def async2sync(func: Callable) -> Callable:
 
 def get_my_ip() -> str:
   """Получить глобальный IP | `requests`"""
-
   with sync_request("GET", "https://api.ipify.org?format=json") as resp:
     ip = resp.json()["ip"]
   return ip
@@ -231,21 +263,6 @@ def randstr(length: int, symbols: str = "0123456789abcdefghijklmnopqrstuvwxyz") 
   return t
 
 
-def return_False(*a, **b):
-  """Вернуть False при любых аргументах"""
-  return False
-
-
-def return_None(*a, **b):
-  """Вернуть None при любых аргументах"""
-  return None
-
-
-def return_True(*a, **b):
-  """Вернуть True при любых аргументах"""
-  return True
-
-
 def riop(**p_kw):
   """Запустить функцию в отдельном процессе | `multiprocessing`"""
   import multiprocessing
@@ -286,24 +303,32 @@ def riot(**t_kw):
   return decorator
 
 
-def sync_download_file(url: str, path: str, *, delete_on_error: bool = True, chunk_size: int = 1024, **kw) -> int:
+def sync_download_file(url: str, path: str, *, cb_end=return_None, cb_progress=return_None, cb_start=return_None, chunk_size: int = 1024, delete_on_error: bool = True, **kw) -> int:
   """Синхронная функция для скачивания файла | `requests`"""
   kw["stream"] = True
   kw["url"] = url
   if not "method" in kw:
     kw["method"] = "GET"
-  with sync_request(**kw) as resp:
-    with open(path, "wb") as fd:
+  resp = sync_request(**kw)
+  with resp:
+    if callable(getattr(path, "write", None)):
+      f: IO[bytes] = path
+    else:
+      f = open(path, "wb")
+    with f:
       size = 0
+      cb_start(f, resp, size)
       try:
         for chunk in resp.iter_content(chunk_size):
-          fd.write(chunk)
-          size += len(chunk)
+          size += f.write(chunk)
+          cb_progress(f, resp, size)
       except:
+        f.close()
         if delete_on_error:
           if os.path.isfile(path):
             os.remove(path)
         raise
+      cb_end(f, resp, size)
   return size
 
 
@@ -316,11 +341,19 @@ def sync_request(method: str, url: str, *, ignore_status: bool = False, session=
       from pip._vendor import requests
     except ImportError:
       raise err
-  if session is None:
-    session = requests.Session()  # type: ignore
-  kw["method"] = method
-  kw["url"] = url
-  resp = session.request(**kw)
+  resp = None
+  if isinstance(method, requests.Response):
+    resp = method
+  if isinstance(url, requests.Response):
+    if not resp is None:
+      raise TypeError("Only one argument can be `Response`")
+    resp = url
+  if resp is None:
+    if session is None:
+      session = requests.Session()
+    kw["method"] = method
+    kw["url"] = url
+    resp = session.request(**kw)
   if not ignore_status:
     resp.raise_for_status()
   return resp
@@ -333,10 +366,14 @@ def sync2async(func: Callable) -> Callable:
   return wrapper
 
 
-def uuid() -> str:
+def uuid(format=None, *args, **kwargs) -> str:
   """Сгенерировать UUID | `uuid`"""
-  from uuid import uuid4
-  return str(uuid4())
+  import uuid
+  if format is None:
+    cls = uuid.uuid4
+  else:
+    cls = getattr(uuid, f"uuid{format}")
+  return str(cls(*args, **kwargs))
 
 
 def timedelta(time: Union[int, float, dict]):

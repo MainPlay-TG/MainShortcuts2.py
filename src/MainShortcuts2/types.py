@@ -10,46 +10,50 @@ class Base:
 
 
 class UserError(Exception):
-  pass
   """Ошибка, которую допустил пользователь. Например неправильно указал входные данные"""
+  pass
 
 
 class AccessDeniedError(UserError):
-  pass
   """Ошибка доступа"""
 
 
 class Empty(Base):
-  pass
   """Пустота (не равно `None`)"""
+
+  def __bool__(self):
+    return False
 
 
 class Infinity(Base):
-  pass
   """Бесконечное число"""
+
+  def __bool__(self):
+    return True
 
 
 class NotAFileError(Exception):
-  pass
   """Ошибка 'это не файл'"""
 
 
 class NotANumber(Base):
-  pass
   """Не число"""
 
 
 class NotFound(Base):
-  pass
   """Не найдено"""
+
+  def __bool__(self):
+    return False
 
 
 class NotFoundError(Exception):
-  pass
   """Ошибка 'не найдено'"""
 
 
 class Action:
+  """Запланированный запуск функции"""
+
   def __init__(self, func, *args, **kwargs):
     self._closed = False
     self._completed = False
@@ -99,19 +103,23 @@ class Action:
 
   @property
   def launched(self) -> bool:
+    """Была ли запущена функция"""
     return self._launched
 
   @property
   def completed(self) -> bool:
+    """Завершена ли функция"""
     return self._completed
 
   @property
-  def exception(self) -> Union[None, Exception]:
+  def exception(self) -> None | Exception:
+    """Ошибка, возникшая при выполнении функции"""
     self._check(launched=True, completed=True, closed=False)
     return self._error
 
   @property
   def result(self):
+    """Результат выполнения функции"""
     self._check(launched=True, completed=True, closed=False)
     if not self._error is None:
       raise self._error  # type: ignore
@@ -122,6 +130,7 @@ class Action:
     return self._closed
 
   def run(self):
+    """Запустить функцию"""
     self._check(launched=False, completed=False, closed=False)
     self._launched = True
     try:
