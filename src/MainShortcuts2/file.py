@@ -1,6 +1,7 @@
 """Работа только с файлами"""
 import builtins
 import os
+import shutil
 from .core import ms
 from .path import PATH_TYPES, path2str
 from .types import NotAFileError
@@ -14,6 +15,7 @@ def _check(path, **kw) -> str:
   if os.path.exists(path):
     if not os.path.isfile(path):
       raise NotAFileError(path)
+    path = os.path.realpath(path)
   return path
 
 
@@ -35,14 +37,16 @@ def write(path: PATH_TYPES, data: str, encoding: str = None, mkdir: bool = False
   kw["file"] = file
   kw["mode"] = "w"
   if mkdir:
-    ms.dir.create(os.path.dirname(kw["file"]))
+    dir = os.path.dirname(kw["file"])
+    if not os.path.isdir(dir):
+      os.makedirs(dir)
   if use_tmp_file:
     kw["file"] += TMP_SUFFIX
   with builtins.open(**kw) as f:
     result = f.write(data)
   if use_tmp_file:
-    delete(file)
-    move(kw["file"], file)
+    os.remove(file)
+    shutil.move(kw["file"], file)
   return result
 
 
@@ -62,14 +66,16 @@ def save(path: PATH_TYPES, data: bytes, mkdir: bool = False, use_tmp_file: bool 
   kw["file"] = file
   kw["mode"] = "wb"
   if mkdir:
-    ms.dir.create(os.path.dirname(kw["file"]))
+    dir = os.path.dirname(kw["file"])
+    if not os.path.isdir(dir):
+      os.makedirs(dir)
   if use_tmp_file:
     kw["file"] += TMP_SUFFIX
   with builtins.open(**kw) as f:
     result = f.write(data)
   if use_tmp_file:
-    delete(file)
-    move(kw["file"], file)
+    os.remove(file)
+    shutil.move(kw["file"], file)
   return result
 
 
@@ -114,34 +120,34 @@ def rename(path: PATH_TYPES, name: PATH_TYPES, **kw):
   return ms.path.rename(**kw)
 
 
-def compare(path1: PATH_TYPES, path2: PATH_TYPES, method: str = "binary") -> bool:
-  """Одинаковые ли файлы"""
+def compare(path1: PATH_TYPES, path2: PATH_TYPES, method: str = "bin") -> bool:
+  """Одинаковые ли файлы (сравнение размера и содержимого)"""
   p1 = _check(path1)
   p2 = _check(path2)
   if os.path.getsize(p1) != os.path.getsize(p2):
     return False
-  if method == "binary":  # Сравнение по байтам
+  method = method.lower()
+  if method in ["binary", "bin", "bytes"]:  # Сравнение по байтам
     with open(p1, "rb") as f1:
       with open(p2, "rb") as f2:
-        while True:
-          b1 = f1.read(1024)
+        for b1 in f1:
           l = len(b1)
-          if l == 0:
-            return True
-          if b1 != f2.read(l):
+          b2 = f2.read(l)
+          if b1 != b2:
             return False
+        return True
   from .__main__ import HASH_TYPES
   if method in HASH_TYPES:  # Сравнение контрольной суммы
     import hashlib
-    Hash = getattr(hashlib, method)
+    Hash = hashlib.new(method)
     with open(p1, "rb") as f1:
       hash1 = Hash()
-      for chunk in f1:
-        hash1.update(chunk)
+      for b1 in f1:
+        hash1.update(b1)
     with open(p2, "rb") as f2:
       hash2 = Hash()
-      for chunk in f2:
-        hash2.update(chunk)
+      for b2 in f2:
+        hash2.update(b2)
     return hash1.digest() == hash2.digest()
   raise ValueError("Unknown method: " + repr(method))
 

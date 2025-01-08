@@ -10,7 +10,10 @@ try:
 except Exception:
   json5 = None
 JSON_TYPES = Union[bool, dict, float, int, list, None, str]
-MODES = ["c", "compress", "mainplay_tg", "mainplay", "max", "min", "mp_tg", "mp", "p", "pretty", "print", "zip"]
+MODES_COMPRESS = ("c", "compress", "min", "zip")
+MODES_MP = ("mp", "mp_tg", "mainplay", "mainplay_tg")
+MODES_PRETTY = ("p", "pretty", "max", "print")
+MODES_ALL = MODES_COMPRESS + MODES_MP + MODES_PRETTY
 
 
 def decode(text: str, *, like_json5: bool = False, **kw) -> JSON_TYPES:
@@ -32,15 +35,15 @@ def encode(data: JSON_TYPES, mode: str = "c", **kw):
     warnings.warn("The argument 'force' is no longer used", DeprecationWarning)
   if "sort" in kw:
     kw["sort_keys"] = kw.pop("sort")
-  if mode in ["c", "compress", "min", "zip"]:  # Сжатый
+  if mode in MODES_COMPRESS:  # Сжатый
     kw.setdefault("indent", None)
     kw.setdefault("separators", [",", ":"])
-  if mode in ["p", "pretty", "max", "print"]:  # Развёрнутый
+  if mode in MODES_PRETTY:  # Развёрнутый
     kw.setdefault("indent", 2)
     kw.setdefault("separators", [",", ": "])
     if mode == "print":
       kw.setdefault("ensure_ascii", False)
-  if mode in ["mp", "mp_tg", "mainplay", "mainplay_tg"]:  # Стиль MainPlay TG
+  if mode in MODES_MP:  # Стиль MainPlay TG
     kw.setdefault("indent", 2)
     kw.setdefault("separators", [",", ":"])
   return json.dumps(**kw)

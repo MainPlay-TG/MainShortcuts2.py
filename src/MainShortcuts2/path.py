@@ -12,14 +12,15 @@ PATHSEP = "/"
 
 
 def _path2str(path):
-  if type(path) == str:
+  if isinstance(path, str):
     return path
-  if type(path) == pathlib.Path:
+  if isinstance(path, pathlib.Path):
     return path.as_posix()
-  if type(path) == io.FileIO:
+  if isinstance(path, io.FileIO):
     return path.name
-  if type(path) == Path:
+  if isinstance(path, Path):
     return path.path
+  return os.fspath(path)
 
 
 def path2str(path: PATH_TYPES, to_abs: bool = False, replace_forbidden_to: str = None) -> str:
@@ -56,6 +57,15 @@ class Path:
     self.use_cache = use_cache
 
   def __fspath__(self) -> str:
+    return self.path
+
+  def __repr__(self):
+    cls = type(self)
+    if self.use_cache:
+      return cls.__module__ + "." + cls.__name__ + "(" + repr(self.path) + ")"
+    return cls.__module__ + "." + cls.__name__ + "(" + repr(self.path) + ", use_cache = False)"
+
+  def __str__(self):
     return self.path
 
   def reload(self, full: bool = False):
@@ -107,6 +117,7 @@ class Path:
     """Существует ли объект"""
     if self._exists is None or (not self.use_cache):
       self._exists = os.path.exists(self.path)
+    return self._exists
 
   @property
   def ext(self) -> str:
@@ -385,6 +396,31 @@ class TempFiles:
       except Exception:
         if not ignore_errors:
           raise
+
+
+def _rec_readlink(path: str, hist: list[str] = None) -> str:
+  if hist is None:
+    hist = [path]
+  while os.path.islink(path):
+    path = os.path.realpath(path).replace("\\", "/")
+    if path in hist:
+      raise RecursionError()
+    hist.append(path)
+  return path
+  # TODO Проверка всего пути к файлу
+  # dir=os.path.dirname(path)
+  # if dir==path:
+  #   return path
+  # hist.append(dir)
+
+
+def readlink(path: PATH_TYPES, recursive: bool = False) -> str:
+  path = path2str(path, True)
+  if recursive:
+    return _rec_readlink(path)
+  if not os.path.islink(path):
+    return path
+  return os.path.realpath(path)
 
 
 cp = copy
