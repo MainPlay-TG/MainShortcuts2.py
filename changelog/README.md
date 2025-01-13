@@ -1,4 +1,11 @@
 # MainShortcuts2
+## 2.4.8 (31)
+### Добавлено:
+- Функция `.utils.is_instance_of_all`
+- Функция `.utils.is_instance_of_one`
+### Исправлено:
+- Поломка скрипта `nano-json`
+- Создание хеша для хеша в скрипте `ms2-hash_gen`
 ## 2.4.7 (30)
 ### Добавлено:
 - Аргумент `--force` в скрипте `ms2-hash_gen`

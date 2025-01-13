@@ -1,0 +1,14 @@
+{
+  "added": [
+    "Функция `.utils.is_instance_of_all`",
+    "Функция `.utils.is_instance_of_one`"
+    ],
+  "changed": [],
+  "fixed": [
+    "Поломка скрипта `nano-json`",
+    "Создание хеша для хеша в скрипте `ms2-hash_gen`"
+  ],
+  "removed": [],
+  "version_id": 31,
+  "version": "2.4.8"
+}

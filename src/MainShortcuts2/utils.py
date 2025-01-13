@@ -564,5 +564,21 @@ def disable_warnings():
   warnings.warn = return_None
 
 
+def is_instance_of_one(obj, *classes: type) -> bool:
+  """Это экземпляр одного из классов?"""
+  for i in classes:
+    if isinstance(obj, i):
+      return True
+  return False
+
+
+def is_instance_of_all(obj, *classes: type) -> bool:
+  """Это экземпляр всех классов?"""
+  for i in classes:
+    if not isinstance(obj, i):
+      return False
+  return True
+
+
 download_file = sync_download_file
 request = sync_request

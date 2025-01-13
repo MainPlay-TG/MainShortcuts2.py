@@ -21,7 +21,7 @@ def nano_json(args: argparse.Namespace = None):
     argp.add_argument("-e", "--encoding", default="utf-8", help="кодировка файлов")
     argp.add_argument("-f", "--rcfile", help="использовать только этот файл для настройки nano")
     argp.add_argument("-i", "--indent", default=2, type=int, help="кол-во пробелов для отступа")
-    argp.add_argument("-m", "--mode", choices=ms.json.MODES, default="p", help="режим сохранения редактирования")
+    argp.add_argument("-m", "--mode", choices=ms.json.MODES_ALL, default="p", help="режим сохранения редактирования")
     argp.add_argument("-s", "--sort", action="store_true", help="сортировать ключи словаря")
     argp.add_argument("-u", "--no-escape", action="store_false", help="не использовать Unicode Escape")
     args = argp.parse_args()
@@ -101,6 +101,7 @@ def hash_gen(args: argparse.Namespace = None):
   if args.bar:
     import progressbar
     pbar_w = [progressbar.Percentage(), progressbar.GranularBar(left="(", right=")"), progressbar.FileTransferSpeed(), " ", progressbar.ETA(format="%(eta)8s", format_finished="%(elapsed)8s", format_na="     N/A", format_not_started="--:--:--", format_zero="00:00:00")]
+  completed = []
   data = {}
   data["file"] = {}
   data["format"] = "MainShortcuts2_hash_v1"
@@ -108,6 +109,10 @@ def hash_gen(args: argparse.Namespace = None):
   data["hash"]["type"] = args.type
   Hash = getattr(hashlib, args.type)
   for file in args.files:
+    while file.lower().endswith(HASH_SUFFIX.lower()):
+      file = file[:0 - len(HASH_SUFFIX)]
+    if file in completed:
+      continue
     if os.path.isfile(file + HASH_SUFFIX):
       if not args.force:
         print("Пропуск файла " + shlex.quote(file) + ": хеш существует", file=sys.stderr)
@@ -128,6 +133,7 @@ def hash_gen(args: argparse.Namespace = None):
       pbar.finish()
     data["hash"]["hex"] = hash.hexdigest()
     ms.json.write(file + HASH_SUFFIX, data)
+    completed.append(file)
 
 
 def hash_check(args: argparse.Namespace = None):
@@ -145,7 +151,7 @@ def hash_check(args: argparse.Namespace = None):
     pbar_w = [progressbar.Percentage(), progressbar.GranularBar(left="(", right=")"), progressbar.FileTransferSpeed(), " ", progressbar.ETA(format="%(eta)8s", format_finished="%(elapsed)8s", format_na="     N/A", format_not_started="--:--:--", format_zero="00:00:00")]
   completed = []
   for file in args.files:
-    if file.lower().endswith(HASH_SUFFIX.lower()):
+    while file.lower().endswith(HASH_SUFFIX.lower()):
       file = file[:0 - len(HASH_SUFFIX)]
     if file in completed:
       continue
