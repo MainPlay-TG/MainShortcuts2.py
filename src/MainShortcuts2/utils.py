@@ -580,5 +580,75 @@ def is_instance_of_all(obj, *classes: type) -> bool:
   return True
 
 
+def restore_deprecated(force: bool = False):
+  """Восстановить устаревшие функции"""
+  restored = []
+
+  def setmethod(cls, name):
+    def deco(func):
+      if force or not hasattr(cls, name):
+        try:
+          setattr(cls, name, func)
+          restored.append((cls, name, func))
+        except Exception:
+          pass
+      return func
+    return deco
+  if "datetime" in sys.modules:
+    from datetime import datetime
+
+    @setmethod(datetime, "utcnow")
+    def utcnow():
+      return datetime.now(datetime.UTC)
+  if "locale" in sys.modules:
+    import locale
+
+    @setmethod(locale, "resetlocale")
+    def resetlocale(category=locale.LC_ALL):
+      locale.setlocale(category, "")
+  return restored
+
+
+def main_func(_name_: str, exit: bool = True):
+  def deco(func):
+    if _name_ == "__main__":
+      result = func()
+      if exit:
+        if isinstance(result, int):
+          sys.exit(result)
+        sys.exit()
+    return func
+  return deco
+
+
+class decorators:
+  def __init__(self):
+    raise NotImplementedError()
+
+  @staticmethod
+  def append(obj: list):
+    """`obj.append(func)`"""
+    def deco(func):
+      obj.append(func)
+      return func
+    return deco
+
+  @staticmethod
+  def setattr(obj: type, name):
+    """`setattr(obj,name,func)`"""
+    def deco(func):
+      setattr(obj, name, func)
+      return func
+    return deco
+
+  @staticmethod
+  def setitem(obj: dict | list, index):
+    """`obj[index]=func`"""
+    def deco(func):
+      obj[index] = func
+      return func
+    return deco
+
+
 download_file = sync_download_file
 request = sync_request

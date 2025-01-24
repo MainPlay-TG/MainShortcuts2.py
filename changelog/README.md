@@ -1,4 +1,10 @@
 # MainShortcuts2
+## 2.4.9 (32)
+### Добавлено:
+- Декоратор `.utils.main_func`
+- Класс `.utils.decorators`
+- Константа `.api.base.USER_AGENTS`
+- Функция `.utils.restore_deprecated`
 ## 2.4.8 (31)
 ### Добавлено:
 - Функция `.utils.is_instance_of_all`

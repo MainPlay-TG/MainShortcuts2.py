@@ -1,17 +1,20 @@
 import requests
-from base64 import b64encode
+import requests.auth
+USER_AGENTS: dict[str, str] = {}
+USER_AGENTS["Android"] = "Mozilla/5.0 (Linux; Android 13; K) Chrome/128.0.6613.146"
+USER_AGENTS["Android13"] = "Mozilla/5.0 (Linux; Android 13; K) Chrome/128.0.6613.146"
 
 
-def auth_basic(username: str, password: str, *, client: "BaseClient" = None):
+def auth_basic(username: str, password: str, *, client: "BaseClient" = None) -> str:
   """Настроить базовую авторизацию для клиента"""
   if username is None:
     username = client.username
   if password is None:
     password = client.password
-  header = "Basic " + b64encode((username + ":" + password).encode("utf-8")).decode("utf-8")
-  if client is None:
-    return header
-  client._headers["Authorization"] = header
+  header = requests.auth._basic_auth_str(username, password)
+  if not client is None:
+    client._headers["Authorization"] = header
+  return header
 
 
 class BaseClient:
