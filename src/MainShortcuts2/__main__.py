@@ -1,4 +1,5 @@
 import argparse
+import os
 import sys
 from MainShortcuts2 import ms
 HASH_SUFFIX = ".MS2_hash"
@@ -113,6 +114,10 @@ def hash_gen(args: argparse.Namespace = None):
       file = file[:0 - len(HASH_SUFFIX)]
     if file in completed:
       continue
+    if os.path.isdir(file):
+      print("Пропуск файла " + shlex.quote(file) + ": это папка", file=sys.stderr)
+      completed.append(file)
+      continue
     if os.path.isfile(file + HASH_SUFFIX):
       if not args.force:
         print("Пропуск файла " + shlex.quote(file) + ": хеш существует", file=sys.stderr)
@@ -138,7 +143,6 @@ def hash_gen(args: argparse.Namespace = None):
 
 def hash_check(args: argparse.Namespace = None):
   import hashlib
-  import os
   import shlex
   if args is None:
     argp = argparse.ArgumentParser("ms2-hash_check", description="проверка размера и контрольной суммы файла")
@@ -154,6 +158,10 @@ def hash_check(args: argparse.Namespace = None):
     while file.lower().endswith(HASH_SUFFIX.lower()):
       file = file[:0 - len(HASH_SUFFIX)]
     if file in completed:
+      continue
+    if os.path.isdir(file):
+      print("Пропуск файла " + shlex.quote(file) + ": это папка", file=sys.stderr)
+      completed.append(file)
       continue
     if not os.path.exists(file + HASH_SUFFIX):
       print("Ошибка: не найден файл " + shlex.quote(file + HASH_SUFFIX), file=sys.stderr)
@@ -180,3 +188,16 @@ def hash_check(args: argparse.Namespace = None):
     else:
       print("Ошибка: файл " + shlex.quote(file) + " изменён")
     completed.append(file)
+
+
+def ln(args=None):
+  if args is None:
+    argp = argparse.ArgumentParser("ms2-ln", description="создание символьной ссылки с абсолютным путём к файлу")
+    argp.add_argument("-f", "--force", action="store_true", help="принудительное создание ссылки")
+    argp.add_argument("file", help="путь к файлу, на который будет указывать ссылка")
+    argp.add_argument("link", help="путь к ссылке для создания")
+    args = argp.parse_args()
+  if args.force:
+    ms.path.delete(args.link)
+  file = os.path.realpath(args.file)
+  os.symlink(file, args.link, os.path.isdir(file))

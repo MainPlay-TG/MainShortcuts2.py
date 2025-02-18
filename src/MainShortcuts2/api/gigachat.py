@@ -1,11 +1,11 @@
 import os
-from .base import Base, requests
+from .base import BaseClient, requests
 from datetime import timedelta
 from time import time
 CERT_PATH = os.path.dirname(__file__) + "/russian_trusted_root_ca_pem.crt"
 
 
-class GigaChat(Base):
+class GigaChat(BaseClient):
   def __init__(self, auth_data: str, client_id: str, *,
                cert_path: str = None,
                **kw):

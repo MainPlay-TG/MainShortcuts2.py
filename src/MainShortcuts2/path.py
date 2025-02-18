@@ -3,7 +3,10 @@ import io
 import os
 import pathlib
 import shutil
+import stat
+import sys
 from .core import ms
+from datetime import datetime
 from typing import *
 EXTSEP = "."
 FORBIDDEN_SYMBOLS = [":", "!", "?", "@", "*", "\"", "\n", "%", "+", "<", ">", "|"]
@@ -264,6 +267,57 @@ class Path:
     return r
 
 
+class Stat:
+  def __init__(self, data: os.stat_result):
+    self._atime_dt = None
+    self._ctime_dt = None
+    self._mtime_dt = None
+    self.data = data
+    self.atime: float = self.data.st_atime
+    self.ctime: float = self.data.st_birthtime if sys.version_info >= (3, 12) and sys.platform == "win32" else self.data.st_ctime
+    self.dev: int = self.data.st_dev
+    self.group_id: int = self.st_gid
+    self.inode: int = self.data.st_ino
+    self.is_dir: bool = stat.S_ISDIR(self.data.st_mode)
+    self.is_file: bool = stat.S_ISREG(self.data.st_mode)
+    self.mtime: float = self.data.st_mtime
+    self.size: int = self.data.st_size
+    self.user_id: int = self.data.st_uid
+
+  def __eq__(self, other):
+    if isinstance(other, Stat):
+      return os.path.samestat(self.data, other.data)
+    if isinstance(other, os.stat_result):
+      return os.path.samestat(self.data, other)
+    return NotImplemented
+
+  @property
+  def atime_dt(self) -> datetime:
+    """Дата последнего доступа к файлу"""
+    if self._atime_dt is None:
+      self._atime_dt = datetime.fromtimestamp(self.atime)
+    return self._atime_dt
+
+  @property
+  def ctime_dt(self) -> datetime:
+    """Дата создания файла"""
+    if self._ctime_dt is None:
+      self._ctime_dt = datetime.fromtimestamp(self.ctime)
+    return self._ctime_dt
+
+  @property
+  def mtime_dt(self) -> datetime:
+    """Дата изменения файла"""
+    if self._mtime_dt is None:
+      self._mtime_dt = datetime.fromtimestamp(self.mtime)
+    return self._mtime_dt
+
+  @classmethod
+  def load(cls, path: str, **kw):
+    """Получить из локального файла"""
+    return cls(os.stat(path, **kw))
+
+
 def copy(path: PATH_TYPES, dest: PATH_TYPES, mkdir: bool = False, **kw) -> str:
   """Копировать объект"""
   kw["dst"] = path2str(dest)
@@ -407,11 +461,6 @@ def _rec_readlink(path: str, hist: list[str] = None) -> str:
       raise RecursionError()
     hist.append(path)
   return path
-  # TODO Проверка всего пути к файлу
-  # dir=os.path.dirname(path)
-  # if dir==path:
-  #   return path
-  # hist.append(dir)
 
 
 def readlink(path: PATH_TYPES, recursive: bool = False) -> str:

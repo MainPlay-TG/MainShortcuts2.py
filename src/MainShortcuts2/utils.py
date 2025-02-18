@@ -159,9 +159,8 @@ def args2kwargs(func: Callable, args: Iterable = (), kwargs: dict[str, Any] = {}
 
 async def async_download_file(url: str, path: str, *, cb_end=return_None, cb_progress=return_None, cb_start=return_None, chunk_size: int = 1024, delete_on_error: bool = True, **kw) -> int:
   """Асинхронная функция для скачивания файла | `aiohttp`"""
+  kw.setdefault("method", "GET")
   kw["url"] = url
-  if not "method" in kw:
-    kw["method"] = "GET"
   async with async_request(**kw) as resp:  # type: ignore
     if callable(getattr(path, "write", None)):
       f: IO[bytes] = path
@@ -266,8 +265,7 @@ def randstr(length: int, symbols: str = "0123456789abcdefghijklmnopqrstuvwxyz") 
 def riop(**p_kw):
   """Запустить функцию в отдельном процессе | `multiprocessing`"""
   import multiprocessing
-  if not "daemon" in p_kw:
-    p_kw["daemon"] = False
+  p_kw.setdefault("daemon", False)
 
   def decorator(func):
     p_kw["target"] = func
@@ -286,8 +284,7 @@ def riop(**p_kw):
 def riot(**t_kw):
   """Запустить функцию в отдельном потоке | `threading`"""
   import threading
-  if not "daemon" in t_kw:
-    t_kw["daemon"] = False
+  t_kw.setdefault("daemon", False)
 
   def decorator(func):
     t_kw["target"] = func
@@ -305,12 +302,10 @@ def riot(**t_kw):
 
 def sync_download_file(url: str, path: str, *, cb_end=return_None, cb_progress=return_None, cb_start=return_None, chunk_size: int = 1024, delete_on_error: bool = True, **kw) -> int:
   """Синхронная функция для скачивания файла | `requests`"""
+  kw.setdefault("method", "GET")
   kw["stream"] = True
   kw["url"] = url
-  if not "method" in kw:
-    kw["method"] = "GET"
-  resp = sync_request(**kw)
-  with resp:
+  with sync_request(**kw) as resp:
     if callable(getattr(path, "write", None)):
       f: IO[bytes] = path
     else:
@@ -612,7 +607,11 @@ def restore_deprecated(force: bool = False):
 def main_func(_name_: str, exit: bool = True):
   def deco(func):
     if _name_ == "__main__":
-      result = func()
+      try:
+        result = func()
+      except KeyboardInterrupt:
+        import signal
+        result = signal.SIGINT.value
       if exit:
         if isinstance(result, int):
           sys.exit(result)
@@ -648,6 +647,15 @@ class decorators:
       obj[index] = func
       return func
     return deco
+
+
+def fassert(value: bool, text: str = None):
+  """`assert` независимо от `__debug__`"""
+  if value:
+    return value
+  if text is None:
+    raise AssertionError()
+  raise AssertionError(text)
 
 
 download_file = sync_download_file
