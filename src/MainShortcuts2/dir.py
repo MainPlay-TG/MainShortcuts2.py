@@ -51,7 +51,7 @@ def _list_filter(path: Path, *, exts: Iterable[str] = None, func: Callable[[Path
 def list_iter(path: PATH_TYPES = ".", *, exts: Iterable[str] = None, **kw):
   """Список содержимого папки (итератор)"""
   path = _check(path)
-  kw["exts"] = [] if exts is None else [(i if i.startswith(".") else "." + i).lower() for i in exts]
+  kw["exts"] = None if exts is None else [(i if i.startswith(".") else "." + i).lower() for i in exts]
   for i in os.listdir(path):
     i = Path(path + "/" + i)
     if _list_filter(i, **kw):
@@ -134,7 +134,7 @@ class TempDir:
 
 def recursive_list_iter(path: PATH_TYPES, follow_links: bool = False, *, on_error=None, top_down=True, exts: Iterable[str] = None, **kw):
   """Рекурсивный список содержимого папки (итератор)"""
-  kw["exts"] = [] if exts is None else [(i if i.startswith(".") else "." + i).lower() for i in exts]
+  kw["exts"] = None if exts is None else [(i if i.startswith(".") else "." + i).lower() for i in exts]
   for dirpath, dirnames, filenames in os.walk(path, followlinks=follow_links, onerror=on_error, topdown=top_down):
     for i in dirnames:
       i = Path(dirpath + "/" + i)
@@ -146,7 +146,7 @@ def recursive_list_iter(path: PATH_TYPES, follow_links: bool = False, *, on_erro
         yield i
 
 
-def recursive_list(path: PATH_TYPES, follow_links: bool = False, **kw) -> builtins.list[Path]:
+def recursive_list(path: PATH_TYPES = ".", follow_links: bool = False, **kw) -> builtins.list[Path]:
   """Рекурсивный список содержимого папки"""
   return builtins.list(recursive_list_iter(path, follow_links, **kw))
 

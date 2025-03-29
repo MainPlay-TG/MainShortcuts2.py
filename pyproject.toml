@@ -1,5 +1,5 @@
 [tool.poetry]
-version = "2.4.12"
+version = "2.4.13"
 name = "MainShortcuts2"
 description = "Сокращение и улучшение функций + консольные утилиты"
 authors = [ "MainPlay TG <xbox.roman6666666666@gmail.com>",]
