@@ -71,6 +71,9 @@ class Path:
   def __str__(self):
     return self.path
 
+  def __lt__(self, other):
+    return self.path < path2str(other, to_abs=True)
+
   def reload(self, full: bool = False):
     """Удаление кешированной информации"""
     if full:
@@ -265,6 +268,28 @@ class Path:
     if follow:
       self.path = r
     return r
+
+  def list_dir(self, **kw):
+    """Список содержимого папки"""
+    return ms.dir.list(self, **kw)
+
+  def to_dict(self) -> dict:
+    result = {}
+    result["path"] = self.path
+    if self.exists:
+      result["created_at"] = self.created_at
+      result["exists"] = True
+      result["is_link"] = self.is_link
+      result["modified_at"] = self.modified_at
+      result["realpath"] = self.realpath
+      result["size"] = self.size if self.type == "file" else None
+      result["type"] = self.type
+      result["used_at"] = self.used_at
+    else:
+      result["exists"] = False
+      for i in ("created_at", "is_link", "modified_at", "realpath", "size", "type", "used_at"):
+        result[i] = None
+    return result
 
 
 class Stat:

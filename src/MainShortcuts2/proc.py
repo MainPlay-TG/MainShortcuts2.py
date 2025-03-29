@@ -10,15 +10,29 @@ Popen_kw = {
 }
 
 
-@wraps(subprocess.Popen)
-def Popen(*args, **kw) -> subprocess.Popen:
-  """Запустить процесс"""
-  for i in Popen_kw:
-    if not i in kw:
-      kw[i] = Popen_kw[i]
-  kw["args"] = list(args)
-  p = subprocess.Popen(**kw)
-  return p
+class Popen(subprocess.Popen):
+  def __init__(self, *args, **kw):
+    if len(args) == 1:
+      if isinstance(args[0], (list, tuple)):
+        args = args[0]
+    for k, v in Popen_kw.items():
+      kw.setdefault(k, v)
+    kw["args"] = list(args)
+    self.launch_kw = kw
+    subprocess.Popen.__init__(self, **kw)
+
+  def force_wait(self):
+    """Ожидать завершения процесса игнорируя прерывания"""
+    while True:
+      try:
+        return self.wait()
+      except:
+        pass
+
+  @ms.utils.riot(daemon=True)
+  def wait_on_bg(self):
+    """Ожидать завершения процесса в фоне (для Linux)"""
+    self.force_wait()
 
 
 @wraps(subprocess.Popen)

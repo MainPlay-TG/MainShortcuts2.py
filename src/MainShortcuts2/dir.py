@@ -32,7 +32,7 @@ def create(path: PATH_TYPES, force: bool = False, **kw):
   os.makedirs(**kw)
 
 
-def _list_filter(path: Path, *, exts: Iterable[str], func: Callable[[Path], bool], links: bool, type: str):
+def _list_filter(path: Path, *, exts: Iterable[str] = None, func: Callable[[Path], bool] = None, links: bool = None, type: str = None):
   if not exts is None:
     if not path.ext.lower() in exts:
       return False
@@ -40,7 +40,7 @@ def _list_filter(path: Path, *, exts: Iterable[str], func: Callable[[Path], bool
     if not func(path):
       return False
   if not links is None:
-    if os.path.islink(path.path) != links:
+    if path.is_link != links:
       return False
   if not type is None:
     if path.type != type:
@@ -48,25 +48,19 @@ def _list_filter(path: Path, *, exts: Iterable[str], func: Callable[[Path], bool
   return True
 
 
-def list(path: PATH_TYPES = ".", *, exts: Iterable[str] = None, func: Callable[[Path], bool] = None, links: bool = None, type: str = None) -> list[Path]:
-  """Список содержимого папки"""
-  kw = {}
+def list_iter(path: PATH_TYPES = ".", *, exts: Iterable[str] = None, **kw):
+  """Список содержимого папки (итератор)"""
   path = _check(path)
-  r = []
-  kw["func"] = func
-  kw["links"] = links
-  kw["type"] = type
-  if exts is None:
-    kw["exts"] = None
-  else:
-    kw["exts"] = []
-    for i in exts:
-      kw["exts"].append((i if i.startswith(".") else "." + i).lower())
+  kw["exts"] = [] if exts is None else [(i if i.startswith(".") else "." + i).lower() for i in exts]
   for i in os.listdir(path):
     i = Path(path + "/" + i)
     if _list_filter(i, **kw):
-      r.append(i)
-  return r
+      yield i
+
+
+def list(path: PATH_TYPES = ".", **kw) -> builtins.list[Path]:
+  """Список содержимого папки"""
+  return list(list_iter(path, **kw))
 
 
 def copy(path: PATH_TYPES, dest: PATH_TYPES, **kw):
@@ -108,7 +102,6 @@ def rename(path: PATH_TYPES, name: PATH_TYPES, **kw):
   kw["name"] = name
   kw["path"] = _check(path)
   return ms.path.rename(**kw)
-# 2.1.2
 
 
 class TempDir:
@@ -122,6 +115,7 @@ class TempDir:
 
   def __enter__(self):
     self.create()
+    return self
 
   def __exit__(self, type, value, trace):
     if not value is None:
@@ -136,6 +130,25 @@ class TempDir:
   def delete(self):
     """Удалить папку вместе с содержимым"""
     ms.path.delete(self.path)
+
+
+def recursive_list_iter(path: PATH_TYPES, follow_links: bool = False, *, on_error=None, top_down=True, exts: Iterable[str] = None, **kw):
+  """Рекурсивный список содержимого папки (итератор)"""
+  kw["exts"] = [] if exts is None else [(i if i.startswith(".") else "." + i).lower() for i in exts]
+  for dirpath, dirnames, filenames in os.walk(path, followlinks=follow_links, onerror=on_error, topdown=top_down):
+    for i in dirnames:
+      i = Path(dirpath + "/" + i)
+      if _list_filter(i, **kw):
+        yield i
+    for i in filenames:
+      i = Path(dirpath + "/" + i)
+      if _list_filter(i, **kw):
+        yield i
+
+
+def recursive_list(path: PATH_TYPES, follow_links: bool = False, **kw) -> builtins.list[Path]:
+  """Рекурсивный список содержимого папки"""
+  return list(recursive_list_iter(path, follow_links, **kw))
 
 
 cp = copy

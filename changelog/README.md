@@ -1,4 +1,14 @@
 # MainShortcuts2
+## 2.4.11 (34)
+### Добавлено:
+- Метод `.path.Path.__lt__`
+- Метод `.path.Path.list_dir`
+- Метод `.path.Path.to_dict`
+- Метод `.proc.Popen.force_wait`
+- Метод `.proc.Popen.wait_on_bg`
+- Функция `.dir.list_iter`
+- Функция `.dir.recursive_list_iter`
+- Функция `.dir.recursive_list`
 ## 2.4.10 (33)
 ### Добавлено:
 - Класс `.path.Stat`
