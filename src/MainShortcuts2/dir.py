@@ -60,7 +60,7 @@ def list_iter(path: PATH_TYPES = ".", *, exts: Iterable[str] = None, **kw):
 
 def list(path: PATH_TYPES = ".", **kw) -> builtins.list[Path]:
   """Список содержимого папки"""
-  return list(list_iter(path, **kw))
+  return builtins.list(list_iter(path, **kw))
 
 
 def copy(path: PATH_TYPES, dest: PATH_TYPES, **kw):
@@ -148,7 +148,7 @@ def recursive_list_iter(path: PATH_TYPES, follow_links: bool = False, *, on_erro
 
 def recursive_list(path: PATH_TYPES, follow_links: bool = False, **kw) -> builtins.list[Path]:
   """Рекурсивный список содержимого папки"""
-  return list(recursive_list_iter(path, follow_links, **kw))
+  return builtins.list(recursive_list_iter(path, follow_links, **kw))
 
 
 cp = copy
