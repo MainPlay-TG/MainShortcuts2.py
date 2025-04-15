@@ -7,9 +7,8 @@ from typing import Union
 
 def _get_main_file():
   def func():
-    if hasattr(sys, "frozen"):
-      if sys.frozen:
-        return sys.executable
+    if getattr(sys, "frozen", False):
+      return sys.executable
     if "__main__" in sys.modules:
       if hasattr(sys.modules["__main__"], "__file__"):
         return sys.modules["__main__"].__file__
@@ -210,6 +209,32 @@ class MS2:
       from . import win
       self._win = win
     return self._win
+
+  class ObjectBase(object):
+    def __new__(cls, *a, **b):
+      self = object.__new__(cls)
+      return self
+
+    def __init__(self, *a, **b):
+      pass
+
+    def __bool__(self):
+      return True
+
+    def __enter__(self):
+      return self
+
+    def __exit__(self, *a):
+      if callable(getattr(self, "close", None)):
+        self.close()
+
+    def __repr__(self, args_string="..."):
+      cls = type(self)
+      return "%s.%s(%s)" % (cls.__module__, cls.__name__, args_string)
+
+    @classmethod
+    def _from_kw(cls, kw):
+      return cls(**kw)
 
 
 ms = MS2()

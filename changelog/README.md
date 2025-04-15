@@ -1,4 +1,13 @@
 # MainShortcuts2
+## 2.4.14 (37)
+### Добавлено:
+- Декоратор `.utils.OnlyOneInstance.wrap_func`
+- Класс `.api.base.ObjectBase`
+- Класс `.ObjectBase`
+- Функция `.utils.add2pythonpath`
+- Функция `.utils.auto_install_modules`
+- Функция `.utils.check_modules`
+- Функция `.utils.run_pip`
 ## 2.4.13 (36)
 ### Исправлено:
 - Фильтр в функции `.dir.list_iter`

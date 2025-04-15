@@ -1,0 +1,16 @@
+{
+  "added": [
+    "Декоратор `.utils.OnlyOneInstance.wrap_func`",
+    "Класс `.api.base.ObjectBase`",
+    "Класс `.ObjectBase`",
+    "Функция `.utils.add2pythonpath`",
+    "Функция `.utils.auto_install_modules`",
+    "Функция `.utils.check_modules`",
+    "Функция `.utils.run_pip`"
+  ],
+  "changed": [],
+  "fixed": [],
+  "removed": [],
+  "version_id": 37,
+  "version": "2.4.14"
+}

@@ -1,4 +1,5 @@
 """Различные утилиты, требующие сторонних модулей"""
+import builtins
 import os
 import sys
 from .core import ms
@@ -490,7 +491,19 @@ class OnlyOneInstance:
       return
     self._exit()
     self.running = False
+    self.lock.delete()
     self.on_exit()
+
+  @classmethod
+  def wrap_func(cls, **kw):
+    def deco(func):
+      ooi = cls(**kw)
+
+      def wrapper(*args, **kwargs):
+        with ooi:
+          return func(*args, **kwargs)
+      return wrapper
+    return deco
 
   def on_enter(self):
     pass
@@ -656,6 +669,72 @@ def fassert(value: bool, text: str = None):
   if text is None:
     raise AssertionError()
   raise AssertionError(text)
+
+
+def add2pythonpath(dir: str, to_begin: bool = False):
+  """Добавить папку в `sys.path`, если её там нет"""
+  dir = ms.path.path2str(dir, to_abs=True)
+  if not dir in sys.path:
+    if to_begin:
+      sys.path.insert(0, dir)
+    else:
+      sys.path.append(dir)
+
+
+def run_pip(*args: str, internal: bool = False, **kw):
+  """Запустить `pip`. Встроенный запуск может завершить работу всей программы! | `pip`"""
+  if getattr(sys, "frozen", False):
+    raise RuntimeError("The environment is frozen")
+  from pip._internal.exceptions import PipError
+  if internal:
+    from pip._internal.cli.main_parser import parse_command
+    from pip._internal.commands import create_command
+    cmd_name, cmd_args = parse_command(args)
+    kw.setdefault("isolated", "--isolated" in cmd_args)
+    command = create_command(cmd_name, **kw)
+    if command.main(cmd_args):
+      raise PipError()
+  else:
+    import subprocess
+    kw["args"] = [sys.executable, "-m", "pip"] + list(args)
+    if subprocess.call(**kw):
+      raise PipError()
+
+
+def check_modules(*modules: str, _c: list[str] = None, _m: list[str] = None) -> list[str]:
+  """Проверить наличие модулей. Не проверяет возможность импорта. Возвращает список отсутствующих модулей"""
+  import pkg_resources
+  checked = [] if _c is None else _c
+  missing = [] if _m is None else _m
+  for i in modules:
+    req = i if isinstance(i, pkg_resources.Requirement) else pkg_resources.Requirement.parse(i)
+    if not req.name in checked:
+      try:
+        dist = pkg_resources.get_distribution(req)
+        checked.append(req.name)
+        check_modules(*dist.requires(), _c=checked, _m=missing)
+      except pkg_resources.DistributionNotFound:
+        req_str = str(req)
+        if not req_str in missing:
+          missing.append(req_str)
+  return missing
+
+
+def auto_install_modules(*modules, print: bool | str = False, **pip_kw):
+  """Автоматически установить недостающие модули | `pip`, `pkg_resources`"""
+  # Проверить возможность установки
+  import pkg_resources
+  from pip._internal.exceptions import PipError
+  if getattr(sys, "frozen", False):
+    raise RuntimeError("The environment is frozen")
+  _ = PipError, pkg_resources  # Убрать предупреждение "модуль не используется"
+  missing = check_modules(*modules)
+  if len(missing) > 0:
+    if print:
+      text = print if isinstance(print, str) else "Выполняется установка модулей %(modules)s, подождите немного"
+      builtins.print(text % {"modules": ", ".join(missing)}, file=sys.stderr)
+    args = ["install", "-U"] + missing
+    run_pip(*args, **pip_kw)
 
 
 download_file = sync_download_file

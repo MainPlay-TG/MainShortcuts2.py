@@ -43,22 +43,22 @@ class MultiLang:
 
   def add_lang(self, lang_name: str, lang: Union[dict, Path, str], load: bool = True):
     """Добавить один язык из словаря или пути к файлу"""
-    if type(lang) == dict:
+    if isinstance(lang, dict):
       for cat_name, cat in lang.items():
-        assert type(cat_name) == str
-        assert type(cat) == dict
+        assert isinstance(cat_name, str)
+        assert isinstance(cat, dict)
         for text_name, text in cat.items():
-          assert type(text_name) == str
-          if type(text) == dict:
+          assert isinstance(text_name, str)
+          if isinstance(text, dict):
             if not "allow_cache" in text:
               text["allow_cache"] = True
             if not "type" in text:
               text["type"] = "normal"
       self.langs[lang_name] = lang
       return
-    if type(lang) == str:
+    if isinstance(lang, str):
       lang = Path(lang)
-    if type(lang) == Path:
+    if isinstance(lang, Path):
       self.files[lang_name] = lang
       if load:
         self.load(lang_name)

@@ -1,5 +1,6 @@
 import requests
 import requests.auth
+from MainShortcuts2 import ms
 USER_AGENTS: dict[str, str] = {}
 USER_AGENTS["Android"] = "Mozilla/5.0 (Linux; Android 13; K) Chrome/128.0.6613.146"
 USER_AGENTS["Android13"] = "Mozilla/5.0 (Linux; Android 13; K) Chrome/128.0.6613.146"
@@ -17,7 +18,7 @@ def auth_basic(username: str, password: str, *, client: "BaseClient" = None) -> 
   return header
 
 
-class BaseClient:
+class BaseClient(ms.ObjectBase):
   """Базовый клиент для HTTP API"""
 
   def __init__(self, **kw):
@@ -67,9 +68,9 @@ class BaseClient:
       result.raise_for_status()
     return result
 
-  def request(self, *args, **kwargs) -> requests.Response:
+  def request(self, httpm, apim, **kw) -> requests.Response:
     """Отправить запрос к API"""
-    return self._request(*args, **kwargs)
+    return self._request(httpm, apim, **kw)
 
 
 class Base(BaseClient):
@@ -106,3 +107,16 @@ class BasicAuthClient(BaseClient):
   def password(self, value):
     self._headers["Authorization"] = None
     self._password = value
+
+
+class ObjectBase(ms.ObjectBase):
+  def __init__(self, client: BaseClient, raw: dict, *args, **kwargs):
+    self.client = client
+    self.raw = raw
+    self._init(*args, **kwargs)
+
+  def __getitem__(self, k):
+    return self.raw.get(k)
+
+  def _init(self):
+    pass
