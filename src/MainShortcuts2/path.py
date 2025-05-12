@@ -46,7 +46,7 @@ def cwd(set_to: PATH_TYPES = None) -> str:
   return os.getcwd().replace("\\", PATHSEP)
 
 
-class Path:
+class Path(os.PathLike):
   """Информация и действия с объектом файловой системы"""
 
   def __init__(self, path: PATH_TYPES, use_cache: bool = True):

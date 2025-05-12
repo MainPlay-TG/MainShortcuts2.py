@@ -1,7 +1,7 @@
 import re
 from .core import ms
 from .path import Path
-from typing import Any, Union
+from typing import IO, Any, Union
 
 
 def _check_count(data):
@@ -392,3 +392,99 @@ class CodeModule:
 
   def __setattr__(self, k, v):
     self.__dict__["globals"][k] = v
+
+
+class FileDownloader(ms.ObjectBase):
+  EVENT_STARTING = 0
+  EVENT_STARTED = 1
+  EVENT_DOWNLOADING = 2
+  EVENT_COMPLETE = 3
+  EVENT_ERROR = 4
+  EVENT_NAMES = {0: "STARTING", 1: "STARTED", 2: "DOWNLOADING", 3: "COMPLETE", 4: "ERROR"}
+
+  class CancelError(BaseException):
+    pass
+
+  def __init__(self, *, log=ms.log, **req_kw):
+    import requests
+    self.chunk_size = 16384  # 16 KB
+    self.handlers: dict[int, list] = {}
+    self.log = log
+    self.req_kw = req_kw
+    if not "session" in self.req_kw:
+      self.req_kw["session"] = requests.Session()
+
+  def _run_handlers(self, event: int, data: dict):
+    for func in self.handlers.get(event, []):
+      try:
+        func(**data)
+      except self.CancelError:
+        self.log.error("Handler %s canceled downloading on event %s", func, self.EVENT_NAMES.get(event, event))
+      except Exception as exc:
+        self.log.exception("Exception in handler %s on event %r", func, self.EVENT_NAMES.get(event, event), exc_info=exc)
+
+  def add_handler(self, event: int):
+    self.handlers.setdefault(event, {})
+
+    def deco(func):
+      self.handlers[event].append(func)
+      return func
+    return deco
+
+  def download2file(self, url: str, path: str, *, resume: bool = False, **kw):
+    """Скачать данные в файл"""
+    if resume:
+      raise NotImplementedError()
+    real_path = ms.path.path2str(path)
+    tmp_path = real_path + ".ms2downloading"
+    kw.setdefault("data", {})
+    kw["data"]["real_path"] = real_path
+    kw["data"]["tmp_path"] = tmp_path
+    kw["url"] = url
+    with open(tmp_path, "wb") as f:
+      kw["io"] = f
+      self.download2io(**kw)
+    ms.file.move(tmp_path, real_path)
+    return kw["data"]
+
+  def download2io(self, url: str, io: IO[bytes], *, data: dict = None, **kw):
+    """Скачать данные в объект типа BytesIO"""
+    for k, v in self.req_kw.items():
+      if k in {"headers", "params"}:
+        if not v is None:
+          kw.setdefault(k, {})
+          for k2, v2 in v.items():
+            kw[k].setdefault(k2, v2)
+      else:
+        kw.setdefault(k, v)
+    if data is None:
+      data = {}
+    data["downloaded"] = 0
+    data["downloader"] = self
+    data["io"] = io
+    data["req_kw"] = kw
+    data["url"] = url
+    kw.setdefault("method", "GET")
+    kw["stream"] = True
+    kw["url"] = url
+    self._run_handlers(self.EVENT_STARTING, data)
+    try:
+      with ms.utils.sync_request(**kw) as resp:
+        data["resp"] = resp
+        self._run_handlers(self.EVENT_STARTED, data)
+        for chunk in resp.iter_content(self.chunk_size):
+          data["downloaded"] += io.write(chunk)
+          self._run_handlers(self.EVENT_DOWNLOADING, data)
+    except BaseException as exc:
+      self.log.error("Failed to download")
+      self._run_handlers(self.EVENT_ERROR, data)
+      raise
+    self._run_handlers(self.EVENT_COMPLETE, data)
+    return data
+
+  def h_limit_size(self, max_size: int):
+    @self.add_handler(self.EVENT_DOWNLOADING)
+    def limit_size(downloaded: int, **kw):
+      if downloaded > max_size:
+        raise self.CancelError()
+    return limit_size

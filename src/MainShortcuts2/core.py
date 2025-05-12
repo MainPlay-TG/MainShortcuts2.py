@@ -1,8 +1,14 @@
 import os
 import sys
 from . import _module_info
+from datetime import datetime
 from logging import Logger
+from time import time
 from typing import Union
+try:
+  from datetime import timezone
+except Exception:
+  timezone = None
 
 
 def _get_main_file():
@@ -39,6 +45,8 @@ class MS2:
     self._file = None
     self._json = None
     self._list = None
+    self._ms2app = None
+    self._ms2hash = None
     self._path = None
     self._proc = None
     self._regex = None
@@ -148,6 +156,20 @@ class MS2:
     return self._list
 
   @property
+  def ms2app(self):
+    if self._ms2app is None:
+      from . import ms2app
+      self._ms2app = ms2app
+    return self._ms2app
+
+  @property
+  def ms2hash(self):
+    if self._ms2hash is None:
+      from . import ms2hash
+      self._ms2hash = ms2hash
+    return self._ms2hash
+
+  @property
   def path(self):
     if self._path is None:
       from . import path
@@ -235,6 +257,31 @@ class MS2:
     @classmethod
     def _from_kw(cls, kw):
       return cls(**kw)
+
+    @property
+    def now(self) -> float:
+      """Текущее локальное время (`timestamp`)"""
+      return time()
+
+    @property
+    def now_dt(self) -> datetime:
+      """Текущее локальное время (`datetime`)"""
+      return datetime.fromtimestamp(time())
+
+    @property
+    def utcnow(self) -> float:
+      """Текущее время по UTC (`timestamp`)"""
+      return self.utcnow_dt.timestamp()
+    if timezone is None:
+      @property
+      def utcnow_dt(self) -> datetime:
+        """Текущее время по UTC (`datetime`)"""
+        return datetime.utcfromtimestamp(time())
+    else:
+      @property
+      def utcnow_dt(self) -> datetime:
+        """Текущее время по UTC (`datetime`)"""
+        return datetime.fromtimestamp(time(), timezone.utc)
 
 
 ms = MS2()

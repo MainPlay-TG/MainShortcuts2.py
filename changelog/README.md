@@ -1,4 +1,12 @@
 # MainShortcuts2
+## 2.5.0 (38)
+### Добавлено:
+- Класс `.advanced.FileDownloader` (не проверен)
+- Подмодуль `.ms2app` (не проверен)
+- Подмодуль `.ms2hash`
+- Подмодуль `.sql`, импортируется вручную
+- Свойства `.now_dt`, `.now`, `.utcnow_dt` и `.utcnow`
+- Скрипт `ms2-app` (не проверен)
 ## 2.4.14 (37)
 ### Добавлено:
 - Декоратор `.utils.OnlyOneInstance.wrap_func`

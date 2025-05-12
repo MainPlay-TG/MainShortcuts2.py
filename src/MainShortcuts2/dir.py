@@ -20,16 +20,21 @@ def _check(path, **kw) -> str:
   return path
 
 
-def create(path: PATH_TYPES, force: bool = False, **kw):
+def create(path: PATH_TYPES, force: bool = False, *, _exists: set[str] = None, **kw):
   """Создать папку если её не существует"""
+  exists = set() if _exists is None else _exists
   path = path2str(path)
+  if path in exists:
+    return
   if os.path.isdir(path):
+    exists.add(path)
     return
   if force:
     if os.path.isfile(path):
       ms.path.delete(path)
   kw["name"] = _check(path)
   os.makedirs(**kw)
+  exists.add(path)
 
 
 def _list_filter(path: Path, *, exts: Iterable[str] = None, func: Callable[[Path], bool] = None, links: bool = None, type: str = None):

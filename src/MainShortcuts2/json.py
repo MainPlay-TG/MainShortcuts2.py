@@ -18,7 +18,7 @@ MODES_ALL = MODES_COMPRESS + MODES_MP + MODES_PRETTY
 
 def decode(text: str, *, like_json5: bool = False, **kw) -> JSON_TYPES:
   """Прочитать текстовый JSON"""
-  kw["s"] = text
+  kw["s"] = text.decode(ms.encoding) if isinstance(text, bytes) else text
   if like_json5:
     if not json5 is None:
       return json5.loads(**kw)

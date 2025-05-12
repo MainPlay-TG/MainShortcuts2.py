@@ -2,8 +2,6 @@ import argparse
 import os
 import sys
 from MainShortcuts2 import ms
-HASH_SUFFIX = ".MS2_hash"
-HASH_TYPES = ["blake2b", "blake2s", "md5", "sha1", "sha224", "sha256", "sha384", "sha3_224", "sha3_256", "sha3_384", "sha3_512", "sha512"]
 
 
 def import_example():
@@ -85,109 +83,6 @@ def nginx_restart():
   if code != 0:
     sys.exit(code)
   sys.exit(subprocess.call(["systemctl", "restart", "nginx"]))
-
-
-def hash_gen(args: argparse.Namespace = None):
-  import hashlib
-  import os
-  import shlex
-  if args is None:
-    argp = argparse.ArgumentParser("ms2-hash_gen", description="создание контрольной суммы для файла")
-    argp.add_argument("files", nargs="+", help="пути к файлам")
-    argp.add_argument("-b", "--bar", action="store_true", help="показывать прогрессбар (нужен модуль progressbar2)")
-    argp.add_argument("-f", "--force", action="store_true", help="перезаписывать существующие хеши")
-    argp.add_argument("-t", "--type", choices=HASH_TYPES, default="sha512", help="тип контрольной суммы")
-    args = argp.parse_args()
-  pbar, pbar_w, progressbar = None, None, None
-  if args.bar:
-    import progressbar
-    pbar_w = [progressbar.Percentage(), progressbar.GranularBar(left="(", right=")"), progressbar.FileTransferSpeed(), " ", progressbar.ETA(format="%(eta)8s", format_finished="%(elapsed)8s", format_na="     N/A", format_not_started="--:--:--", format_zero="00:00:00")]
-  completed = []
-  data = {}
-  data["file"] = {}
-  data["format"] = "MainShortcuts2_hash_v1"
-  data["hash"] = {}
-  data["hash"]["type"] = args.type
-  Hash = getattr(hashlib, args.type)
-  for file in args.files:
-    while file.lower().endswith(HASH_SUFFIX.lower()):
-      file = file[:0 - len(HASH_SUFFIX)]
-    if file in completed:
-      continue
-    if os.path.isdir(file):
-      print("Пропуск файла " + shlex.quote(file) + ": это папка", file=sys.stderr)
-      completed.append(file)
-      continue
-    if os.path.isfile(file + HASH_SUFFIX):
-      if not args.force:
-        print("Пропуск файла " + shlex.quote(file) + ": хеш существует", file=sys.stderr)
-        continue
-    data["file"]["size"] = os.path.getsize(file)
-    with open(file, "rb") as f:
-      if args.bar:
-        pbar = progressbar.ProgressBar(max_error=False, max_value=data["file"]["size"], widgets=[ms.path.Path(file).full_name] + pbar_w)
-        c = 0
-        pbar.start()
-      hash = Hash()
-      for chunk in f:
-        hash.update(chunk)
-        if args.bar:
-          c += len(chunk)
-          pbar.update(c)
-    if args.bar:
-      pbar.finish()
-    data["hash"]["hex"] = hash.hexdigest()
-    ms.json.write(file + HASH_SUFFIX, data)
-    completed.append(file)
-
-
-def hash_check(args: argparse.Namespace = None):
-  import hashlib
-  import shlex
-  if args is None:
-    argp = argparse.ArgumentParser("ms2-hash_check", description="проверка размера и контрольной суммы файла")
-    argp.add_argument("files", nargs="+", help="пути к файлам")
-    argp.add_argument("-b", "--bar", action="store_true", help="показывать прогрессбар (нужен модуль progressbar2)")
-    args = argp.parse_args()
-  pbar, pbar_w, progressbar = None, None, None
-  if args.bar:
-    import progressbar
-    pbar_w = [progressbar.Percentage(), progressbar.GranularBar(left="(", right=")"), progressbar.FileTransferSpeed(), " ", progressbar.ETA(format="%(eta)8s", format_finished="%(elapsed)8s", format_na="     N/A", format_not_started="--:--:--", format_zero="00:00:00")]
-  completed = []
-  for file in args.files:
-    while file.lower().endswith(HASH_SUFFIX.lower()):
-      file = file[:0 - len(HASH_SUFFIX)]
-    if file in completed:
-      continue
-    if os.path.isdir(file):
-      print("Пропуск файла " + shlex.quote(file) + ": это папка", file=sys.stderr)
-      completed.append(file)
-      continue
-    if not os.path.exists(file + HASH_SUFFIX):
-      print("Ошибка: не найден файл " + shlex.quote(file + HASH_SUFFIX), file=sys.stderr)
-      continue
-    data = ms.json.read(file + HASH_SUFFIX)
-    if data["file"]["size"] != os.path.getsize(file):
-      print("Ошибка: размер файла " + shlex.quote(file) + " не совпадает", file=sys.stderr)
-      continue
-    if args.bar:
-      pbar = progressbar.ProgressBar(max_error=False, max_value=data["file"]["size"], widgets=[ms.path.Path(file).full_name] + pbar_w)
-      c = 0
-      pbar.start()
-    hash = getattr(hashlib, data["hash"]["type"])()
-    with open(file, "rb") as f:
-      for chunk in f:
-        hash.update(chunk)
-        if args.bar:
-          c += len(chunk)
-          pbar.update(c)
-    if args.bar:
-      pbar.finish()
-    if data["hash"]["hex"] == hash.hexdigest():
-      print("Успех: файл " + shlex.quote(file) + " не изменён")
-    else:
-      print("Ошибка: файл " + shlex.quote(file) + " изменён")
-    completed.append(file)
 
 
 def ln(args=None):

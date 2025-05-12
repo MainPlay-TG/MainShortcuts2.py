@@ -1,2 +1,2 @@
 name = "MainShortcuts2"
-version = "2.4.14"
+version = "2.5.0"
