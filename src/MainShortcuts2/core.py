@@ -258,30 +258,30 @@ class MS2:
     def _from_kw(cls, kw):
       return cls(**kw)
 
-    @property
-    def now(self) -> float:
-      """Текущее локальное время (`timestamp`)"""
-      return time()
+  @property
+  def now(self) -> float:
+    """Текущее локальное время (`timestamp`)"""
+    return time()
 
-    @property
-    def now_dt(self) -> datetime:
-      """Текущее локальное время (`datetime`)"""
-      return datetime.fromtimestamp(time())
+  @property
+  def now_dt(self) -> datetime:
+    """Текущее локальное время (`datetime`)"""
+    return datetime.fromtimestamp(time())
 
+  @property
+  def utcnow(self) -> float:
+    """Текущее время по UTC (`timestamp`)"""
+    return self.utcnow_dt.timestamp()
+  if timezone is None:
     @property
-    def utcnow(self) -> float:
-      """Текущее время по UTC (`timestamp`)"""
-      return self.utcnow_dt.timestamp()
-    if timezone is None:
-      @property
-      def utcnow_dt(self) -> datetime:
-        """Текущее время по UTC (`datetime`)"""
-        return datetime.utcfromtimestamp(time())
-    else:
-      @property
-      def utcnow_dt(self) -> datetime:
-        """Текущее время по UTC (`datetime`)"""
-        return datetime.fromtimestamp(time(), timezone.utc)
+    def utcnow_dt(self) -> datetime:
+      """Текущее время по UTC (`datetime`)"""
+      return datetime.utcfromtimestamp(time())
+  else:
+    @property
+    def utcnow_dt(self) -> datetime:
+      """Текущее время по UTC (`datetime`)"""
+      return datetime.fromtimestamp(time(), timezone.utc)
 
 
 ms = MS2()
