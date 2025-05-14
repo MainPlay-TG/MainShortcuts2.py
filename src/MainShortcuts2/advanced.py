@@ -1,3 +1,5 @@
+import inspect
+import os
 import re
 from .core import ms
 from .path import Path
@@ -7,6 +9,7 @@ from typing import IO, Any, Union
 def _check_count(data):
   if len(data) == 0:
     raise ValueError("The list is empty")
+  return data
 
 
 class MultiLang:
@@ -395,12 +398,20 @@ class CodeModule:
 
 
 class FileDownloader(ms.ObjectBase):
+  """Функциональное скачивание данных по HTTP"""
   EVENT_STARTING = 0
+  """Перед отправкой запроса"""
   EVENT_STARTED = 1
+  """После отправки запроса"""
   EVENT_DOWNLOADING = 2
+  """Во время скачивания"""
   EVENT_COMPLETE = 3
+  """Успешно завершено"""
   EVENT_ERROR = 4
-  EVENT_NAMES = {0: "STARTING", 1: "STARTED", 2: "DOWNLOADING", 3: "COMPLETE", 4: "ERROR"}
+  """Завершено с ошибкой"""
+  EVENT_END = 5
+  """Завершено (в любом случае)"""
+  EVENT_NAMES = {0: "STARTING", 1: "STARTED", 2: "DOWNLOADING", 3: "COMPLETE", 4: "ERROR", 5: "END"}
 
   class CancelError(BaseException):
     pass
@@ -415,6 +426,9 @@ class FileDownloader(ms.ObjectBase):
       self.req_kw["session"] = requests.Session()
 
   def _run_handlers(self, event: int, data: dict):
+    if not data["enable_handlers"]:
+      return
+    data["event"] = event
     for func in self.handlers.get(event, []):
       try:
         func(**data)
@@ -422,33 +436,64 @@ class FileDownloader(ms.ObjectBase):
         self.log.error("Handler %s canceled downloading on event %s", func, self.EVENT_NAMES.get(event, event))
       except Exception as exc:
         self.log.exception("Exception in handler %s on event %r", func, self.EVENT_NAMES.get(event, event), exc_info=exc)
+    if event in {self.EVENT_COMPLETE, self.EVENT_ERROR}:
+      self._run_handlers(self.EVENT_END, data)
 
   def add_handler(self, event: int):
+    """Добавить обработчик евента"""
     self.handlers.setdefault(event, {})
 
     def deco(func):
+      spec = inspect.getfullargspec(func)
+      if not spec.varkw:
+        raise TypeError("Handler should have an argument like **kwargs")
       self.handlers[event].append(func)
       return func
     return deco
 
+  def _check_resume_support(self, data=None, func=None, io=None, **kw):
+    return ms.utils.http_check_range_support(**kw)
+
   def download2file(self, url: str, path: str, *, resume: bool = False, **kw):
     """Скачать данные в файл"""
-    if resume:
-      raise NotImplementedError()
     real_path = ms.path.path2str(path)
-    tmp_path = real_path + ".ms2downloading"
     kw.setdefault("data", {})
     kw["data"]["real_path"] = real_path
-    kw["data"]["tmp_path"] = tmp_path
     kw["url"] = url
+    if resume and os.path.exists(real_path):
+      if not self._check_resume_support(**kw):
+        kw["path"] = real_path
+        kw["resume"] = False
+        return self.download2file(**kw)
+      kw.setdefault("headers", {})
+      kw["headers"]["Range"] = "bytes=%s-" % os.path.getsize(real_path)
+      with open(real_path, "ab") as f:
+        kw["io"] = f
+        return self.download2io(**kw)
+    tmp_path = real_path + ".ms2downloading"
+    kw["data"]["tmp_path"] = tmp_path
     with open(tmp_path, "wb") as f:
       kw["io"] = f
       self.download2io(**kw)
     ms.file.move(tmp_path, real_path)
     return kw["data"]
 
-  def download2io(self, url: str, io: IO[bytes], *, data: dict = None, **kw):
+  def download2io(self, url: str, io: IO[bytes], **kw):
     """Скачать данные в объект типа BytesIO"""
+    kw.setdefault("data", {})
+    kw["data"]["io"] = io
+    kw["func"] = io.write
+    kw["url"] = url
+    return self.download2func(**kw)
+
+  def download2null(self, url: str, **kw):
+    """Скачать данные в пустоту"""
+    kw["func"] = ms.utils.return_None
+    kw["url"] = url
+    return self.download2func(**kw)
+
+  def download2func(self, url: str, func, *, data: dict = None, enable_handlers: bool = True, **kw):
+    """Скачать данные в функцию, которая принимает чанки байтов"""
     for k, v in self.req_kw.items():
       if k in {"headers", "params"}:
         if not v is None:
@@ -459,10 +504,15 @@ class FileDownloader(ms.ObjectBase):
         kw.setdefault(k, v)
     if data is None:
       data = {}
+    data["chunk_count"] = 0
+    data["data"] = data
     data["downloaded"] = 0
     data["downloader"] = self
-    data["io"] = io
+    data["enable_handlers"] = enable_handlers
+    data["errored"] = False
+    data["func"] = func
     data["req_kw"] = kw
+    data["started_at"] = ms.now
     data["url"] = url
     kw.setdefault("method", "GET")
     kw["stream"] = True
@@ -470,21 +520,74 @@ class FileDownloader(ms.ObjectBase):
     self._run_handlers(self.EVENT_STARTING, data)
     try:
       with ms.utils.sync_request(**kw) as resp:
+        data["connected_at"] = ms.now
         data["resp"] = resp
+        data["total_size"] = resp.headers.get("Content-Length")  # None|int
         self._run_handlers(self.EVENT_STARTED, data)
         for chunk in resp.iter_content(self.chunk_size):
-          data["downloaded"] += io.write(chunk)
+          data["chunk_count"] += 1
+          data["chunk"] = chunk
+          data["downloaded"] += len(chunk)
+          func(chunk)
           self._run_handlers(self.EVENT_DOWNLOADING, data)
     except BaseException as exc:
+      data["errored_at"] = ms.now
+      data["errored"] = True
+      data["exception"] = exc
       self.log.error("Failed to download")
       self._run_handlers(self.EVENT_ERROR, data)
       raise
+    data["completed_at"] = ms.now
     self._run_handlers(self.EVENT_COMPLETE, data)
     return data
 
   def h_limit_size(self, max_size: int):
+    @self.add_handler(self.EVENT_STARTED)
+    def h_limit_size_start(total_size: None | int, **kw):
+      if total_size:
+        if total_size > max_size:
+          raise self.CancelError()
+
     @self.add_handler(self.EVENT_DOWNLOADING)
-    def limit_size(downloaded: int, **kw):
+    def h_limit_size_progress(downloaded: int, **kw):
       if downloaded > max_size:
         raise self.CancelError()
-    return limit_size
+
+  def h_hash(self, hash_name: str, data_name: str = None, **hash_kw):
+    import hashlib
+    hash_type: type[hashlib._Hash] = getattr(hashlib, hash_name.lower())
+    if data_name is None:
+      data_name = hash_name
+    data_name_h = data_name + "_h"
+
+    @self.add_handler(self.EVENT_STARTED)
+    def h_hash_start(**kw):
+      kw[data_name_h] = hash_type(**hash_kw)
+
+    @self.add_handler(self.EVENT_DOWNLOADING)
+    def h_hash_update(chunk: bytes, **kw):
+      kw[data_name_h].update(chunk)
+
+    @self.add_handler(self.EVENT_COMPLETE)
+    def h_hash_complete(data: dict, **kw):
+      digest = kw[data_name_h].digest()
+      data[data_name] = digest.hex()
+      data[data_name + "_b"] = digest
+    return data_name
+
+  def h_progressbar(self, data_name="h_progressbar", **pbar_kw):
+    import progressbar
+    pbar_kw.setdefault("min_poll_interval", 0.5)
+
+    @self.add_handler(self.EVENT_STARTED)
+    def h_pbar_start(total_size: None | int, data: dict, **kw):
+      data[data_name] = progressbar.ProgressBar(**pbar_kw).start(total_size)
+
+    @self.add_handler(self.EVENT_DOWNLOADING)
+    def h_pbar_update(downloaded: int, **kw):
+      kw[data_name].update(downloaded)
+
+    @self.add_handler(self.EVENT_END)
+    def h_pbar_complete(errored: bool, **kw):
+      kw[data_name].finish(dirty=errored)
+    return data_name

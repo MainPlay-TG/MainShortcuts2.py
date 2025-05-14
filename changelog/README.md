@@ -1,4 +1,13 @@
 # MainShortcuts2
+## 2.5.2 (40)
+### Добавлено:
+- Аргумент `resume` для метода `.advanced.FileDownloader.download2file`
+- Класс `.utils.MultiContext`
+- Метод `.advanced.FileDownloader.download2func`
+- Метод `.advanced.FileDownloader.download2null`
+- Метод `.advanced.FileDownloader.h_hash`
+- Метод `.advanced.FileDownloader.h_progressbar`
+- Функция `.utils.http_check_range_support`
 ## 2.5.1 (39)
 ### Исправлено:
 - Фатальная ошибка отступа в новых свойствах

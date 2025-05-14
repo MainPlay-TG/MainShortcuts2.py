@@ -737,5 +737,64 @@ def auto_install_modules(*modules, print: bool | str = False, **pip_kw):
     run_pip(*args, **pip_kw)
 
 
+def http_check_range_support(url: str, **kw) -> bool:
+  """Проверить возможность скачать файл по частям"""
+  kw.setdefault("headers", {})
+  kw["headers"]["Range"] = "bytes=0-1"
+  kw["method"] = "HEAD"
+  kw["stream"] = True
+  kw["url"] = url
+  with sync_request(**kw) as resp:
+    if resp.status_code == 206:
+      return True
+    if "bytes" in resp.headers.get("Accept-Ranges", "").lower():
+      return True
+    return False
+
+
+class MultiContext:
+  def __init__(self, *objects):
+    self.enter_handlers = []
+    self.exit_handlers = []
+    self.suppress_exc: None | type[BaseException] | set[type[BaseException]] = None
+    self.add_objects(*objects)
+
+  def __enter__(self):
+    for i in self.enter_handlers:
+      i()
+
+  def __exit__(self, etype, exc, etb):
+    for i in self.exit_handlers:
+      try:
+        i(etype, exc, etb)
+      except Exception:
+        pass
+      from contextlib import suppress
+    if not self.suppress_exc is None:
+      if isinstance(self.suppress_exc, (list, set)):
+        self.suppress_exc = tuple(self.suppress_exc)
+      if isinstance(exc, self.suppress_exc):
+        return True
+
+  def _cl(self, l: list):
+    if len(l) == 1:
+      if isinstance(l[0], (list, set, tuple)):
+        return list(l[0])
+    return l
+
+  def add_enter_handlers(self, *handlers):
+    for i in self._cl(handlers):
+      self.enter_handlers.append(i)
+
+  def add_exit_handlers(self, *handlers):
+    for i in self._cl(handlers):
+      self.exit_handlers.append(i)
+
+  def add_objects(self, *objects):
+    for i in self._cl(objects):
+      self.enter_handlers.append(getattr(i, "__enter__", return_None))
+      self.exit_handlers.append(getattr(i, "__exit__", return_None))
+
+
 download_file = sync_download_file
 request = sync_request
