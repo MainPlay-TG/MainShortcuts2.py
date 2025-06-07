@@ -598,14 +598,14 @@ class FileDownloader(ms.ObjectBase):
 class PlatformInfo(ms.ObjectBase):
   def __init__(self):
     import platform
+    self.is_linux: bool = sys.platform == "linux"
+    self.is_macos: bool = sys.platform == "darwin"
+    self.is_windows: bool = sys.platform == "win32"
+    self.is_android: bool = self.is_linux and "ANDROID_ROOT" in os.environ
+    self.is_termux: bool = self.is_linux and "TERMUX_VERSION" in os.environ
     self.arch = platform.machine().lower()
     self.cpu = platform.processor().lower()
     self.home = ms.path.Path(os.path.expanduser("~"))
-    self.is_android: bool = self.is_linux and "ANDROID_ROOT" in os.environ
-    self.is_linux: bool = sys.platform == "linux"
-    self.is_macos: bool = sys.platform == "darwin"
-    self.is_termux: bool = self.is_linux and "TERMUX_VERSION" in os.environ
-    self.is_windows: bool = sys.platform == "win32"
     self.name = platform.system().lower()
     self.version = platform.version().lower()
 

@@ -1,4 +1,7 @@
 # MainShortcuts2
+## 2.5.4 (42)
+### Исправлено:
+- Ошибка в классе `.advanced.PlatformInfo`
 ## 2.5.3 (41)
 ### Добавлено:
 - Декоратор `.utils.generator2list`
