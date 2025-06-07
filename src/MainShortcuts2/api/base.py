@@ -30,6 +30,7 @@ class BaseClient(ms.ObjectBase):
     self._params = {}
     self._url = "https://example.com/api/{method}"
     self._url_data = {}
+    self.cache = CacheStorage()
 
   def __enter__(self):
     return self
@@ -120,3 +121,9 @@ class ObjectBase(ms.ObjectBase):
 
   def _init(self):
     pass
+
+
+class CacheStorage(dict):
+  def __getitem__(self, k) -> dict:
+    self.setdefault(k, {})
+    return dict.__getitem__(self, k)

@@ -77,7 +77,7 @@ def _load_type(cfg):
   return load, save
 
 
-class cfg:
+class cfg(ms.ObjectBase):
   """Загрузка, использование и сохранение конфигов"""
   # 2.0.0
 

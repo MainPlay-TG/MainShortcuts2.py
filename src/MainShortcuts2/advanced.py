@@ -1,6 +1,8 @@
 import inspect
 import os
 import re
+import subprocess
+import sys
 from .core import ms
 from .path import Path
 from typing import IO, Any, Union
@@ -591,3 +593,254 @@ class FileDownloader(ms.ObjectBase):
     def h_pbar_complete(errored: bool, **kw):
       kw[data_name].finish(dirty=errored)
     return data_name
+
+
+class PlatformInfo(ms.ObjectBase):
+  def __init__(self):
+    import platform
+    self.arch = platform.machine().lower()
+    self.cpu = platform.processor().lower()
+    self.home = ms.path.Path(os.path.expanduser("~"))
+    self.is_android: bool = self.is_linux and "ANDROID_ROOT" in os.environ
+    self.is_linux: bool = sys.platform == "linux"
+    self.is_macos: bool = sys.platform == "darwin"
+    self.is_termux: bool = self.is_linux and "TERMUX_VERSION" in os.environ
+    self.is_windows: bool = sys.platform == "win32"
+    self.name = platform.system().lower()
+    self.version = platform.version().lower()
+
+
+class _Platform(PlatformInfo):
+  def __init__(self):
+    PlatformInfo.__init__(self)
+    self._created_dirs = set()
+
+  def _run(self, *args, **kw):
+    kw.setdefault("check", True)
+    kw.setdefault("shell", True)
+    kw["args"] = args
+    return subprocess.run(**kw)
+
+  def hibernate(self) -> None:
+    """Перевести устройство в режим гиберации"""
+    raise RuntimeError("Unsupported platform")
+
+  def poweroff(self) -> None:
+    """Отключить устройство"""
+    raise RuntimeError("Unsupported platform")
+
+  def reboot(self) -> None:
+    """Перезагрузить устройство"""
+    raise RuntimeError("Unsupported platform")
+
+  def sleep(self) -> None:
+    """Перевести устройство в спящий режим"""
+    raise RuntimeError("Unsupported platform")
+
+
+class PlatformLinux(_Platform):
+  @property
+  def root_dir(self):
+    return ms.path.Path("/")
+
+  @property
+  def system_bin_dir(self):
+    return ms.dir.create(self.root_dir + "/usr/local/bin", _exists=self._created_dirs)
+
+  @property
+  def system_cache_dir(self):
+    return ms.dir.create(self.root_dir + "/var/cache", _exists=self._created_dirs)
+
+  @property
+  def system_config_dir(self):
+    return ms.dir.create(self.root_dir + "/etc", _exists=self._created_dirs)
+
+  @property
+  def system_data_dir(self):
+    return ms.dir.create(self.root_dir + "/usr/share", _exists=self._created_dirs)
+
+  @property
+  def system_lib_dir(self):
+    return ms.dir.create(self.root_dir + "/lib", _exists=self._created_dirs)
+
+  @property
+  def system_log_dir(self):
+    return ms.dir.create(self.root_dir + "/var/log", _exists=self._created_dirs)
+
+  @property
+  def user_bin_dir(self):
+    return ms.dir.create(self.home + "/.local/bin", _exists=self._created_dirs)
+
+  @property
+  def user_cache_dir(self):
+    return ms.dir.create(self.home + "/.cache", _exists=self._created_dirs)
+
+  @property
+  def user_config_dir(self):
+    return ms.dir.create(self.home + "/.config", _exists=self._created_dirs)
+
+  @property
+  def user_data_dir(self):
+    return ms.dir.create(self.home + "/.local/share", _exists=self._created_dirs)
+
+  @property
+  def user_lib_dir(self):
+    return ms.dir.create(self.home + "/.local/lib", _exists=self._created_dirs)
+
+  @property
+  def user_log_dir(self):
+    return ms.dir.create(self.home + "/.local/log", _exists=self._created_dirs)
+
+  def hibernate(self):
+    self._run("systemctl", "hibernate")
+
+  def poweroff(self):
+    self._run("poweroff")
+
+  def reboot(self):
+    self._run("reboot")
+
+  def sleep(self):
+    self._run("systemctl", "suspend")
+
+
+class PlatformMacOS(_Platform):
+  """На 100% сгенерирован GigaCode, потому что я не знаю как устроен MacOS"""
+  @property
+  def root_dir(self):
+    return ms.path.Path("/")
+
+  @property
+  def system_bin_dir(self):
+    return ms.dir.create(self.root_dir + "/usr/bin", _exists=self._created_dirs)
+
+  @property
+  def system_cache_dir(self):
+    return ms.dir.create(self.root_dir + "/private/var/cache", _exists=self._created_dirs)
+
+  @property
+  def system_config_dir(self):
+    return ms.dir.create(self.root_dir + "/private/etc", _exists=self._created_dirs)
+
+  @property
+  def system_data_dir(self):
+    return ms.dir.create(self.root_dir + "/usr/share", _exists=self._created_dirs)
+
+  @property
+  def system_lib_dir(self):
+    return ms.dir.create(self.root_dir + "/usr/lib", _exists=self._created_dirs)
+
+  @property
+  def system_log_dir(self):
+    return ms.dir.create(self.root_dir + "/private/var/log", _exists=self._created_dirs)
+
+  @property
+  def user_bin_dir(self):
+    return ms.dir.create(self.home + "/bin", _exists=self._created_dirs)
+
+  @property
+  def user_cache_dir(self):
+    return ms.dir.create(self.home + "/Library/Caches", _exists=self._created_dirs)
+
+  @property
+  def user_config_dir(self):
+    return ms.dir.create(self.home + "/Library/Preferences", _exists=self._created_dirs)
+
+  @property
+  def user_data_dir(self):
+    return ms.dir.create(self.home + "/Library/Application Support", _exists=self._created_dirs)
+
+  @property
+  def user_lib_dir(self):
+    return ms.dir.create(self.home + "/Library/Application Support", _exists=self._created_dirs)
+
+  @property
+  def user_log_dir(self):
+    return ms.dir.create(self.home + "/Library/Logs", _exists=self._created_dirs)
+
+
+class PlatformTermux(_Platform):
+  @property
+  def root_dir(self):
+    return ms.path.Path("/data/data/com.termux/files")
+
+
+class PlatformWindows(_Platform):
+  @property
+  def root_dir(self):
+    return ms.path.Path("C:/")
+  # Спасибо GigaCode за все эти пути, но я всё проверил
+
+  @property
+  def system_bin_dir(self):
+    return self.root_dir + "/Windows/System32"
+
+  @property
+  def system_cache_dir(self):
+    return ms.dir.create(self.root_dir + "/Windows/Temp", _exists=self._created_dirs)
+
+  @property
+  def system_config_dir(self):
+    return ms.dir.create(self.root_dir + "/Windows/System32/config", _exists=self._created_dirs)
+
+  @property
+  def system_data_dir(self):
+    return ms.dir.create(self.root_dir + "/ProgramData", _exists=self._created_dirs)
+
+  @property
+  def system_lib_dir(self):
+    return self.system_bin_dir
+
+  @property
+  def system_log_dir(self):
+    return ms.dir.create(self.root_dir + "/Windows/System32/LogFiles", _exists=self._created_dirs)
+
+  @property
+  def user_bin_dir(self):
+    return ms.dir.create(self.user_data_dir + "/Microsoft/WindowsApps", _exists=self._created_dirs)
+
+  @property
+  def user_cache_dir(self):
+    return ms.dir.create(self.user_data_dir + "/Temp", _exists=self._created_dirs)
+
+  @property
+  def user_config_dir(self):
+    return ms.dir.create(self.home + "/AppData/Roaming", _exists=self._created_dirs)
+
+  @property
+  def user_data_dir(self):
+    return ms.dir.create(self.home + "/AppData/Local", _exists=self._created_dirs)
+
+  @property
+  def user_lib_dir(self):
+    return ms.dir.create(self.user_data_dir + "/Microsoft/Windows/Libraries", _exists=self._created_dirs)
+
+  @property
+  def user_log_dir(self):
+    return ms.dir.create(self.user_data_dir + "/Microsoft/Windows/Logs", _exists=self._created_dirs)
+
+  @property
+  def win_dir(self):
+    return self.root_dir + "/Windows"
+
+  def hibernate(self):
+    self._run("shutdown", "/h")
+
+  def poweroff(self):
+    self._run("shutdown", "/s", "/t", "0")
+
+  def reboot(self):
+    self._run("shutdown", "/r", "/t", "0")
+
+
+def get_platform() -> _Platform:
+  info = PlatformInfo()
+  if info.is_termux:
+    return PlatformTermux()
+  if info.is_linux:
+    return PlatformLinux()
+  if info.is_macos:
+    return PlatformMacOS()
+  if info.is_windows:
+    return PlatformWindows()
+  return _Platform()

@@ -328,6 +328,9 @@ def sync_download_file(url: str, path: str, *, cb_end=return_None, cb_progress=r
   return size
 
 
+download_file = sync_download_file
+
+
 def sync_request(method: str, url: str, *, ignore_status: bool = False, session=None, **kw):
   """Синхронный HTTP запрос | `requests`"""
   try:
@@ -353,6 +356,9 @@ def sync_request(method: str, url: str, *, ignore_status: bool = False, session=
   if not ignore_status:
     resp.raise_for_status()
   return resp
+
+
+request = sync_request
 
 
 def sync2async(func: Callable) -> Callable:
@@ -796,5 +802,38 @@ class MultiContext:
       self.exit_handlers.append(getattr(i, "__exit__", return_None))
 
 
-download_file = sync_download_file
-request = sync_request
+def generator2list(list=builtins.list):
+  """Превратить функцию с `yield` в функцию, которая возвращает список"""
+  def deco(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+      return list(func(*args, **kwargs))
+    return wrapper
+  return deco
+
+
+def mini_log(msg: str, *values, **kw):
+  """Напечатать текст в `stderr` с форматированием через `%`"""
+  kw.setdefault("file", sys.stderr)
+  if len(values) == 0:
+    return print(msg, **kw)
+  if len(values) == 1:
+    values = values[0]
+  print(msg % values, **kw)
+
+
+def print_stderr(*values, **kw):
+  """Тот же `print`, но всегда в `stderr`"""
+  kw["file"] = sys.stderr
+  print(*values, **kw)
+
+
+def setattr_if_not_exists(obj, name: str, value, if_None=False):
+  """Установить атрибут, если его нет"""
+  if ((getattr(obj, name, None) is None) if if_None else (not hasattr(obj, name))):
+    setattr(obj, name, value)
+
+
+def call(func, args=[], kwargs={}):
+  """Вызвать функцию. Если поставить как декоратор, функция будет вызвана сразу после определения и вместо неё будет сохранён результат её работы"""
+  return func(*args, **kwargs)

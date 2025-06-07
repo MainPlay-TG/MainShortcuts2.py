@@ -1,4 +1,26 @@
 # MainShortcuts2
+## 2.5.3 (41)
+### Добавлено:
+- Декоратор `.utils.generator2list`
+- Класс `.advanced._Platform`
+- Класс `.advanced.PlatformInfo`
+- Класс `.advanced.PlatformLinux`
+- Класс `.advanced.PlatformMacOS`
+- Класс `.advanced.PlatformTermux`
+- Класс `.advanced.PlatformWindows`
+- Класс `.api.base.CacheStorage`
+- Метод `.path.Path.hash_hex`
+- Метод `.path.Path.hash`
+- Метод `.path.Path.list_dir_iter`
+- Метод `.path.Path.multi_hash_hex`
+- Метод `.path.Path.multi_hash`
+- Метод `.path.Path.open_file`
+- Переменная `.api.base.BaseClient.cache`
+- Функция `.advanced.get_platform`
+- Функция `.utils.mini_log`
+- Функция `.utils.print_stderr`
+- Функция `.utils.setattr_if_not_exists`
+- Функция/декоратор `.utils.call`
 ## 2.5.2 (40)
 ### Добавлено:
 - Аргумент `resume` для метода `.advanced.FileDownloader.download2file`

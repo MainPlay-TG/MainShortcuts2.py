@@ -14,7 +14,7 @@ PATH_TYPES = Union[io.FileIO, pathlib.Path, str]
 PATHSEP = "/"
 
 
-def _path2str(path):
+def _path2str(path) -> str:
   if isinstance(path, str):
     return path
   if isinstance(path, pathlib.Path):
@@ -36,14 +36,18 @@ def path2str(path: PATH_TYPES, to_abs: bool = False, replace_forbidden_to: str =
       result = result.replace(i, replace_forbidden_to)
   if to_abs:
     result = os.path.abspath(result)
-  return result.replace("\\", PATHSEP)
+  result = result.replace("\\", PATHSEP)
+  if len(result) > 3 and result[-1] == "/":
+    result = result[:-1]
+  return result
 
 
-def cwd(set_to: PATH_TYPES = None) -> str:
+def cwd(set_to: PATH_TYPES = None, only_set=False) -> str:
   """Получить путь к рабочей папке"""
   if not set_to is None:
     os.chdir(path2str(set_to))
-  return os.getcwd().replace("\\", PATHSEP)
+  if not only_set:
+    return os.getcwd().replace("\\", PATHSEP)
 
 
 class Path(os.PathLike):
@@ -73,6 +77,13 @@ class Path(os.PathLike):
 
   def __lt__(self, other):
     return self.path < path2str(other, to_abs=True)
+
+  def __add__(self, other) -> "Path":
+    if isinstance(other, str):
+      if not other.startswith("/"):
+        other = "/" + other
+      return Path(self.path + other, use_cache=self.use_cache)
+    return NotImplemented
 
   def reload(self, full: bool = False):
     """Удаление кешированной информации"""
@@ -273,12 +284,14 @@ class Path(os.PathLike):
     """Список содержимого папки"""
     return ms.dir.list(self, **kw)
 
-  def to_dict(self) -> dict:
+  def to_dict(self, hashes: list[str] = None) -> dict:
+    """Создать словарь с данными объекта (совсестим с JSON)"""
     result = {}
     result["path"] = self.path
     if self.exists:
       result["created_at"] = self.created_at
       result["exists"] = True
+      result["hashes"] = self.multi_hash_hex(hashes)
       result["is_link"] = self.is_link
       result["modified_at"] = self.modified_at
       result["realpath"] = self.realpath
@@ -287,12 +300,51 @@ class Path(os.PathLike):
       result["used_at"] = self.used_at
     else:
       result["exists"] = False
-      for i in ("created_at", "is_link", "modified_at", "realpath", "size", "type", "used_at"):
+      for i in ("created_at", "hashes", "is_link", "modified_at", "realpath", "size", "type", "used_at"):
         result[i] = None
     return result
 
+  def list_dir_iter(self, **kw):
+    """Итератор по списку содержимого папки"""
+    return ms.dir.list_iter(self, **kw)
+
+  def open_file(self, mode: str = "r", **kw) -> IO[str] | IO[bytes]:
+    """Открыть файл на чтение/запись"""
+    return open(self, mode, **kw)
+
+  def hash(self, algorithm: str) -> bytes:
+    """Хеш файла в байтах"""
+    import hashlib
+    hash = hashlib.new(algorithm)
+    with self.open_file("rb") as f:
+      for i in f:
+        hash.update(i)
+    return hash.digest()
+
+  def hash_hex(self, algorithm: str) -> str:
+    """Хеш файла в HEX строке"""
+    return self.hash(algorithm).hex()
+
+  def multi_hash(self, algorithms: list[str]) -> dict[str, bytes]:
+    """Хеш файла в байтах для нескольких алгоритмов"""
+    if not algorithms:
+      return {}
+    import hashlib
+    hashes = {i: hashlib.new(i) for i in algorithms}
+    with self.open_file("rb") as f:
+      for i in f:
+        for j in hashes.values():
+          j.update(i)
+    return {i: j.digest() for i, j in hashes.items()}
+
+  def multi_hash_hex(self, algorithms: list[str]) -> dict[str, str]:
+    """Хеш файла в HEX строке для нескольких алгоритмов"""
+    return {k: v.hex() for k, v in self.multi_hash(algorithms).items()}
+
 
 class Stat:
+  """Состояние объекта на диске"""
+
   def __init__(self, data: os.stat_result):
     self._atime_dt = None
     self._ctime_dt = None

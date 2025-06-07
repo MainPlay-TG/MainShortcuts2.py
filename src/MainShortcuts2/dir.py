@@ -25,16 +25,17 @@ def create(path: PATH_TYPES, force: bool = False, *, _exists: set[str] = None, *
   exists = set() if _exists is None else _exists
   path = path2str(path)
   if path in exists:
-    return
+    return ms.path.Path(path)
   if os.path.isdir(path):
     exists.add(path)
-    return
+    return ms.path.Path(path)
   if force:
     if os.path.isfile(path):
       ms.path.delete(path)
   kw["name"] = _check(path)
   os.makedirs(**kw)
   exists.add(path)
+  return ms.path.Path(path)
 
 
 def _list_filter(path: Path, *, exts: Iterable[str] = None, func: Callable[[Path], bool] = None, links: bool = None, type: str = None):
