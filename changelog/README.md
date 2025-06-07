@@ -1,4 +1,7 @@
 # MainShortcuts2
+## 2.5.5 (43)
+### Исправлено:
+- Получение папок в `.advanced.PlatformTermux`
 ## 2.5.4 (42)
 ### Исправлено:
 - Ошибка в классе `.advanced.PlatformInfo`

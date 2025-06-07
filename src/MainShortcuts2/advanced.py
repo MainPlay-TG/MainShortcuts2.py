@@ -759,7 +759,7 @@ class PlatformMacOS(_Platform):
     return ms.dir.create(self.home + "/Library/Logs", _exists=self._created_dirs)
 
 
-class PlatformTermux(_Platform):
+class PlatformTermux(PlatformLinux):
   @property
   def root_dir(self):
     return ms.path.Path("/data/data/com.termux/files")
