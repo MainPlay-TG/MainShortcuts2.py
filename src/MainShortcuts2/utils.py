@@ -623,11 +623,26 @@ def restore_deprecated(force: bool = False):
   return restored
 
 
-def main_func(_name_: str, exit: bool = True):
+def _run_async_coro(coro, mode="run", **kw):
+  import asyncio
+  if mode == "loop":
+    loop = asyncio.get_running_loop()
+    return loop.run_until_complete(coro)
+  if mode == "run":
+    return asyncio.run(coro)
+  raise ValueError("Unsupported mode: %s" % mode)
+
+
+def main_func(_name_: str, exit: bool = True, async_mode="run"):
+  import inspect
+
   def deco(func):
     if _name_ == "__main__":
       try:
-        result = func()
+        if inspect.iscoroutinefunction(func):
+          result = _run_async_coro(func(), async_mode)
+        else:
+          result = func()
       except KeyboardInterrupt:
         import signal
         result = signal.SIGINT.value

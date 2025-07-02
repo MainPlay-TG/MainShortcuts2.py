@@ -91,11 +91,15 @@ class cfg(ms.ObjectBase):
   def load(self, **kw):
     """Загрузить конфиг из файла"""
     self.data = self._load_func(**kw)
+    self.need_save = False
   read = load
 
   def save(self, **kw) -> int:
     """Сохранить конфиг в файл"""
-    return self._save_func(**kw)
+    ms.dir.create(os.path.dirname(self.path))
+    result = self._save_func(**kw)
+    self.need_save = False
+    return result
   write = save
 
   def fill_defaults(self, save_if_edited: bool = False):
@@ -121,12 +125,14 @@ class cfg(ms.ObjectBase):
 
   def __delitem__(self, k):
     del self.data[k]
+    self.need_save = True
 
   def __getitem__(self, k):
     return self.data[k]
 
   def __setitem__(self, k, v):
     self.data[k] = v
+    self.need_save = True
 
   def get(self, k, default=None):
     """Если значение существует, получить его"""
@@ -143,3 +149,12 @@ class cfg(ms.ObjectBase):
   def values(self):
     """dict.values()"""
     return self.data.values()
+
+  def setdefault(self, k, v):
+    if not k in self:
+      self[k] = v
+    return self[k]
+
+  def save_if_need(self, **kw):
+    if self.need_save:
+      self.save(**kw)

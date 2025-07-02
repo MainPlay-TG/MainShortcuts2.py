@@ -443,7 +443,7 @@ class FileDownloader(ms.ObjectBase):
 
   def add_handler(self, event: int):
     """Добавить обработчик евента"""
-    self.handlers.setdefault(event, {})
+    self.handlers.setdefault(event, [])
 
     def deco(func):
       spec = inspect.getfullargspec(func)

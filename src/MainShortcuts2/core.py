@@ -1,6 +1,7 @@
 import os
 import sys
 from . import _module_info
+from .core_config import CoreConfig
 from datetime import datetime
 from logging import Logger
 from time import time
@@ -33,8 +34,6 @@ class MS2:
   version = _module_info.version
 
   def __init__(self, *,
-               __file__: str = None,
-               __name__: str = None,
                logger: Logger = None,
                **kw):
     self._advanced = None
@@ -59,23 +58,19 @@ class MS2:
     self.args: list[str] = sys.argv
     self.encoding: str = "utf-8"
     self.env: dict[str, str] = os.environ
-    self.import_code: str = "from MainShortcuts2 import ms\nms.prog_file,ms.prog_name=__file__,__name__\nms.reload()"
+    self.import_code: str = "from MainShortcuts2 import ms"
     self.log: Logger = NoLogger("MainShortcuts2") if logger is None else logger
-    self.MAIN_FILE: Union[None, str] = _get_main_file()
     self.MAIN_DIR: Union[None, str] = None if self.MAIN_FILE is None else os.path.dirname(self.MAIN_FILE)
-    self.prog_dir: Union[None, str] = None
-    self.prog_file: Union[None, str] = __file__
-    self.prog_name: Union[None, str] = __name__
+    self.MAIN_FILE: Union[None, str] = _get_main_file()
     self.use_tmp_file: bool = False
+    try:
+      self.config = CoreConfig()
+    except Exception:
+      self.config = None
     self.reload()
 
   def reload(self):
     self.pid = os.getpid()
-    if not self.prog_file is None:
-      self.prog_dir = os.path.dirname(self.prog_file)
-    if not self.prog_name is None:
-      self.imported: bool = self.prog_name != "__main__"
-      self.running: bool = self.prog_name == "__main__"
 
   @property
   def credits(self) -> str:
