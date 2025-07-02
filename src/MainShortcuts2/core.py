@@ -59,8 +59,8 @@ class MS2:
     self.env: dict[str, str] = os.environ
     self.import_code: str = "from MainShortcuts2 import ms"
     self.log: Logger = NoLogger("MainShortcuts2") if logger is None else logger
-    self.MAIN_DIR: Union[None, str] = None if self.MAIN_FILE is None else os.path.dirname(self.MAIN_FILE)
     self.MAIN_FILE: Union[None, str] = _get_main_file()
+    self.MAIN_DIR: Union[None, str] = None if self.MAIN_FILE is None else os.path.dirname(self.MAIN_FILE)
     self.use_tmp_file: bool = False
     self.reload()
 
