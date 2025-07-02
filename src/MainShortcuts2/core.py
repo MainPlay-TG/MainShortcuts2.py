@@ -1,7 +1,6 @@
 import os
 import sys
 from . import _module_info
-from .core_config import CoreConfig
 from datetime import datetime
 from logging import Logger
 from time import time
@@ -63,10 +62,6 @@ class MS2:
     self.MAIN_DIR: Union[None, str] = None if self.MAIN_FILE is None else os.path.dirname(self.MAIN_FILE)
     self.MAIN_FILE: Union[None, str] = _get_main_file()
     self.use_tmp_file: bool = False
-    try:
-      self.config = CoreConfig()
-    except Exception:
-      self.config = None
     self.reload()
 
   def reload(self):
