@@ -783,6 +783,7 @@ class MultiContext:
   def __enter__(self):
     for i in self.enter_handlers:
       i()
+    return self
 
   def __exit__(self, etype, exc, etb):
     for i in self.exit_handlers:
@@ -790,7 +791,6 @@ class MultiContext:
         i(etype, exc, etb)
       except Exception:
         pass
-      from contextlib import suppress
     if not self.suppress_exc is None:
       if isinstance(self.suppress_exc, (list, set)):
         self.suppress_exc = tuple(self.suppress_exc)
@@ -812,9 +812,15 @@ class MultiContext:
       self.exit_handlers.append(i)
 
   def add_objects(self, *objects):
+    """Добавить один/несколько объектов в контекст"""
     for i in self._cl(objects):
       self.enter_handlers.append(getattr(i, "__enter__", return_None))
       self.exit_handlers.append(getattr(i, "__exit__", return_None))
+
+  def add_obj(self, obj):
+    """Добавить объект в контекст и вернуть этот объект"""
+    self.add_objects(obj)
+    return obj
 
 
 def generator2list(list=builtins.list):
