@@ -1,4 +1,24 @@
 # MainShortcuts2
+## 2.6.0 (48)
+### Добавлено:
+- Класс `.win.RegExplorer`
+- Класс `.win.RegFastLocations`
+- Класс `.win.RegFolder`
+- Класс `.win.RegFolderAuto`
+- Класс `.win.RegFolderJson`
+- Класс `.win.utils`
+- Константа `.win.ENV_SYSTEM`
+- Константа `.win.ENV_SYSTEM64`
+- Константа `.win.ENV_USER`
+- Константа `.win.REG_LOC_BY_NAME`
+- Константа `.win.REG_LOC_BY_NUM`
+- Подмодуль `.linux`
+- Свойство `.advanced.PlatformInfo.user_desktop_dir`
+- Свойство `.advanced.PlatformLinux.system_hosts_file`
+- Свойство `.advanced.PlatformWindows.system_hosts_file`
+- Функция `.win.reg_loc2path`
+- Функция `.win.reg_path2loc`
+- Функция `.win.reg_prep_path`
 ## 2.5.9 (47)
 ### Добавлено:
 - Метод `.utils.MultiContext.add_obj`
