@@ -598,6 +598,7 @@ class FileDownloader(ms.ObjectBase):
 class PlatformInfo(ms.ObjectBase):
   def __init__(self):
     import platform
+    self._created_dirs = set()
     self.is_linux: bool = sys.platform == "linux"
     self.is_macos: bool = sys.platform == "darwin"
     self.is_windows: bool = sys.platform == "win32"
@@ -608,12 +609,14 @@ class PlatformInfo(ms.ObjectBase):
     self.home = ms.path.Path(os.path.expanduser("~"))
     self.name = platform.system().lower()
     self.version = platform.version().lower()
+  @property
+  def user_desktop_dir(self):
+    return ms.dir.create(os.environ.get("XDG_DESKTOP_DIR",self.home+"/Desktop"),_exists=self._created_dirs)
 
 
 class _Platform(PlatformInfo):
   def __init__(self):
     PlatformInfo.__init__(self)
-    self._created_dirs = set()
 
   def _run(self, *args, **kw):
     kw.setdefault("check", True)
@@ -690,7 +693,9 @@ class PlatformLinux(_Platform):
   @property
   def user_log_dir(self):
     return ms.dir.create(self.home + "/.local/log", _exists=self._created_dirs)
-
+  @property
+  def system_hosts_file(self):
+    return ms.path.Path("/etc/hosts")
   def hibernate(self):
     self._run("systemctl", "hibernate")
 
@@ -822,7 +827,12 @@ class PlatformWindows(_Platform):
   @property
   def win_dir(self):
     return self.root_dir + "/Windows"
-
+  @property
+  def user_desktop_dir(self):
+    return ms.dir.create(self.home+"/Desktop",_exists=self._created_dirs)
+  @property
+  def system_hosts_file(self):
+    return ms.path.Path(self.win_dir+"/System32/drivers/etc/hosts")
   def hibernate(self):
     self._run("shutdown", "/h")
 

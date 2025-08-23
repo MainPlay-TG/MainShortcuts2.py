@@ -160,22 +160,22 @@ class DatabaseBase:
     return self.exec(code, values, **kw)
 
   def _connect(self):
-    raise NotImplementedError
+    raise NotImplementedError()
 
   def _update_schema(self, schema):
-    raise NotImplementedError
+    raise NotImplementedError()
 
   def delete(self, table: str, where: dict):
     """Удалить строки из таблицы"""
-    raise NotImplementedError
+    raise NotImplementedError()
 
   def insert(self, table: str, values: dict):
     """Вставить новую строку в таблицу"""
-    raise NotImplementedError
+    raise NotImplementedError()
 
-  def select(self, table: str, columns: list[str], where: dict) -> list[tuple]:
+  def select(self, table: str, columns: list[str], where: dict=None) -> list[tuple]:
     """Выбрать строки из таблицы"""
-    raise NotImplementedError
+    raise NotImplementedError()
 
   def select_one(self, table: str, columns: list[str], where: dict, max_error: bool = True):
     results = self.select(table, columns, where)
@@ -188,8 +188,12 @@ class DatabaseBase:
 
   def update(self, table: str, values: dict, where: dict):
     """Изменить строки в таблице"""
-    raise NotImplementedError
+    raise NotImplementedError()
 
-  def select_count(self, table: str, where: dict):
+  def select_count(self, table: str, where: dict=None):
     """Получить кол-во объектов в таблице"""
     return len(self.select(table, list(where)[0], where))
+
+  def select_adv(self,table:str,columns:list[str],where:dict=None,order_by:str=None,limit:int=None,offset:int=None,other:str=None):
+    """Улучшенный SELECT"""
+    raise NotImplementedError()
