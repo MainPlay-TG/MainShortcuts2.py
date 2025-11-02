@@ -1,4 +1,15 @@
 # MainShortcuts2
+## 2.6.1 (49)
+### Добавлено:
+- Класс `.utils.DirLogger`
+- Класс `.utils.SimpleLogger`
+- Класс `.utils.TempFlag`
+- Константа `.path.Path.TYPE_DIR`
+- Константа `.path.Path.TYPE_FILE`
+### Изменено:
+- `.dir.list_iter` может принимать строковый аргумент `exts` (список расширений, разделённых запятой)
+### Исправлено:
+- `.dir.list_iter` при указании `exts` теперь игнорирует папки
 ## 2.6.0 (48)
 ### Добавлено:
 - Класс `.win.RegExplorer`

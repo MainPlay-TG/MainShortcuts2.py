@@ -1,5 +1,9 @@
 """Различные утилиты, требующие сторонних модулей"""
+import atexit
 import builtins
+import importlib
+import logging
+from logging import INFO
 import os
 import sys
 from .core import ms
@@ -858,3 +862,146 @@ def setattr_if_not_exists(obj, name: str, value, if_None=False):
 def call(func, args=[], kwargs={}):
   """Вызвать функцию. Если поставить как декоратор, функция будет вызвана сразу после определения и вместо неё будет сохранён результат её работы"""
   return func(*args, **kwargs)
+class TempFlag:
+  def __init__(self):
+    self.state=False
+  def __enter__(self):
+    self.state=True
+  def __exit__(self,*a):
+    self.state=False
+  @property
+  def inverted(self):
+    return not self.state
+class SimpleLogger(logging.Logger):
+  """Простой логгер"""
+  CRITICAL:int=logging.CRITICAL
+  DEBUG:int=logging.DEBUG
+  ERROR:int=logging.ERROR
+  FATAL:int=logging.FATAL
+  INFO:int=logging.INFO
+  NOTSET:int=logging.NOTSET
+  WARN:int=logging.WARN
+  WARNING:int=logging.WARNING
+  def __init__(self,name:str,level:int=logging.INFO,full_global=False,init_msg=True):
+    # Выбрать случайное название
+    if name is None:
+      name="UnnamedLogger_"+uuid()
+    logging.Logger.__init__(self,name,level)
+    atexit.register(self.close)
+    self.formatter=logging.Formatter("%(asctime)s %(levelname)s: %(message)s")
+    self.logged_levels:set[int]=set()
+    # Ллогирование в stderr
+    self.addHandler(logging.StreamHandler(sys.stderr))
+    self.update_handlers()
+    # Глобальный логгер
+    if full_global:
+      self.set_as_global()
+      self.set_excepthook()
+    # Первое сообщение
+    if init_msg:
+      self._init_msg()
+  def _init_msg(self):
+    now=ms.utcnow_dt
+    level_name=logging._levelToName.get(self.level,"UNNAMED")
+    self.info("Date: %s UTC",now.strftime("%d.%m.%Y %H:%M:%S"))
+    self.info("Platform: %s",sys.platform)
+    self.info("Python: %s",sys.version)
+    self.info("MainShortcuts2: %s",ms.version)
+    self.info("Logger: %s",self.name)
+    self.info("Log level: %s (%s)",(level_name,self.level))
+  def _log(self,level,*args,**kw):
+    if self.disabled:
+      return
+    self.logged_levels.add(level)
+    logging.Logger._log(self,level,*args,**kw)
+  def _handle_exc(self,etype,evalue,etrace):
+    """Для `sys.excepthook`"""
+    self.exception("Unhandled exception",exc_info=(etype,evalue,etrace))
+  @property
+  def max_level(self)->int:
+    """Максимальный уровень, который был выведен в лог"""
+    if len(self.logged_levels)==0:
+      return 0
+    return max(self.logged_levels)
+  def conf_from_env(self,all=True):
+    """Настроить логгер из переменных окружения (`DEBUG` и `NO_LOG`)"""
+    if os.environ.get("NO_LOG",False):
+      self.disabled=True
+    if os.environ.get("DEBUG",False):
+      if all:
+        self.set_all_levels(self.DEBUG)
+      else:
+        self.setLevel(self.DEBUG)
+  def set_all_levels(self,level:int):
+    """Установить уровень для себя и всех обработчиков"""
+    self.setLevel(level)
+    for i in self.handlers:
+      i.level=self.level
+  def set_as_global(self):
+    """Установить логгер как глобальный (`MainShortcuts2` и все, кто использует `sys.logger`)"""
+    ms.log=self
+    sys.logger=self
+  def set_excepthook(self):
+    """Заменить `sys.excepthook` на этот логгер"""
+    sys.excepthook=self._handle_exc
+  def set_for_module(self,*module_names:str,autoimport=True,var_names:set[str]=["logger"]):
+    """Установить логгер основным для модулей"""
+    # Импорт модулей, если они ещё не импортированы
+    if autoimport:
+      for i in module_names:
+        importlib.import_module(i)
+    for i in module_names:
+      # Только если модуль импортирован
+      if i in sys.modules:
+        # Установить логгер для указанных переменных
+        for j in var_names:
+          setattr(sys.modules[i],j,self)
+  def update_handlers(self,level=None,formatter=None):
+    """Установить уровень и форматтер всем обработчикам"""
+    if formatter is None:
+      formatter=self.formatter
+    if level is None:
+      level=self.level
+    for i in self.handlers:
+      i.setFormatter(formatter)
+      i.setLevel(level)
+  def close(self):
+    """Закрыть логгер и все обработчики"""
+    for i in self.handlers:
+      if hasattr(i,"close"):
+        if callable(i.close):
+          i.close()
+class DirLogger(SimpleLogger):
+  """Логгер с записью в папку. Название файла содержит дату и время создания лога"""
+  def __init__(self,name:str,dir:str,latest_log=True,**kw):
+    init_msg=kw.get("init_msg",True)
+    kw["init_msg"]=False
+    SimpleLogger.__init__(self,name,**kw)
+    self.remove_if_no_records_for_level=0
+    # Создание папки
+    self.dir=ms.path.Path(dir)
+    ms.dir.create(self.dir)
+    # Файловый обработчик
+    file_path=self.dir+"/%s.log"%ms.utcnow_dt.strftime("%Y-%m-%d_%H-%M-%S")
+    self.file_handler=logging.FileHandler(file_path,encoding=ms.encoding)
+    self.file_handler.formatter=self.formatter
+    self.file_handler.level=self.level
+    self.addHandler(self.file_handler)
+    # Первое сообщение
+    if init_msg:
+      self._init_msg()
+    # Символическая ссылка на последний лог
+    if latest_log:
+      try:
+        ms.path.delete(self.dir+"/latest.log")
+        ms.file.link(file_path,self.dir+"/latest.log",force=True)
+      except Exception as exc:
+        self.warning("Failed to create link 'latest.log'",exc_info=exc)
+  @property
+  def file_path(self):
+    return self.file_handler.baseFilename
+  def close(self):
+    SimpleLogger.close(self)
+    # Удалить файл, если не было важных записей
+    if self.remove_if_no_records_for_level>self.max_level:
+      ms.file.delete(self.file_path)

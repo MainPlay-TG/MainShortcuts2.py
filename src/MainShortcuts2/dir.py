@@ -57,7 +57,16 @@ def _list_filter(path: Path, *, exts: Iterable[str] = None, func: Callable[[Path
 def list_iter(path: PATH_TYPES = ".", *, exts: Iterable[str] = None, **kw):
   """Список содержимого папки (итератор)"""
   path = _check(path)
-  kw["exts"] = None if exts is None else [(i if i.startswith(".") else "." + i).lower() for i in exts]
+  if not exts is None:
+    if isinstance(exts, str):
+      exts=exts.split(",")
+    kw["exts"] = []
+    kw["type"] = "file"
+    for i in exts:
+      if i:
+        if not i.startswith("."):
+          i="." + i
+        kw["exts"].append(i.lower())
   for i in os.listdir(path):
     i = Path(path + "/" + i)
     if _list_filter(i, **kw):

@@ -52,7 +52,8 @@ def cwd(set_to: PATH_TYPES = None, only_set=False) -> str:
 
 class Path(os.PathLike):
   """Информация и действия с объектом файловой системы"""
-
+  TYPE_DIR="dir"
+  TYPE_FILE="file"
   def __init__(self, path: PATH_TYPES, use_cache: bool = True):
     self._path = path2str(path, to_abs=True)
     self.cp = self.copy

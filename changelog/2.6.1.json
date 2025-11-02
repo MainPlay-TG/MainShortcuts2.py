@@ -1,0 +1,18 @@
+{
+  "added": [
+    "Класс `.utils.DirLogger`",
+    "Класс `.utils.SimpleLogger`",
+    "Класс `.utils.TempFlag`",
+    "Константа `.path.Path.TYPE_DIR`",
+    "Константа `.path.Path.TYPE_FILE`"
+  ],
+  "changed": [
+    "`.dir.list_iter` может принимать строковый аргумент `exts` (список расширений, разделённых запятой)"
+  ],
+  "fixed": [
+    "`.dir.list_iter` при указании `exts` теперь игнорирует папки"
+  ],
+  "removed": [],
+  "version_id": 49,
+  "version": "2.6.1"
+}
