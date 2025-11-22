@@ -1,4 +1,21 @@
 # MainShortcuts2
+## 2.6.2 (50)
+### Добавлено:
+- Класс `.api.base.BaseClient` теперь может принимать cookie
+- Класс `.api.base.OfflineObjectBase`
+- Класс `.dir.TempDir` теперь может не принимать путь к папке (будет создан автоматически)
+- Метод `.api.webdav.WebDAVClient.copy`
+- Метод `.api.webdav.WebDAVClient.move`
+- Метод `.api.webdav.WebDAVClient.rename`
+- Метод `.api.webdav.WebDAVClient.upload_io`
+### Исправлено:
+- Класс `.api.base.ObjectBase` теперь может принимать другой объект вместо клиента
+- Оптимизация подмодуля `.api.base`
+- Оптимизация подмодуля `.dir`
+- Оптимизация подмодуля `.file`
+- Оптимизация подмодуля `.path`
+- Свойство `.path.Path.realpath`
+- Свойство `.path.Path.split`
 ## 2.6.1 (49)
 ### Добавлено:
 - Класс `.utils.DirLogger`

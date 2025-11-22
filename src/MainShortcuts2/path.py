@@ -21,8 +21,6 @@ def _path2str(path) -> str:
     return path.as_posix()
   if isinstance(path, io.FileIO):
     return path.name
-  if isinstance(path, Path):
-    return path.path
   return os.fspath(path)
 
 
@@ -52,8 +50,9 @@ def cwd(set_to: PATH_TYPES = None, only_set=False) -> str:
 
 class Path(os.PathLike):
   """Информация и действия с объектом файловой системы"""
-  TYPE_DIR="dir"
-  TYPE_FILE="file"
+  TYPE_DIR = "dir"
+  TYPE_FILE = "file"
+
   def __init__(self, path: PATH_TYPES, use_cache: bool = True):
     self._path = path2str(path, to_abs=True)
     self.cp = self.copy
@@ -105,6 +104,16 @@ class Path(os.PathLike):
     self._type = None
     self._used_at = None
 
+  def _stat(self):
+    st = os.stat(self.path)
+    self._created_at = st.st_ctime
+    self._exists = True
+    self._is_dir = stat.S_ISDIR(st.st_mode)
+    self._is_file = stat.S_ISREG(st.st_mode)
+    self._modified_at = st.st_mtime
+    self._size = st.st_size
+    self._used_at = st.st_atime
+
   @property
   def path(self) -> str:
     """Абсолютный путь к объекту"""
@@ -127,14 +136,17 @@ class Path(os.PathLike):
   def created_at(self) -> float:
     """timestamp создания объекта"""
     if self._created_at is None or (not self.use_cache):
-      self._created_at = os.path.getctime(self.path)
+      self._stat()
     return self._created_at
 
   @property
   def exists(self) -> bool:
     """Существует ли объект"""
     if self._exists is None or (not self.use_cache):
-      self._exists = os.path.exists(self.path)
+      try:
+        self._stat()
+      except (OSError, ValueError):
+        self._exists = False
     return self._exists
 
   @property
@@ -155,18 +167,24 @@ class Path(os.PathLike):
   def is_dir(self) -> bool:
     """Является ли объект папкой"""
     if self._is_dir is None or (not self.use_cache):
-      self._is_dir = os.path.isdir(self.path)
-      if self._is_dir:
-        self._type = "dir"
+      try:
+        self._stat()
+      except (OSError, ValueError):
+        self._exists = False
+        self._is_dir = False
+        return False
     return self._is_dir
 
   @property
   def is_file(self) -> bool:
     """Является ли объект файлом"""
     if self._is_file is None or (not self.use_cache):
-      self._is_file = os.path.isfile(self.path)
-      if self._is_file:
-        self._type = "file"
+      try:
+        self._stat()
+      except (OSError, ValueError):
+        self._exists = False
+        self._is_file = False
+        return False
     return self._is_file
 
   @property
@@ -180,12 +198,12 @@ class Path(os.PathLike):
   def modified_at(self) -> float:
     """timestamp изменения объекта"""
     if self._modified_at is None or (not self.use_cache):
-      self._modified_at = os.path.getmtime(self.path)
+      self._stat()
     return self._modified_at
 
   @property
   def parent_dir(self) -> str:
-    """Путь к родительской папке (`/home/exaple.txt` -> `/home`)"""
+    """Путь к родительской папке (`/home/example.txt` -> `/home`)"""
     if self._parent_dir is None:
       self._parent_dir, self._full_name = os.path.split(self.path)
     return self._parent_dir
@@ -194,17 +212,14 @@ class Path(os.PathLike):
   def realpath(self) -> str:
     """Настоящий путь к объекту, если это ссылка (может быть неправильным)"""
     if self._realpath is None or (not self.use_cache):
-      if self.is_link:
-        self._realpath = os.readlink(self.path)
-      else:
-        self._realpath = self.path
+      self._realpath = os.path.realpath(self.path)
     return self._realpath
 
   @property
   def size(self) -> int:
     """Размер объекта в байтах"""
     if self._size is None or (not self.use_cache):
-      self._size = os.path.getsize(self.path)
+      self._stat()
     return self._size
 
   @property
@@ -212,16 +227,16 @@ class Path(os.PathLike):
     """Разбитый путь к объекту"""
     if self._split is None:
       self._split = self.path.split(PATHSEP)
-    return self._size
+    return self._split
 
   @property
   def type(self) -> str:
     """Тип объекта (`dir` | `file`)"""
     if self._type is None or (not self.use_cache):
       if self.is_dir:
-        self._type = "dir"
+        self._type = self.TYPE_DIR
       if self.is_file:
-        self._type = "file"
+        self._type = self.TYPE_FILE
       if self._type is None:
         raise TypeError("Unknown type")
     return self._type
@@ -230,53 +245,42 @@ class Path(os.PathLike):
   def used_at(self) -> float:
     """timestamp последнего использования объекта"""
     if self._used_at is None or (not self.use_cache):
-      self._used_at = os.path.getatime(self.path)
+      self._stat()
     return self._used_at
 
   def copy(self, dest: PATH_TYPES, follow: bool = False, **kw) -> str:
     """Копирование объекта"""
-    kw["dest"] = dest
-    kw["path"] = self.path
-    r = copy(**kw)
+    r = copy(self.path, dest, **kw)
     if follow:
       self.path = r
     return r
 
   def delete(self, **kw):
     """Безвозвратное удаление объекта"""
-    kw["path"] = self.path
-    delete(**kw)
+    delete(self.path, **kw)
     self.reload()
 
   def in_dir(self, dir: PATH_TYPES, **kw) -> bool:
     """Находится ли объект в папке"""
-    kw["dir"] = dir
-    kw["path"] = self.path
-    return in_dir(**kw)
+    return in_dir(self.path, dir, **kw)
 
   def link(self, dest: PATH_TYPES, follow: bool = False, **kw) -> str:
     """Создать символическую ссылку на объект"""
-    kw["dest"] = dest
-    kw["path"] = self.path
-    r = link(**kw)
+    r = link(self.path, dest, **kw)
     if follow:
       self.path = r
     return r
 
   def move(self, dest: PATH_TYPES, follow: bool = True, **kw) -> str:
     """Переместить объект"""
-    kw["dest"] = dest
-    kw["path"] = self.path
-    r = move(**kw)
+    r = move(self.path, dest, **kw)
     if follow:
       self.path = r
     return r
 
   def rename(self, name: str, follow: bool = True, **kw) -> str:
     """Переименовать объект"""
-    kw["name"] = name
-    kw["path"] = self.path
-    r = rename(**kw)
+    r = rename(self.path, name, **kw)
     if follow:
       self.path = r
     return r
@@ -285,8 +289,8 @@ class Path(os.PathLike):
     """Список содержимого папки"""
     return ms.dir.list(self, **kw)
 
-  def to_dict(self, hashes: list[str] = None) -> dict:
-    """Создать словарь с данными объекта (совсестим с JSON)"""
+  def to_dict(self, hashes: list[str] = None, empty_values=True) -> dict:
+    """Создать словарь с данными объекта (совместим с JSON)"""
     result = {}
     result["path"] = self.path
     if self.exists:
@@ -296,51 +300,63 @@ class Path(os.PathLike):
       result["is_link"] = self.is_link
       result["modified_at"] = self.modified_at
       result["realpath"] = self.realpath
-      result["size"] = self.size if self.type == "file" else None
       result["type"] = self.type
       result["used_at"] = self.used_at
+      if self.is_file:
+        result["size"] = self.size
     else:
       result["exists"] = False
-      for i in ("created_at", "hashes", "is_link", "modified_at", "realpath", "size", "type", "used_at"):
-        result[i] = None
+    if empty_values:
+      for i in ("created_at", "hashes", "is_link", "modified_at", "realpath", "type", "used_at"):
+        result.setdefault(i, None)
     return result
 
   def list_dir_iter(self, **kw):
     """Итератор по списку содержимого папки"""
     return ms.dir.list_iter(self, **kw)
 
-  def open_file(self, mode: str = "r", **kw) -> IO[str] | IO[bytes]:
+  def open_file(self, mode: str = "r", **kw):
     """Открыть файл на чтение/запись"""
     return open(self, mode, **kw)
 
-  def hash(self, algorithm: str) -> bytes:
-    """Хеш файла в байтах"""
+  def hash(self, algorithm: str, chunk_size=ms.file.CHUNK_SIZE) -> bytes:
+    """Хеш файла (`bytes`)"""
     import hashlib
     hash = hashlib.new(algorithm)
     with self.open_file("rb") as f:
-      for i in f:
-        hash.update(i)
+      rf = f.read  # read func
+      uf = hash.update  # update func
+      while True:
+        b = rf(chunk_size)
+        if not b:
+          break
+        uf(b)
     return hash.digest()
 
-  def hash_hex(self, algorithm: str) -> str:
-    """Хеш файла в HEX строке"""
-    return self.hash(algorithm).hex()
+  def hash_hex(self, algorithm: str, **kw) -> str:
+    """Хеш файла (`bytes.hex()`)"""
+    return self.hash(algorithm, **kw).hex()
 
-  def multi_hash(self, algorithms: list[str]) -> dict[str, bytes]:
-    """Хеш файла в байтах для нескольких алгоритмов"""
+  def multi_hash(self, algorithms: list[str], chunk_size=ms.file.CHUNK_SIZE) -> dict[str, bytes]:
+    """Хеш файла (`bytes`) для нескольких алгоритмов"""
     if not algorithms:
       return {}
     import hashlib
-    hashes = {i: hashlib.new(i) for i in algorithms}
+    hashes = {i: hashlib.new(i) for i in set(algorithms)}
+    ufs = [i.update for i in hashes.values()]
     with self.open_file("rb") as f:
-      for i in f:
-        for j in hashes.values():
-          j.update(i)
-    return {i: j.digest() for i, j in hashes.items()}
+      rf = f.read  # read func
+      while True:
+        b = rf(chunk_size)
+        if not b:
+          break
+        for uf in ufs:
+          uf(b)
+    return {k: v.digest() for k, v in hashes.items()}
 
-  def multi_hash_hex(self, algorithms: list[str]) -> dict[str, str]:
+  def multi_hash_hex(self, algorithms: list[str], **kw) -> dict[str, str]:
     """Хеш файла в HEX строке для нескольких алгоритмов"""
-    return {k: v.hex() for k, v in self.multi_hash(algorithms).items()}
+    return {k: v.hex() for k, v in self.multi_hash(algorithms, **kw).items()}
 
 
 class Stat:
@@ -354,7 +370,7 @@ class Stat:
     self.atime: float = self.data.st_atime
     self.ctime: float = self.data.st_birthtime if sys.version_info >= (3, 12) and sys.platform == "win32" else self.data.st_ctime
     self.dev: int = self.data.st_dev
-    self.group_id: int = self.st_gid
+    self.group_id: int = self.data.st_gid
     self.inode: int = self.data.st_ino
     self.is_dir: bool = stat.S_ISDIR(self.data.st_mode)
     self.is_file: bool = stat.S_ISREG(self.data.st_mode)
@@ -395,6 +411,10 @@ class Stat:
     """Получить из локального файла"""
     return cls(os.stat(path, **kw))
 
+  @classmethod
+  def lload(cls, path: str, **kw):
+    return cls(os.lstat(path, **kw))
+
 
 def copy(path: PATH_TYPES, dest: PATH_TYPES, mkdir: bool = False, **kw) -> str:
   """Копировать объект"""
@@ -403,7 +423,7 @@ def copy(path: PATH_TYPES, dest: PATH_TYPES, mkdir: bool = False, **kw) -> str:
   if mkdir:
     ms.dir.create(os.path.dirname(kw["dst"]))
   if os.path.isfile(kw["src"]):
-    shutil.copy(**kw)
+    shutil.copy2(**kw)
     return kw["dst"]
   if os.path.isdir(kw["src"]):
     shutil.copytree(**kw)
@@ -509,7 +529,7 @@ class TempFiles:
     return k in self.files
 
   def __delitem__(self, k):
-    if type(k) == str:
+    if isinstance(k, str):
       k = self.files.index(k)
     del self.files[k]
 

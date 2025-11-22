@@ -13,34 +13,56 @@ def auth_basic(username: str, password: str, *, client: "BaseClient" = None) -> 
   if password is None:
     password = client.password
   header = requests.auth._basic_auth_str(username, password)
-  if not client is None:
+  if client is not None:
     client._headers["Authorization"] = header
   return header
 
 
+def setdefattr(obj, attr, value):
+  if getattr(obj, attr, None) is None:
+    setattr(obj, attr, value)
+
+
 class BaseClient(ms.ObjectBase):
   """Базовый клиент для HTTP API"""
+  _enable_cookies: bool
+  _http: requests.Session
+  _url_data: dict[str, str]
+  _url: str
+  cache: "CacheStorage"
 
   def __init__(self, **kw):
     self._init(**kw)
 
   def _init(self, session: requests.Session = None):
-    self._headers = {}
-    self._http = session
-    self._params = {}
-    self._url = "https://example.com/api/{method}"
-    self._url_data = {}
-    self.cache = CacheStorage()
+    setdefattr(self, "_http", session)
+    setdefattr(self, "_enable_cookies", False)
+    setdefattr(self, "_url_data", {})
+    setdefattr(self, "_url", "https://example.com/api/{method}")
+    setdefattr(self, "cache", CacheStorage())
 
   def __enter__(self):
     return self
 
   def __exit__(self, *a):
-    self.http.close()
+    if self._http is not None:
+      self._http.close()
 
   def __repr__(self) -> str:
     cls = type(self)
     return "%s.%s(...)" % (cls.__module__, cls.__name__)
+
+  @property
+  def _cookies(self):
+    return self.http.cookies
+
+  @property
+  def _headers(self):
+    return self.http.headers
+
+  @property
+  def _params(self):
+    return self.http.params
 
   @property
   def http(self) -> requests.Session:
@@ -49,22 +71,14 @@ class BaseClient(ms.ObjectBase):
       self._http = requests.Session()
     return self._http
 
-  def _request(self, http_method: str, api_method: str, *, headers: dict[str, str] = None, params: dict[str, str] = None, raise_for_status: bool = True, url_data: dict[str, str] = None, **kw):
-    _headers = self._headers.copy()
-    _params = self._params.copy()
+  def _request(self, http_method: str, api_method: str, *, raise_for_status: bool = True, url_data: dict[str, str] = None, **kw):
     _url_data = self._url_data.copy()
     _url_data["method"] = api_method
-    if not headers is None:
-      _headers.update(headers)
-    if not params is None:
-      _params.update(params)
-    if not url_data is None:
+    if url_data is not None:
       _url_data.update(url_data)
-    kw["headers"] = _headers
-    kw["method"] = http_method
-    kw["params"] = _params
-    kw["url"] = self._url.format(**_url_data)
-    result = self.http.request(**kw)
+    result = self.http.request(http_method, self._url.format(**_url_data), **kw)
+    if self._enable_cookies:
+      self._cookies.update(result.cookies)
     if raise_for_status:
       result.raise_for_status()
     return result
@@ -75,6 +89,7 @@ class BaseClient(ms.ObjectBase):
 
 
 class Base(BaseClient):
+  """Устаревший класс, используйте BaseClient!"""
   def __init_subclass__(cls, **kw):
     from warnings import warn
     warn("Class 'Base' renamed 'BaseClient' starting with version 2.4.6", DeprecationWarning)
@@ -110,9 +125,10 @@ class BasicAuthClient(BaseClient):
     self._password = value
 
 
-class ObjectBase(ms.ObjectBase):
-  def __init__(self, client: BaseClient, raw: dict, *args, **kwargs):
-    self.client = client
+class OfflineObjectBase(ms.ObjectBase):
+  """API объект из словаря"""
+
+  def __init__(self, raw: dict, *args, **kwargs):
     self.raw = raw
     self._init(*args, **kwargs)
 
@@ -121,6 +137,15 @@ class ObjectBase(ms.ObjectBase):
 
   def _init(self):
     pass
+
+
+class ObjectBase(OfflineObjectBase):
+  """API объект с привязкой клиента"""
+
+  def __init__(self, client: BaseClient, raw: dict, *args, **kwargs):
+    self.client = client.client if isinstance(client, ObjectBase) else client
+    self.raw = raw
+    self._init(*args, **kwargs)
 
 
 class CacheStorage(dict):
