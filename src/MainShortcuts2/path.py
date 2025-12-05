@@ -238,7 +238,16 @@ class Path(os.PathLike):
       if self.is_file:
         self._type = self.TYPE_FILE
       if self._type is None:
-        raise TypeError("Unknown type")
+        if os.path.isdir(self.path):
+          self._is_dir = True
+          self._is_file = False
+          self._type = self.TYPE_DIR
+        elif os.path.isfile(self.path):
+          self._is_dir = False
+          self._is_file = True
+          self._type = self.TYPE_FILE
+        else:
+          raise TypeError("Unknown type")
     return self._type
 
   @property

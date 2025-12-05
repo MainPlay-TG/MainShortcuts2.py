@@ -1,4 +1,7 @@
 # MainShortcuts2
+## 2.6.3 (51)
+### Исправлено:
+- Ошибка в `.path.Path.type`
 ## 2.6.2 (50)
 ### Добавлено:
 - Класс `.api.base.BaseClient` теперь может принимать cookie
