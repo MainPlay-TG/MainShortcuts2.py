@@ -1,7 +1,6 @@
 """Работа только с файлами"""
 import builtins
 import os
-import shutil
 from .core import ms
 from .path import PATH_TYPES, path2str
 from .types import NotAFileError
@@ -134,10 +133,3 @@ def compare(path1: PATH_TYPES, path2: PATH_TYPES, method: str = "bin", chunk_siz
         hash2.update(b2)
     return hash1.digest() == hash2.digest()
   raise ValueError("Unknown method: " + repr(method))
-
-
-cp = copy
-ln = link
-mv = move
-rm = delete
-rn = rename

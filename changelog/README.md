@@ -1,4 +1,31 @@
 # MainShortcuts2
+## 2.6.4 (52)
+### Добавлено:
+- Класс `.advanced.NetBroadcastReceiver`
+- Класс `.advanced.NetBroadcastSender`
+- Класс `.types.BoolFlag`
+- Класс `.types.CountFlag`
+- Класс `.types.ThreadsFlag`
+- Метод `.path.Path.hash_b85`
+- Метод `.path.Path.multi_hash_b85`
+- Метод `.path.Path.same_file`
+- Метод `.path.Path.to_pathlib`
+- Скрипт `which_real`
+- Функция `.list.split_evenly_iter`
+- Функция `.list.split_evenly`
+- Функция `.list.split_fixed_iter`
+- Функция `.list.split_fixed`
+- Функция `.utils.sleep`
+- Функция `.utils.which_real`
+### Исправлено:
+- Немного исправлений в `.path.Path`
+- Создание ссылки в папке скриптом `ms2-ln`
+### Удалено:
+- Алиас `.path.Path.cp`
+- Алиас `.path.Path.ln`
+- Алиас `.path.Path.mv`
+- Алиас `.path.Path.rm`
+- Алиас `.path.Path.rn`
 ## 2.6.3 (51)
 ### Исправлено:
 - Ошибка в `.path.Path.type`
@@ -34,12 +61,12 @@
 ### Добавлено:
 - Класс `.win.RegExplorer`
 - Класс `.win.RegFastLocations`
-- Класс `.win.RegFolder`
 - Класс `.win.RegFolderAuto`
 - Класс `.win.RegFolderJson`
+- Класс `.win.RegFolder`
 - Класс `.win.utils`
-- Константа `.win.ENV_SYSTEM`
 - Константа `.win.ENV_SYSTEM64`
+- Константа `.win.ENV_SYSTEM`
 - Константа `.win.ENV_USER`
 - Константа `.win.REG_LOC_BY_NAME`
 - Константа `.win.REG_LOC_BY_NUM`
@@ -80,12 +107,12 @@
 ## 2.5.3 (41)
 ### Добавлено:
 - Декоратор `.utils.generator2list`
-- Класс `.advanced._Platform`
 - Класс `.advanced.PlatformInfo`
 - Класс `.advanced.PlatformLinux`
 - Класс `.advanced.PlatformMacOS`
 - Класс `.advanced.PlatformTermux`
 - Класс `.advanced.PlatformWindows`
+- Класс `.advanced._Platform`
 - Класс `.api.base.CacheStorage`
 - Метод `.path.Path.hash_hex`
 - Метод `.path.Path.hash`
@@ -122,8 +149,8 @@
 ## 2.4.14 (37)
 ### Добавлено:
 - Декоратор `.utils.OnlyOneInstance.wrap_func`
-- Класс `.api.base.ObjectBase`
 - Класс `.ObjectBase`
+- Класс `.api.base.ObjectBase`
 - Функция `.utils.add2pythonpath`
 - Функция `.utils.auto_install_modules`
 - Функция `.utils.check_modules`

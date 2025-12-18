@@ -2,6 +2,14 @@ import argparse
 import os
 import sys
 from MainShortcuts2 import ms
+log = ms.utils.mini_log
+
+
+def _resolv_target_path(src: str, dst: str):
+  if os.path.isdir(dst):
+    name = os.path.basename(src)
+    return os.path.join(dst, name)
+  return dst
 
 
 def import_example():
@@ -92,7 +100,52 @@ def ln(args=None):
     argp.add_argument("file", help="путь к файлу, на который будет указывать ссылка")
     argp.add_argument("link", help="путь к ссылке для создания")
     args = argp.parse_args()
+  dest = _resolv_target_path(args.file, args.link)
   if args.force:
-    ms.path.delete(args.link)
-  file = os.path.realpath(args.file)
-  os.symlink(file, args.link, os.path.isdir(file))
+    ms.path.delete(dest)
+  src = os.path.realpath(args.file)
+  os.symlink(src, dest)
+
+
+def which_real(args=None, **kw):
+  if args is None:
+    argp = argparse.ArgumentParser("ms2-which_real", description="поиск исполняемого файла")
+    argp.add_argument("--force-link", action="store_true", help="принудительно создавать ссылки (если указаны)")
+    argp.add_argument("--hardlink-to", help="создать жесткую ссылку в указанном месте")
+    argp.add_argument("--symlink-to", help="создать символичную ссылку в указанном месте")
+    argp.add_argument("-m", "--mode", type=int, help="требуемые права доступа")
+    argp.add_argument("-n", "--no-newline", action="store_true", help="не писать новую строку")
+    argp.add_argument("-p", "--path", help="пути поиска")
+    argp.add_argument("cmd", help="название команды")
+    args = argp.parse_args()
+  if args.mode:
+    kw["mode"] = args.mode
+  if args.path:
+    kw["path"] = args.path
+  result = ms.utils.which_real(args.cmd, **kw)
+  if result is None:
+    sys.exit(1)
+  if args.no_newline:
+    print(result, end="")
+  else:
+    print(result)
+  code = 0
+  if args.hardlink_to:
+    try:
+      hdest = _resolv_target_path(result, args.hardlink_to)
+      if args.force_link:
+        ms.path.delete(hdest)
+      os.link(result, hdest)
+    except Exception as exc:
+      code = 2
+      log("Failed to create hard link: %r", exc)
+  if args.symlink_to:
+    try:
+      sdest = _resolv_target_path(result, args.symlink_to)
+      if args.force_link:
+        ms.path.delete(sdest)
+      os.symlink(result, sdest)
+    except Exception as exc:
+      code = 2
+      log("Failed to create symbolic link: %r", exc)
+  sys.exit(code)

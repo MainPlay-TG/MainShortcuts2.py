@@ -5,6 +5,8 @@ import subprocess
 import sys
 from .core import ms
 from .path import Path
+from .utils import sleep
+from threading import Thread
 from typing import IO, Any, Union
 
 
@@ -609,9 +611,10 @@ class PlatformInfo(ms.ObjectBase):
     self.home = ms.path.Path(os.path.expanduser("~"))
     self.name = platform.system().lower()
     self.version = platform.version().lower()
+
   @property
   def user_desktop_dir(self):
-    return ms.dir.create(os.environ.get("XDG_DESKTOP_DIR",self.home+"/Desktop"),_exists=self._created_dirs)
+    return ms.dir.create(os.environ.get("XDG_DESKTOP_DIR", self.home + "/Desktop"), _exists=self._created_dirs)
 
 
 class _Platform(PlatformInfo):
@@ -693,9 +696,11 @@ class PlatformLinux(_Platform):
   @property
   def user_log_dir(self):
     return ms.dir.create(self.home + "/.local/log", _exists=self._created_dirs)
+
   @property
   def system_hosts_file(self):
     return ms.path.Path("/etc/hosts")
+
   def hibernate(self):
     self._run("systemctl", "hibernate")
 
@@ -827,12 +832,15 @@ class PlatformWindows(_Platform):
   @property
   def win_dir(self):
     return self.root_dir + "/Windows"
+
   @property
   def user_desktop_dir(self):
-    return ms.dir.create(self.home+"/Desktop",_exists=self._created_dirs)
+    return ms.dir.create(self.home + "/Desktop", _exists=self._created_dirs)
+
   @property
   def system_hosts_file(self):
-    return ms.path.Path(self.win_dir+"/System32/drivers/etc/hosts")
+    return ms.path.Path(self.win_dir + "/System32/drivers/etc/hosts")
+
   def hibernate(self):
     self._run("shutdown", "/h")
 
@@ -854,3 +862,199 @@ def get_platform() -> _Platform:
   if info.is_windows:
     return PlatformWindows()
   return _Platform()
+
+
+class _NetBase(ms.ObjectBase):
+  @staticmethod
+  def _check_port(port) -> int:
+    if not isinstance(port, int):
+      raise TypeError("Port must be int")
+    if port < 1 or port > 65535:
+      raise ValueError("Port must be in range 1-65535")
+    return port
+
+  @staticmethod
+  def _conv_data(data, allow_empty=True) -> bytes:
+    if data is None:
+      result = b""
+    elif isinstance(data, bytes):
+      result = data
+    elif isinstance(data, str):
+      result = data.encode("utf-8")
+    elif isinstance(data, bytearray):
+      result = bytes(data)
+    elif isinstance(data, memoryview):
+      result = data.tobytes()
+    else:
+      raise TypeError("Data must be bytes or str")
+    if not allow_empty:
+      if len(result) == 0:
+        raise ValueError("Data must not be empty")
+    return result
+
+
+class _ServerBase(_NetBase):
+  _running: bool
+  _stopping: bool
+  _thread: Thread | None
+
+  def start_thread(self, *args, **kwargs):
+    if self._running:
+      raise RuntimeError("Already running")
+    if self._thread:
+      if self._thread.is_alive():
+        raise RuntimeError("Thread already started")
+    self._thread = Thread(target=self.start, args=args, kwargs=kwargs)
+    self._thread.start()
+    return self._thread
+
+  def stop(self, timeout=None):
+    """Остановить регулярную отправку сообщения"""
+    self._stopping = True
+    if self._thread:
+      if self._thread.is_alive():
+        self._thread.join(timeout)
+        self._thread = None
+    while self._running:
+      sleep(0.01)
+
+
+class NetBroadcastSender(_ServerBase):
+  """Отправка широковещательных сообщений"""
+
+  def __init__(self, port: int, data: bytes, ipv6=False):
+    from socket import socket, AF_INET, AF_INET6, SO_BROADCAST, SOCK_DGRAM, SOL_SOCKET
+    self._ipv6 = ipv6
+    self._running = ms.types.BoolFlag()
+    self._stopping = False
+    self._thread = None
+    self.data = data
+    self.port = port
+    self._sock = socket(AF_INET6 if ipv6 else AF_INET, SOCK_DGRAM)
+    self._sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+
+  @property
+  def data(self) -> bytes:
+    """Данные по умолчанию для отправки"""
+    return self._data
+
+  @data.setter
+  def data(self, data):
+    self._data = self._conv_data(data, False)
+
+  @property
+  def port(self) -> int:
+    """Порт (1-65535)"""
+    return self._send_addr[1]
+
+  @port.setter
+  def port(self, port):
+    if self._ipv6:
+      ip = "ff02::1"  # Не проверено
+    else:
+      ip = "255.255.255.255"
+    self._send_addr = (ip, self._check_port(port))
+
+  @classmethod
+  def simple_send(cls, port: int, data: bytes, ipv6=False):
+    """Просто отправить сообщение 1 раз"""
+    with cls(port, data, ipv6) as self:
+      self.send()
+
+  def close(self, timeout=None):
+    self.stop(timeout)
+    self._sock.close()
+
+  def send(self, data: bytes = None):
+    """Отправить сообщение"""
+    if data is None:
+      data = self._data
+    else:
+      data = self._conv_data(data, False)
+    self._sock.sendto(data, self._send_addr)
+
+  def start(self, interval=1):
+    """Запустить отправку каждые N секунд"""
+    if self._running:
+      raise RuntimeError("Already running")
+    self._stopping = False
+    with self._running:  # type: ignore
+      if hasattr(interval, "total_seconds"):
+        interval = interval.total_seconds()
+      while True:
+        if self._stopping:
+          break
+        self.send()
+        sleep(interval)
+    self._stopping = False
+
+
+class NetBroadcastReceiver(_ServerBase):
+  """Получение широковещательных сообщений"""
+  HANDLER_ONCE_ATTR = "handle_once"
+
+  def __init__(self, port: int, max_size: int = 1024, ipv6=False):
+    from socket import socket, AF_INET, AF_INET6, SOCK_DGRAM
+    self._running = ms.types.BoolFlag()
+    self._stopping = False
+    self._thread = None
+    self.handlers = []
+    self.last_addr = None
+    self.last_data = None
+    self.log = ms.log
+    self.max_size = max_size
+    if ipv6:
+      ip = "::"  # Не проверено
+    else:
+      ip = "0.0.0.0"
+    self._sock = socket(AF_INET6 if ipv6 else AF_INET, SOCK_DGRAM)
+    self._sock.bind((ip, self._check_port(port)))
+
+  @property
+  def last_ip(self) -> str | None:
+    if self.last_addr:
+      return self.last_addr[0]
+
+  @classmethod
+  def simple_recv(cls, port: int, max_size: int = 1024, ipv6=False):
+    """Просто получить сообщение 1 раз"""
+    with cls(port, max_size, ipv6) as self:
+      return self.recv()
+
+  def close(self, timeout=None):
+    self.stop(timeout)
+    self._sock.close()
+
+  def recv(self, max_size: int = None) -> tuple[bytes, tuple[str, int]]:
+    if max_size is None:
+      max_size = self.max_size
+    addr: tuple[str, int]
+    data, addr = self._sock.recvfrom(max_size)
+    self.last_addr = addr
+    self.last_data = data
+    for h in list(self.handlers):
+      try:
+        h(data, addr)
+        if getattr(h, self.HANDLER_ONCE_ATTR, False):
+          if h in self.handlers:
+            self.handlers.remove(h)
+      except Exception as exc:
+        self.log.warning("Failed to handle message", exc_info=exc)
+    return data, addr
+
+  def reg_handler(self, handler, handle_once=False):
+    if handle_once:
+      setattr(handler, self.HANDLER_ONCE_ATTR, True)
+    self.handlers.append(handler)
+    return handler
+
+  def start(self):
+    if self._running:
+      raise RuntimeError("Already running")
+    self._stopping = False
+    with self._running:  # type: ignore
+      while True:
+        if self._stopping:
+          break
+        self.recv()
+    self._stopping = False

@@ -420,6 +420,51 @@ class AutoaddDict(dict):
     return dict.__getitem__(self, k)
 
 
+class BoolFlag:
+  def __init__(self, value: bool = False):
+    self.value = value
+
+  def __bool__(self):
+    return self.value
+
+  def __enter__(self):
+    self.value = True
+    return self
+
+  def __exit__(self, *a):
+    self.value = False
+
+
+class CountFlag:
+  def __init__(self, start=0):
+    self.value = start
+
+  def __bool__(self):
+    return self.value > 0
+
+  def __enter__(self):
+    self.value += 1
+    return
+
+  def __exit__(self, *a):
+    self.value -= 1
+
+
+class ThreadsFlag(BoolFlag):
+  def __init__(self):
+    self.value = []
+
+  def __enter__(self):
+    from threading import current_thread
+    self.value.append(current_thread())
+
+  def __exit__(self, *a):
+    from threading import current_thread
+    t = current_thread()
+    if t in self.value:
+      self.value.remove(t)
+
+
 COLORS = _COLORS()
 Error401 = AccessDeniedError
 Error403 = AccessDeniedError

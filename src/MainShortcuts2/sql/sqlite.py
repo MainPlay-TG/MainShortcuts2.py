@@ -55,54 +55,56 @@ class Database(DatabaseBase):
 
   def delete(self, table: str, where: dict):
     """Удалить строки из таблицы"""
-    if isinstance(table,ObjectBase):
-      table=table._table
+    if isinstance(table, ObjectBase):
+      table = table._table
     self.exec(f"DELETE FROM {table} WHERE {_gws(where)};", where.values(), fetch=False)
 
   def insert(self, table: str, values: dict):
     """Вставить новую строку в таблицу"""
-    if isinstance(table,ObjectBase):
-      table=table._table
+    if isinstance(table, ObjectBase):
+      table = table._table
     self.exec(f"INSERT INTO {table} ({','.join(values)}) VALUES ({','.join(['?'] * len(values))});", values.values(), fetch=False)
 
   def select(self, table: str, columns: list[str], where: dict) -> list[tuple]:
     """Выбрать строки из таблицы"""
-    if isinstance(table,ObjectBase):
-      table=table._table
+    if isinstance(table, ObjectBase):
+      table = table._table
     if isinstance(columns, str):
       columns = [columns]
     if where:
-      return self.exec(f"SELECT {','.join(columns)} FROM {table} WHERE {_gws(where)};",where.values(),fetch=True)
-    return self.exec(f"SELECT {','.join(columns)} FROM {table};",fetch=True)
+      return self.exec(f"SELECT {','.join(columns)} FROM {table} WHERE {_gws(where)};", where.values(), fetch=True)
+    return self.exec(f"SELECT {','.join(columns)} FROM {table};", fetch=True)
+
   def update(self, table: str, values: dict, where: dict):
     """Изменить строки в таблице"""
-    if isinstance(table,ObjectBase):
-      table=table._table
+    if isinstance(table, ObjectBase):
+      table = table._table
     self.exec(f"UPDATE {table} SET {_gws(values, ',')} WHERE {_gws(where)};", list(values.values()) + list(where.values()), fetch=False)
 
   def save(self):
     if self.connected:
       if self.conn_kw["database"] != self.MEMORY:
         self.conn.commit()
+
   def select_adv(self, table: str, columns: list[str], where: dict = None, order_by: str = None, limit: int = None, offset: int = None, other: str = None):
-    if isinstance(table,ObjectBase):
-      table=table._table
-    if isinstance(columns,str):
-      columns=[columns]
-    code=f"SELECT {','.join(columns)} FROM {table}"
+    if isinstance(table, ObjectBase):
+      table = table._table
+    if isinstance(columns, str):
+      columns = [columns]
+    code = f"SELECT {','.join(columns)} FROM {table}"
     if where:
-      if isinstance(where,str):
-        code+=f" WHERE {where}"
+      if isinstance(where, str):
+        code += f" WHERE {where}"
       else:
-        code+=f" WHERE {_gws(where)}"
+        code += f" WHERE {_gws(where)}"
     if order_by:
-      code+=f" ORDER BY {order_by}"
+      code += f" ORDER BY {order_by}"
     if limit:
-      code+=f" LIMIT {limit}"
+      code += f" LIMIT {limit}"
     if offset:
-      code+=f" OFFSET {offset}"
+      code += f" OFFSET {offset}"
     if other:
-      code+=f" {other}"
+      code += f" {other}"
     if where:
-      return self.exec(code,where.values(),fetch=True)
-    return self.exec(code,fetch=True)
+      return self.exec(code, where.values(), fetch=True)
+    return self.exec(code, fetch=True)

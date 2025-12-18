@@ -173,7 +173,7 @@ class DatabaseBase:
     """Вставить новую строку в таблицу"""
     raise NotImplementedError()
 
-  def select(self, table: str, columns: list[str], where: dict=None) -> list[tuple]:
+  def select(self, table: str, columns: list[str], where: dict = None) -> list[tuple]:
     """Выбрать строки из таблицы"""
     raise NotImplementedError()
 
@@ -190,10 +190,10 @@ class DatabaseBase:
     """Изменить строки в таблице"""
     raise NotImplementedError()
 
-  def select_count(self, table: str, where: dict=None):
+  def select_count(self, table: str, where: dict = None):
     """Получить кол-во объектов в таблице"""
     return len(self.select(table, list(where)[0], where))
 
-  def select_adv(self,table:str,columns:list[str],where:dict=None,order_by:str=None,limit:int=None,offset:int=None,other:str=None):
+  def select_adv(self, table: str, columns: list[str], where: dict = None, order_by: str = None, limit: int = None, offset: int = None, other: str = None):
     """Улучшенный SELECT"""
     raise NotImplementedError()

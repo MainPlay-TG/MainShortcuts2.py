@@ -1,2 +1,2 @@
-name="MainShortcuts2"
-version="2.6.3"
+name = "MainShortcuts2"
+version = "2.6.4"

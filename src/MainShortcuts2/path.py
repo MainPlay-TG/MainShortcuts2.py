@@ -21,6 +21,8 @@ def _path2str(path) -> str:
     return path.as_posix()
   if isinstance(path, io.FileIO):
     return path.name
+  if isinstance(path, bytes):
+    return path.decode()
   return os.fspath(path)
 
 
@@ -34,6 +36,8 @@ def path2str(path: PATH_TYPES, to_abs: bool = False, replace_forbidden_to: str =
       result = result.replace(i, replace_forbidden_to)
   if to_abs:
     result = os.path.abspath(result)
+  else:
+    result = os.path.normpath(result)
   result = result.replace("\\", PATHSEP)
   if len(result) > 3 and result[-1] == "/":
     result = result[:-1]
@@ -55,13 +59,8 @@ class Path(os.PathLike):
 
   def __init__(self, path: PATH_TYPES, use_cache: bool = True):
     self._path = path2str(path, to_abs=True)
-    self.cp = self.copy
-    self.ln = self.link
-    self.mv = self.move
-    self.reload(full=True)
-    self.rm = self.delete
-    self.rn = self.rename
     self.use_cache = use_cache
+    self.reload(full=True)
 
   def __fspath__(self) -> str:
     return self.path
@@ -80,9 +79,12 @@ class Path(os.PathLike):
 
   def __add__(self, other) -> "Path":
     if isinstance(other, str):
-      if not other.startswith("/"):
-        other = "/" + other
       return Path(self.path + other, use_cache=self.use_cache)
+    return NotImplemented
+
+  def __truediv__(self, other) -> "Path":
+    if isinstance(other, str):
+      return Path(os.path.join(self.path, other), use_cache=self.use_cache)
     return NotImplemented
 
   def reload(self, full: bool = False):
@@ -113,6 +115,11 @@ class Path(os.PathLike):
     self._modified_at = st.st_mtime
     self._size = st.st_size
     self._used_at = st.st_atime
+    if self._is_dir:
+      self._type = self.TYPE_DIR
+    elif self._is_file:
+      self._type = self.TYPE_FILE
+    return st
 
   @property
   def path(self) -> str:
@@ -235,19 +242,10 @@ class Path(os.PathLike):
     if self._type is None or (not self.use_cache):
       if self.is_dir:
         self._type = self.TYPE_DIR
-      if self.is_file:
+      elif self.is_file:
         self._type = self.TYPE_FILE
-      if self._type is None:
-        if os.path.isdir(self.path):
-          self._is_dir = True
-          self._is_file = False
-          self._type = self.TYPE_DIR
-        elif os.path.isfile(self.path):
-          self._is_dir = False
-          self._is_file = True
-          self._type = self.TYPE_FILE
-        else:
-          raise TypeError("Unknown type")
+      else:
+        raise TypeError("Unknown type")
     return self._type
 
   @property
@@ -305,7 +303,6 @@ class Path(os.PathLike):
     if self.exists:
       result["created_at"] = self.created_at
       result["exists"] = True
-      result["hashes"] = self.multi_hash_hex(hashes)
       result["is_link"] = self.is_link
       result["modified_at"] = self.modified_at
       result["realpath"] = self.realpath
@@ -313,6 +310,8 @@ class Path(os.PathLike):
       result["used_at"] = self.used_at
       if self.is_file:
         result["size"] = self.size
+      if hashes:
+        result["hashes"] = self.multi_hash_hex(hashes)
     else:
       result["exists"] = False
     if empty_values:
@@ -326,7 +325,7 @@ class Path(os.PathLike):
 
   def open_file(self, mode: str = "r", **kw):
     """Открыть файл на чтение/запись"""
-    return open(self, mode, **kw)
+    return open(self.path, mode, **kw)
 
   def hash(self, algorithm: str, chunk_size=ms.file.CHUNK_SIZE) -> bytes:
     """Хеш файла (`bytes`)"""
@@ -345,6 +344,11 @@ class Path(os.PathLike):
   def hash_hex(self, algorithm: str, **kw) -> str:
     """Хеш файла (`bytes.hex()`)"""
     return self.hash(algorithm, **kw).hex()
+
+  def hash_b85(self, algorithm: str, **kw) -> str:
+    """Хеш файла (`base85`)"""
+    from base64 import b85encode
+    return b85encode(self.hash(algorithm, **kw)).decode()
 
   def multi_hash(self, algorithms: list[str], chunk_size=ms.file.CHUNK_SIZE) -> dict[str, bytes]:
     """Хеш файла (`bytes`) для нескольких алгоритмов"""
@@ -366,6 +370,24 @@ class Path(os.PathLike):
   def multi_hash_hex(self, algorithms: list[str], **kw) -> dict[str, str]:
     """Хеш файла в HEX строке для нескольких алгоритмов"""
     return {k: v.hex() for k, v in self.multi_hash(algorithms, **kw).items()}
+
+  def multi_hash_b85(self, algorithms: list[str], **kw) -> dict[str, str]:
+    """Хеш файла в base85 строке для нескольких алгоритмов"""
+    from base64 import b85encode
+    result = {}
+    for k, v in self.multi_hash(algorithms, **kw).items():
+      result[k] = b85encode(v).decode()
+    return result
+
+  def to_pathlib(self):
+    """Создать объект `pathlib.Path` из этого пути"""
+    return pathlib.Path(self.path)
+
+  def same_file(self, other):
+    """Является ли другой объект тем же файлом"""
+    if isinstance(other, os.stat_result):
+      return os.path.samestat(self._stat(), other)
+    return os.path.samefile(self.path, other)
 
 
 class Stat:
