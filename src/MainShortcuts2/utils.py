@@ -1048,4 +1048,5 @@ def which_real(cmd: str, **kw) -> str | None:
   """Получить реальный путь к исполняемому файлу"""
   from shutil import which
   result = which(cmd, **kw)
-  return os.path.realpath(result)
+  if result:
+    return os.path.realpath(result)

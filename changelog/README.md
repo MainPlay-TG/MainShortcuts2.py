@@ -1,4 +1,7 @@
 # MainShortcuts2
+## 2.6.5 (53)
+### Исправлено:
+- Ошибка в `.path.Path.type`
 ## 2.6.4 (52)
 ### Добавлено:
 - Класс `.advanced.NetBroadcastReceiver`

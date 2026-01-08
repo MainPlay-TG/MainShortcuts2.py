@@ -56,6 +56,8 @@ class Path(os.PathLike):
   """Информация и действия с объектом файловой системы"""
   TYPE_DIR = "dir"
   TYPE_FILE = "file"
+  TYPE_NOT_EXISTS = "not_exists"
+  TYPE_UNKNOWN = "unknown"
 
   def __init__(self, path: PATH_TYPES, use_cache: bool = True):
     self._path = path2str(path, to_abs=True)
@@ -244,8 +246,10 @@ class Path(os.PathLike):
         self._type = self.TYPE_DIR
       elif self.is_file:
         self._type = self.TYPE_FILE
+      elif not self.exists:
+        self._type = self.TYPE_NOT_EXISTS
       else:
-        raise TypeError("Unknown type")
+        self._type = self.TYPE_UNKNOWN
     return self._type
 
   @property
