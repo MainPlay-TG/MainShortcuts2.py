@@ -1,0 +1,19 @@
+{
+  "added": [
+    "Класс `.advanced.NetBroadcastSenderMultiIPv4`",
+    "Класс `.sql._sql_base.UuidObjectBase`",
+    "Класс `.term.ColorFormatter`",
+    "Подмодули `.ex.*_ex`",
+    "Свойство `.path.Path.pathlib_path`",
+    "Функция `.special_chars.clock_emoji`",
+    "Функция `.special_chars.replace2emoji`",
+    "Функция `.special_chars.upper_time_seconds`",
+    "Функция `.special_chars.upper_time`",
+    "Функция `.utils.iter_caller_modules`"
+  ],
+  "changed": [],
+  "fixed": [],
+  "removed": [],
+  "version": "2.7.0",
+  "version_id": 54
+}

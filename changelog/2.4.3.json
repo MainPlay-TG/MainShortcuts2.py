@@ -1,0 +1,13 @@
+{
+  "added": [
+    "Аргумент `--sort` в скрипте `nano-json`",
+    "Класс `.types.Color`",
+    "Класс `.types.DotDict`",
+    "Константа `.types.COLORS`"
+  ],
+  "changed": [],
+  "fixed": [],
+  "removed": [],
+  "version_id": 26,
+  "version": "2.4.3"
+}

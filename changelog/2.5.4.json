@@ -1,0 +1,10 @@
+{
+  "added": [],
+  "changed": [],
+  "fixed": [
+    "Ошибка в классе `.advanced.PlatformInfo`"
+  ],
+  "removed": [],
+  "version_id": 42,
+  "version": "2.5.4"
+}

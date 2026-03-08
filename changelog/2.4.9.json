@@ -1,0 +1,13 @@
+{
+  "added": [
+    "Декоратор `.utils.main_func`",
+    "Класс `.utils.decorators`",
+    "Константа `.api.base.USER_AGENTS`",
+    "Функция `.utils.restore_deprecated`"
+  ],
+  "changed": [],
+  "fixed": [],
+  "removed": [],
+  "version_id": 32,
+  "version": "2.4.9"
+}

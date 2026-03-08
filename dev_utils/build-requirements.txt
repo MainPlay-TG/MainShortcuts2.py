@@ -1,0 +1,4 @@
+autopep8>=2.3.2
+json5>=0.13.0
+poetry>=2.3.2
+requests>=2.32.5

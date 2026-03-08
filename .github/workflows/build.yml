@@ -1,0 +1,24 @@
+name: Build and upload release
+on:
+  push:
+    branches: [master]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: pip install -U -r dev_utils/build-requirements.txt
+
+      - name: Build
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          POETRY_PYPI_TOKEN_PYPI: "${{ secrets.POETRY_PYPI_TOKEN_PYPI }}"
+        run: python3 dev_utils/build-on-github.py

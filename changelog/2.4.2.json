@@ -1,0 +1,14 @@
+{
+  "added": [
+    "Декоратор `.advanced.MultiLang.add_cache_builder`",
+    "Класс `.advanced.DictScriptAction`",
+    "Класс `.advanced.DictScriptRunner`",
+    "Класс `.advanced.DictScriptVariable`",
+    "Функция `.file.compare`"
+  ],
+  "changed": [],
+  "fixed": [],
+  "removed": [],
+  "version_id": 25,
+  "version": "2.4.2"
+}

@@ -1,0 +1,10 @@
+{
+  "added": [],
+  "changed": [],
+  "fixed": [
+    "Ошибка в `.path.Path.type`"
+  ],
+  "removed": [],
+  "version_id": 51,
+  "version": "2.6.3"
+}

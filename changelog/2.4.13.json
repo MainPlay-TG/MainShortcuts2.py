@@ -1,0 +1,11 @@
+{
+  "added": [],
+  "changed": [],
+  "fixed": [
+    "Фильтр в функции `.dir.list_iter`",
+    "Фильтр в функции `.dir.recursive_list_iter`"
+  ],
+  "removed": [],
+  "version_id": 36,
+  "version": "2.4.13"
+}

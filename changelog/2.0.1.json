@@ -1,0 +1,10 @@
+{
+  "added": [],
+  "changed": [],
+  "fixed": [
+    "\u0418\u0441\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0430 \u043e\u0448\u0438\u0431\u043a\u0430 `TypeError: expected str, bytes or os.PathLike object, not NoneType` \u043f\u0440\u0438 \u0438\u043c\u043f\u043e\u0440\u0442\u0435"
+  ],
+  "removed": [],
+  "version": "2.0.1",
+  "version_id": 1
+}

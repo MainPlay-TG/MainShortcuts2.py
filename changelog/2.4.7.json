@@ -1,0 +1,14 @@
+{
+  "added": [
+    "Аргумент `--force` в скрипте `ms2-hash_gen`",
+    "Класс `.win.LnkFile`",
+    "Функция `.path.readlink`"
+  ],
+  "changed": [],
+  "fixed": [
+    "Исправлена запись файлов, которые являются ссылками"
+  ],
+  "removed": [],
+  "version_id": 30,
+  "version": "2.4.7"
+}

@@ -1,0 +1,237 @@
+import atexit
+import uuid as uuid_module
+from functools import cached_property
+from MainShortcuts2 import ms
+__all__ = ["check_type", "DatabaseBase", "ObjectBase", "UuidObjectBase"]
+
+
+def check_type(obj, cls: type, allow_None: bool = True):
+  if allow_None:
+    if obj is None:
+      return
+  if isinstance(obj, cls):
+    return obj
+  err_text = "Object %r must be like %r"
+  if allow_None:
+    err_text += " or None"
+  raise ValueError(err_text % (obj, cls))
+
+
+def _conv_val(value):
+  if isinstance(value, memoryview):
+    return value.tobytes()
+  return value
+
+
+def _conv_row(row: list):
+  result = []
+  for i in row:
+    result.append(_conv_val(i))
+  return tuple(result)
+
+
+class ObjectBase:
+  _autoinsert: bool
+  _table: str
+
+  def __init__(self, db, **index):
+    assert len(index) > 0
+    self._db: DatabaseBase = db
+    self._index: dict = index
+    if self._autoinsert:
+      self._insert()
+
+  def __repr__(self) -> str:
+    cls = type(self)
+    kwargs = []
+    for k, v in self._index.items():
+      kwargs.append(k + "=" + repr(v))
+    return "{}.{}(...,{})".format(cls.__module__, cls.__name__, ",".join(kwargs))
+
+  def __delitem__(self, column: str):
+    self[column] = None
+
+  def __getitem__(self, column: str):
+    if column in self._index:
+      return self._index[column]
+    return self._get_values([column])[0]
+
+  def __setitem__(self, column: str, value):
+    self._set_values({column: value})
+
+  def _insert(self):
+    if self._db.select_count(self._table, self._index) == 0:
+      self._db.insert(self._table, self._index)
+
+  def _get_values(self, columns: list[str]):
+    return self._db.select_one(self._table, columns, self._index)
+
+  def _set_values(self, data: dict):
+    if not data:
+      return
+    self._db.update(self._table, data, self._index)
+    for i in data:
+      if i in self._index:
+        self._index = data[i]
+
+  def delete_from_db(self):
+    self._db.delete(self._table, self._index)
+
+
+class UuidObjectBase(ObjectBase):
+  @cached_property
+  def uuid_bytes(self):
+    return self["uuid"]
+
+  @cached_property
+  def uuid_str(self):
+    return str(self.uuid)
+
+  @cached_property
+  def uuid(self):
+    return uuid_module.UUID(bytes=self.uuid_bytes)
+
+  @classmethod
+  def get_by_uuid(cls, db, uuid):
+    if isinstance(uuid, bytes):
+      pass
+    elif isinstance(uuid, str):
+      uuid = uuid_module.UUID(uuid).bytes
+    elif isinstance(uuid, uuid_module.UUID):
+      uuid = uuid.bytes
+    else:
+      raise TypeError("uuid must be bytes, str or uuid.UUID")
+    return cls(db, uuid=uuid)
+
+
+class CacheDict(dict):
+  def __getitem__(self, key) -> dict:
+    if key not in self:
+      self[key] = {}
+    return super().__getitem__(key)
+
+
+class DatabaseBase:
+  def __init__(self, *, autosave: bool = True, connect_on_init: bool = True, schema: dict[str, dict[str, str]] = None, **kw):
+    atexit.register(self.close)
+    self._need_update_schema = True
+    self._updating_schema = False
+    self.autosave = autosave
+    self.cache = CacheDict()
+    self.closed = False
+    self.conn = None
+    self.conn_kw = kw
+    self.ConnectionError = ConnectionError
+    self.schema = schema
+    if connect_on_init:
+      self.connect()
+
+  @property
+  def connected(self):
+    return not self.conn is None
+
+  def cursor(self):
+    self.connect()
+    return self.conn.cursor()
+
+  def update_schema(self, schema: dict[str, dict[str, str]] = None):
+    if self._updating_schema:
+      return
+    if schema is None:
+      schema = self.schema
+    if schema is None:
+      return
+    self._updating_schema = True
+    try:
+      self._update_schema(schema)
+    except:
+      self._updating_schema = False
+      raise
+    self._need_update_schema = False
+    self._updating_schema = False
+
+  def save(self):
+    if self.connected:
+      self.conn.commit()
+
+  def close(self, save: bool = True):
+    if self.closed:
+      return
+    if save:
+      self.save()
+    self.disconnect()
+    self.closed = True
+
+  def connect(self):
+    if self.closed:
+      raise RuntimeError("Database closed")
+    if not self.connected:
+      self._connect()
+      if self._need_update_schema:
+        self.update_schema()
+
+  def disconnect(self):
+    if self.connected:
+      self.conn.close()
+      self.conn = None
+
+  def exec(self, code: str, values: tuple = [], fetch: bool = True, reconnect: bool = True) -> list[tuple]:
+    if not code.endswith(";"):
+      code += ";"
+    if not isinstance(values, tuple):
+      values = tuple(values)
+    try:
+      with self.cursor() as cur:
+        cur.execute(code, values)
+        if self.autosave:
+          self.save()
+        if fetch:
+          return [_conv_row(i) for i in cur.fetchall()]
+      return
+    except self.ConnectionError:
+      self.disconnect()
+      if reconnect:
+        return self.exec(code, values, fetch, reconnect=False)
+      raise
+
+  def exec2(self, code: str, *values, **kw):
+    return self.exec(code, values, **kw)
+
+  def _connect(self):
+    raise NotImplementedError()
+
+  def _update_schema(self, schema):
+    raise NotImplementedError()
+
+  def delete(self, table: str, where: dict):
+    """Удалить строки из таблицы"""
+    raise NotImplementedError()
+
+  def insert(self, table: str, values: dict):
+    """Вставить новую строку в таблицу"""
+    raise NotImplementedError()
+
+  def select(self, table: str, columns: list[str], where: dict = None) -> list[tuple]:
+    """Выбрать строки из таблицы"""
+    raise NotImplementedError()
+
+  def select_one(self, table: str, columns: list[str], where: dict, max_error: bool = True):
+    results = self.select(table, columns, where)
+    if len(results) == 0:
+      raise IndexError("No result")
+    if max_error:
+      if len(results) > 1:
+        raise IndexError("Too many results")
+    return results[0]
+
+  def update(self, table: str, values: dict, where: dict):
+    """Изменить строки в таблице"""
+    raise NotImplementedError()
+
+  def select_count(self, table: str, where: dict = None):
+    """Получить кол-во объектов в таблице"""
+    return len(self.select(table, list(where)[0], where))
+
+  def select_adv(self, table: str, columns: list[str], where: dict = None, order_by: str = None, limit: int = None, offset: int = None, other: str = None):
+    """Улучшенный SELECT"""
+    raise NotImplementedError()

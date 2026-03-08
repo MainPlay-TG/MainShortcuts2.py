@@ -1,0 +1,13 @@
+{
+  "added": [
+    "\u0410\u0440\u0433\u0443\u043c\u0435\u043d\u0442 `-b` | `--bar` \u0432 \u0441\u043a\u0440\u0438\u043f\u0442\u0435 `ms2-hash_check`",
+    "\u0410\u0440\u0433\u0443\u043c\u0435\u043d\u0442 `-b` | `--bar` \u0432 \u0441\u043a\u0440\u0438\u043f\u0442\u0435 `ms2-hash_gen`",
+    "\u0410\u0440\u0433\u0443\u043c\u0435\u043d\u0442\u044b `--encoding` \u0438 `--no-escape` \u0432 \u0441\u043a\u0440\u0438\u043f\u0442\u0435 `nano-json`",
+    "\u041f\u043e\u0434\u043c\u043e\u0434\u0443\u043b\u044c `.any2json`"
+  ],
+  "changed": [],
+  "fixed": [],
+  "removed": [],
+  "version_id": 23,
+  "version": "2.4.0"
+}

@@ -1,0 +1,14 @@
+{
+  "added": [
+    "Класс `.path.Stat`",
+    "Скрипт `ms2-ln`",
+    "Функция `.utils.fassert`"
+  ],
+  "changed": [
+    "Декоратор `.utils.main_func` теперь обрабатывает KeyboardInterrupt"],
+  "fixed": [
+    "Скрипты `ms2-hash_gen` и `ms2-hash_check` больше не пытаются открыть папку как файл"],
+  "removed": [],
+  "version_id": 33,
+  "version": "2.4.10"
+}

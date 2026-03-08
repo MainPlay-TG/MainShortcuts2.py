@@ -1,0 +1,28 @@
+[tool.poetry]
+version = "2.6.5"
+name = "MainShortcuts2"
+description = "Сокращение и улучшение функций + консольные утилиты"
+authors = ["MainPlay TG <xbox.roman6666666666@gmail.com>"]
+readme = "README.md"
+repository = "https://github.com/MainPlay-TG/MainShortcuts2.py"
+packages = [
+  { include = "MainShortcuts2", from = "src" },
+]
+
+[tool.poetry.scripts]
+ms2-app = "MainShortcuts2.ms2app:main"
+ms2-hash_check = "MainShortcuts2.ms2hash:hash_check"
+ms2-hash_gen = "MainShortcuts2.ms2hash:hash_gen"
+ms2-import_example = "MainShortcuts2.__main__:import_example"
+ms2-ln = "MainShortcuts2.__main__:ln"
+ms2-which_real = "MainShortcuts2.__main__:which_real"
+nano-json = "MainShortcuts2.__main__:nano_json"
+nginx-reload = "MainShortcuts2.__main__:nginx_reload"
+nginx-restart = "MainShortcuts2.__main__:nginx_restart"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core"]

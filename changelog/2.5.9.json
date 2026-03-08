@@ -1,0 +1,12 @@
+{
+  "added": [
+    "Метод `.utils.MultiContext.add_obj`"
+  ],
+  "changed": [],
+  "fixed": [
+    "Метод `.utils.MultiContext.__enter__`"
+  ],
+  "removed": [],
+  "version_id": 47,
+  "version": "2.5.9"
+}
