@@ -41,20 +41,22 @@ gh = GitHubClient.from_env()
 log.info("GitHub repo: %s", gh.repo)
 # Poetry
 poetry = PoetryFactory().create_poetry(PROJ_DIR)
-log.info("Project: %s %s", poetry.package.name, poetry.package.version)
+proj_name = str(poetry.package.name)
+proj_version = str(poetry.package.version)
+log.info("Project: %s %s", proj_name, proj_version)
 # Changelog
 log.info("Formatting changelog...")
-chlogs = prepare_changelog(PROJ_CHANGELOG, poetry.package.name)
+chlogs = prepare_changelog(PROJ_CHANGELOG, proj_name)
 if log.isEnabledFor(logging.DEBUG):
   log.debug("Found %s changelogs: %s", len(chlogs), ", ".join(sorted(chlogs, key=lambda i: chlogs[i].version_id)))
-if not poetry.package.version in chlogs:
-  log.fatal("Changelog %s not found", poetry.package.version)
+if not proj_version in chlogs:
+  log.fatal("Changelog %s not found", proj_version)
   exit(1)
 # PEP 8
 log.info("Formatting code...")
 format_code(PROJ_DIR)
 # Build
-file_prefix = f"{poetry.package.name}-{poetry.package.version}"
+file_prefix = f"{proj_name}-{proj_version}"
 sdist = PROJ_DIST / f"{file_prefix}.tar.gz"
 if sdist.is_file():
   log.fatal("File %s already exists", sdist.name)
@@ -71,15 +73,15 @@ for file in PROJ_DIST.iterdir():
     wheels.add(file)
 log.info("Found sdist and %s wheels", len(wheels))
 # Commit
-gh.git.commit_all(poetry.package.version, log)
+gh.git.commit_all(proj_version, log)
 # Release
 log.info("Uploading release...")
 rel_assets = {i.name: i for i in wheels}
-rel_assets[f"{poetry.package.name}.tar.gz"] = sdist
+rel_assets[f"{proj_name}.tar.gz"] = sdist
 release = gh.create_release(
-    tag_name=f"v{poetry.package.version}",
-    name=f"{poetry.package.name} {poetry.package.version}",
-    body=chlogs[poetry.package.version].to_md(poetry.package.name),
+    tag_name=f"v{proj_version}",
+    name=f"{proj_name} {proj_version}",
+    body=chlogs[proj_version].to_md(proj_name),
     files=rel_assets,
 )
 log.info("Release: %s", release.html_url)
