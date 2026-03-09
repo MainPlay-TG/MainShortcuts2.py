@@ -36,6 +36,7 @@ class GitHubClient:
     self.http = requests.Session()
     self.http.headers["Accept"] = "application/vnd.github+json"
     self.http.headers["Authorization"] = f"Bearer {token}"
+    self.http.headers["X-GitHub-Api-Version"] = "2022-11-28"
     self.repo = repo
     self.token = token
 
@@ -79,13 +80,20 @@ class GitHubClient:
     if not files:
       return release
     # Загрузка файлов в релиз
-    del kw["json"]
-    kw["url"] = release.upload_url
+    upload_kw = kw.copy()
+    del upload_kw["json"]
+    upload_kw["url"] = release.upload_url
+    upload_kw.setdefault("params", {})
+    upload_kw.setdefault("headers", {})
+    upload_kw["headers"]["Content-Type"] = "application/octet-stream"
+    upload_kw["subpath"] = ""
     for filename, filepath in files.items():
       with filepath.open("rb") as f:
-        with self.make_request("POST", "", data=f, params={"name": filename}, **kw) as resp:
+        upload_kw["data"] = f
+        upload_kw["headers"]["Content-Length"] = filepath.stat().st_size
+        upload_kw["params"]["name"] = filename
+        with self.make_request(**upload_kw) as resp:
           resp.json()
-    del kw["url"]
     if draft:
       # Вернуть новый статус релиза
       with self.make_request("GET", f"/releases/{release.id}", **kw) as resp:
