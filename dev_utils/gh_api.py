@@ -20,6 +20,13 @@ class Release(dict):
     return self["id"]
 
   @property
+  def upload_url(self) -> str:
+    url: str = self["upload_url"]
+    if "{" in url:
+      return url[:url.index("{")]
+    return url
+
+  @property
   def url(self) -> str:
     return self["url"]
 
@@ -27,6 +34,7 @@ class Release(dict):
 class GitHubClient:
   def __init__(self, repo: str, token: str):
     self.http = requests.Session()
+    self.http.headers["Accept"] = "application/vnd.github+json"
     self.http.headers["Authorization"] = f"Bearer {token}"
     self.repo = repo
     self.token = token
