@@ -75,7 +75,7 @@ class GitHubClient:
     kw["url"] = release.assets_url
     for filename, filepath in files.items():
       with filepath.open("rb") as f:
-        with self.make_request("POST", "", data=f, params={"name": filename}) as resp:
+        with self.make_request("POST", "", data=f, params={"name": filename}, **kw) as resp:
           resp.json()
     del kw["url"]
     if draft:
@@ -105,7 +105,7 @@ class GitClient:
 
   def commit_all(self, version: str, log: Logger):
     self.run("add", ".")
-    if self.run("diff", "--cached", "--exit-code", check=False).returncode == 0:
+    if self.run("diff", "--cached", "--exit-code", check=False, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL).returncode == 0:
       return log.info("No changes to commit")
     log.info("Running commit...")
     self.run("commit", "-a", "-m", f"Build {version} [skip ci]")

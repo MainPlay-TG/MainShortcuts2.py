@@ -108,5 +108,5 @@ def prepare_changelog(dir: Path, name: str):
   for chlog in sorted(result.values(), key=lambda i: i.version_id, reverse=True):
     summary.extend(chlog.to_summary_md())
   summary.append("")
-  (dir / "README.md").write_text("\n".join(summary), "utf-8", newline="\n")
+  (dir / "README.md").write_text("\n".join(summary) + "\n", "utf-8", newline="\n")
   return result
