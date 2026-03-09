@@ -90,7 +90,7 @@ class GitHubClient:
     for filename, filepath in files.items():
       with filepath.open("rb") as f:
         upload_kw["data"] = f
-        upload_kw["headers"]["Content-Length"] = filepath.stat().st_size
+        upload_kw["headers"]["Content-Length"] = str(filepath.stat().st_size)
         upload_kw["params"]["name"] = filename
         with self.make_request("POST", **upload_kw) as resp:
           resp.json()
