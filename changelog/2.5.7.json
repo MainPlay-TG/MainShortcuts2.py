@@ -1,10 +1,1 @@
-{
-  "added": [],
-  "changed": [],
-  "fixed": [
-    "Фатальная ошибка при импорте"
-  ],
-  "removed": [],
-  "version_id": 45,
-  "version": "2.5.7"
-}
+{"added":[],"changed":[],"fixed":["\u0424\u0430\u0442\u0430\u043b\u044c\u043d\u0430\u044f \u043e\u0448\u0438\u0431\u043a\u0430 \u043f\u0440\u0438 \u0438\u043c\u043f\u043e\u0440\u0442\u0435"],"removed":[],"version_id":45,"version":"2.5.7"}

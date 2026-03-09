@@ -1,16 +1,1 @@
-{
-  "added": [
-    "Декоратор `.utils.OnlyOneInstance.wrap_func`",
-    "Класс `.api.base.ObjectBase`",
-    "Класс `.ObjectBase`",
-    "Функция `.utils.add2pythonpath`",
-    "Функция `.utils.auto_install_modules`",
-    "Функция `.utils.check_modules`",
-    "Функция `.utils.run_pip`"
-  ],
-  "changed": [],
-  "fixed": [],
-  "removed": [],
-  "version_id": 37,
-  "version": "2.4.14"
-}
+{"added":["\u0414\u0435\u043a\u043e\u0440\u0430\u0442\u043e\u0440 `.utils.OnlyOneInstance.wrap_func`","\u041a\u043b\u0430\u0441\u0441 `.ObjectBase`","\u041a\u043b\u0430\u0441\u0441 `.api.base.ObjectBase`","\u0424\u0443\u043d\u043a\u0446\u0438\u044f `.utils.add2pythonpath`","\u0424\u0443\u043d\u043a\u0446\u0438\u044f `.utils.auto_install_modules`","\u0424\u0443\u043d\u043a\u0446\u0438\u044f `.utils.check_modules`","\u0424\u0443\u043d\u043a\u0446\u0438\u044f `.utils.run_pip`"],"changed":[],"fixed":[],"removed":[],"version_id":37,"version":"2.4.14"}

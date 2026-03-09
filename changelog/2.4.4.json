@@ -1,13 +1,1 @@
-{
-  "added": [
-    "Аргумент `use_env` у функции `.utils.shebang_code`",
-    "Декоратор `.utils.handle_exception`",
-    "Класс `.advanced.CodeModule`",
-    "Класс `.types.AutoaddDict`"
-  ],
-  "changed": [],
-  "fixed": [],
-  "removed": [],
-  "version_id": 27,
-  "version": "2.4.4"
-}
+{"added":["\u0410\u0440\u0433\u0443\u043c\u0435\u043d\u0442 `use_env` \u0443 \u0444\u0443\u043d\u043a\u0446\u0438\u0438 `.utils.shebang_code`","\u0414\u0435\u043a\u043e\u0440\u0430\u0442\u043e\u0440 `.utils.handle_exception`","\u041a\u043b\u0430\u0441\u0441 `.advanced.CodeModule`","\u041a\u043b\u0430\u0441\u0441 `.types.AutoaddDict`"],"changed":[],"fixed":[],"removed":[],"version_id":27,"version":"2.4.4"}

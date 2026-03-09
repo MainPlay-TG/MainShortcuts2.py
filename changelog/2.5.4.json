@@ -1,10 +1,1 @@
-{
-  "added": [],
-  "changed": [],
-  "fixed": [
-    "Ошибка в классе `.advanced.PlatformInfo`"
-  ],
-  "removed": [],
-  "version_id": 42,
-  "version": "2.5.4"
-}
+{"added":[],"changed":[],"fixed":["\u041e\u0448\u0438\u0431\u043a\u0430 \u0432 \u043a\u043b\u0430\u0441\u0441\u0435 `.advanced.PlatformInfo`"],"removed":[],"version_id":42,"version":"2.5.4"}

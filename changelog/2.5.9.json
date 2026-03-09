@@ -1,12 +1,1 @@
-{
-  "added": [
-    "Метод `.utils.MultiContext.add_obj`"
-  ],
-  "changed": [],
-  "fixed": [
-    "Метод `.utils.MultiContext.__enter__`"
-  ],
-  "removed": [],
-  "version_id": 47,
-  "version": "2.5.9"
-}
+{"added":["\u041c\u0435\u0442\u043e\u0434 `.utils.MultiContext.add_obj`"],"changed":[],"fixed":["\u041c\u0435\u0442\u043e\u0434 `.utils.MultiContext.__enter__`"],"removed":[],"version_id":47,"version":"2.5.9"}

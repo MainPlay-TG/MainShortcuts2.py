@@ -1,10 +1,1 @@
-{
-  "added": [],
-  "changed": [],
-  "fixed": [
-    "Получение папок в `.advanced.PlatformTermux`"
-  ],
-  "removed": [],
-  "version_id": 43,
-  "version": "2.5.5"
-}
+{"added":[],"changed":[],"fixed":["\u041f\u043e\u043b\u0443\u0447\u0435\u043d\u0438\u0435 \u043f\u0430\u043f\u043e\u043a \u0432 `.advanced.PlatformTermux`"],"removed":[],"version_id":43,"version":"2.5.5"}
