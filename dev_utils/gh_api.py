@@ -80,7 +80,7 @@ class GitHubClient:
       return release
     # Загрузка файлов в релиз
     del kw["json"]
-    kw["url"] = release.assets_url
+    kw["url"] = release.upload_url
     for filename, filepath in files.items():
       with filepath.open("rb") as f:
         with self.make_request("POST", "", data=f, params={"name": filename}, **kw) as resp:
