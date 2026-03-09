@@ -97,7 +97,7 @@ def write_changelog(path: Path, chlog: Changelog, **kw):
 def prepare_changelog(dir: Path, name: str):
   result: dict[str, Changelog] = {}
   for file in dir.iterdir():
-    if file.suffix == ".json" and file.is_file():
+    if (file.suffix.lower() == ".json") and file.is_file():
       chlog = read_changelog(file)
       result[chlog.version] = chlog
       write_changelog(file, chlog)
