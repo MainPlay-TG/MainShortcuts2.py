@@ -92,7 +92,7 @@ class GitHubClient:
         upload_kw["data"] = f
         upload_kw["headers"]["Content-Length"] = filepath.stat().st_size
         upload_kw["params"]["name"] = filename
-        with self.make_request(**upload_kw) as resp:
+        with self.make_request("POST", **upload_kw) as resp:
           resp.json()
     if draft:
       # Вернуть новый статус релиза
