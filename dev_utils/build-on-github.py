@@ -45,7 +45,7 @@ log.info("Project: %s %s", poetry.package.name, poetry.package.version)
 # Changelog
 log.info("Formatting changelog...")
 chlogs = prepare_changelog(PROJ_CHANGELOG, poetry.package.name)
-log.debug("Found %s changelogs", len(chlogs))
+log.debug("Found %s changelogs: %s", len(chlogs), ", ".join(chlogs))
 if not poetry.package.version in chlogs:
   log.fatal("Changelog %s not found", poetry.package.version)
   exit(1)
