@@ -11,6 +11,7 @@ from poetry.factory import Factory as PoetryFactory
 from sys import exit
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
+log.addHandler(logging.StreamHandler())
 for i in log.handlers:
   i.setLevel(logging.INFO)
 # Проверка GitHub Actions
