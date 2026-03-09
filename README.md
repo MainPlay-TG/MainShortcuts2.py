@@ -1,4 +1,5 @@
 # MainShortcuts2
+[![Build and upload release](https://github.com/MainPlay-TG/MainShortcuts2.py/actions/workflows/build.yml/badge.svg)](https://github.com/MainPlay-TG/MainShortcuts2.py/actions/workflows/build.yml)
 ## Описание
 Сокращение и улучшение функций
 ## Установка
