@@ -1,0 +1,10 @@
+{
+  "added": [
+    "Подмодуль `.ex.aiohttp_ex`"
+  ],
+  "changed": [],
+  "fixed": [],
+  "removed": [],
+  "version_id": 55,
+  "version": "2.7.1"
+}

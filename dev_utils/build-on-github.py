@@ -3,7 +3,8 @@ if __name__ != "__main__":
 import logging
 import os
 import subprocess
-from changelog_formatter import prepare_changelog
+from changelog_formatter import dump_json, prepare_changelog
+from create_hash import create_hash
 from gh_api import GitHubClient
 from pathlib import Path
 from pep8_formatter import format_code
@@ -60,8 +61,8 @@ file_prefix = f"{proj_name}-{proj_version}"
 sdist = PROJ_DIST / f"{file_prefix}.tar.gz"
 if sdist.is_file():
   log.fatal("File %s already exists", sdist.name)
-  exit(1)
-log.info("Building")
+  exit()
+log.info("Building...")
 subprocess.run(["poetry", "build"], check=True)
 if not sdist.is_file():
   log.fatal("File %s not found", sdist.name)
@@ -75,13 +76,17 @@ log.info("Found sdist and %s wheels", len(wheels))
 # Commit
 gh.git.commit_all(proj_version, log)
 # Release
-log.info("Uploading release...")
+log.info("Preparing files for release...")
+chlog = chlogs[proj_version]
 rel_assets = {i.name: i for i in wheels}
+rel_assets["changelog.json"] = dump_json(chlog).encode("utf-8")
 rel_assets[f"{proj_name}.tar.gz"] = sdist
+rel_assets["sha256sums.txt"] = create_hash("sha256", rel_assets).encode("utf-8")
+log.info("Uploading release...")
 release = gh.create_release(
     tag_name=f"v{proj_version}",
     name=f"{proj_name} {proj_version}",
-    body=chlogs[proj_version].to_md(proj_name),
+    body=chlog.to_md(proj_name),
     files=rel_assets,
 )
 log.info("Release: %s", release.html_url)
@@ -89,4 +94,4 @@ log.info("Release: %s", release.html_url)
 log.info("Uploading to PyPi...")
 subprocess.run(["poetry", "publish"], check=True)
 # Complete
-log.info("All tasks complete!")
+log.info("\nAll tasks are completed!")

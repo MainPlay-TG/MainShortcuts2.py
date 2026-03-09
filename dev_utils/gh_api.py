@@ -58,7 +58,7 @@ class GitHubClient:
   def create_release(self, tag_name: str,
                      name: str = None,
                      body: str = None,
-                     files: dict[str, Path] = None,
+                     files: dict[str, bytes | Path] = None,
                      draft=False,
                      **kw):
     # Создание релиза
@@ -88,12 +88,18 @@ class GitHubClient:
     upload_kw["headers"]["Content-Type"] = "application/octet-stream"
     upload_kw["subpath"] = ""
     for filename, filepath in files.items():
-      with filepath.open("rb") as f:
-        upload_kw["data"] = f
-        upload_kw["headers"]["Content-Length"] = str(filepath.stat().st_size)
-        upload_kw["params"]["name"] = filename
+      upload_kw["params"]["name"] = filename
+      if isinstance(filepath, bytes):
+        upload_kw["data"] = filepath
+        upload_kw["headers"]["Content-Length"] = str(len(filepath))
         with self.make_request("POST", **upload_kw) as resp:
           resp.json()
+      else:
+        with filepath.open("rb") as f:
+          upload_kw["data"] = f
+          upload_kw["headers"]["Content-Length"] = str(filepath.stat().st_size)
+          with self.make_request("POST", **upload_kw) as resp:
+            resp.json()
     if draft:
       # Вернуть новый статус релиза
       with self.make_request("GET", f"/releases/{release.id}", **kw) as resp:

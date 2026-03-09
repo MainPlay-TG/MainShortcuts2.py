@@ -52,7 +52,8 @@ class Changelog(dict):
         lines.append(f"## {name}:")
         for item in self[key]:
           lines.append(f"- {item}")
-    return "\n".join(lines) + "\n"
+    lines.append("")
+    return "\n".join(lines)
 
   def to_summary_md(self):
     lines = [f"## {self.version} ({self.version_id})"]
@@ -69,10 +70,14 @@ def read_json(path: Path):
     return json5.load(f)
 
 
+def dump_json(data, **kw):
+  kw.setdefault("separators", (",", ":"))
+  return json.dumps(data, **kw)
+
+
 def write_json(path: Path, data, **kw):
   temp_path = path.with_suffix(path.suffix + ".tmp")
-  kw.setdefault("separators", (",", ":"))
-  new_text = json.dumps(data, **kw)
+  new_text = dump_json(data, **kw)
   if path.is_file():
     old_text = path.read_text("utf-8")
     if new_text == old_text:
@@ -108,5 +113,5 @@ def prepare_changelog(dir: Path, name: str):
   for chlog in sorted(result.values(), key=lambda i: i.version_id, reverse=True):
     summary.extend(chlog.to_summary_md())
   summary.append("")
-  (dir / "README.md").write_text("\n".join(summary) + "\n", "utf-8", newline="\n")
+  (dir / "README.md").write_text("\n".join(summary), "utf-8", newline="\n")
   return result
