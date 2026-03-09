@@ -69,8 +69,9 @@ class GitHubClient:
       kw["json"]["body"] = body
     if files:
       for filepath in files.values():
-        if not filepath.is_file():
-          raise FileNotFoundError(filepath)
+        if isinstance(filepath, Path):
+          if not filepath.is_file():
+            raise FileNotFoundError(filepath)
       kw["json"]["draft"] = True
     else:
       kw["json"]["draft"] = bool(draft)
