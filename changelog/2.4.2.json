@@ -1,14 +1,1 @@
-{
-  "added": [
-    "Декоратор `.advanced.MultiLang.add_cache_builder`",
-    "Класс `.advanced.DictScriptAction`",
-    "Класс `.advanced.DictScriptRunner`",
-    "Класс `.advanced.DictScriptVariable`",
-    "Функция `.file.compare`"
-  ],
-  "changed": [],
-  "fixed": [],
-  "removed": [],
-  "version_id": 25,
-  "version": "2.4.2"
-}
+{"added":["\u0414\u0435\u043a\u043e\u0440\u0430\u0442\u043e\u0440 `.advanced.MultiLang.add_cache_builder`","\u041a\u043b\u0430\u0441\u0441 `.advanced.DictScriptAction`","\u041a\u043b\u0430\u0441\u0441 `.advanced.DictScriptRunner`","\u041a\u043b\u0430\u0441\u0441 `.advanced.DictScriptVariable`","\u0424\u0443\u043d\u043a\u0446\u0438\u044f `.file.compare`"],"changed":[],"fixed":[],"removed":[],"version_id":25,"version":"2.4.2"}

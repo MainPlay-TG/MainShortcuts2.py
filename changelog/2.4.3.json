@@ -1,13 +1,1 @@
-{
-  "added": [
-    "Аргумент `--sort` в скрипте `nano-json`",
-    "Класс `.types.Color`",
-    "Класс `.types.DotDict`",
-    "Константа `.types.COLORS`"
-  ],
-  "changed": [],
-  "fixed": [],
-  "removed": [],
-  "version_id": 26,
-  "version": "2.4.3"
-}
+{"added":["\u0410\u0440\u0433\u0443\u043c\u0435\u043d\u0442 `--sort` \u0432 \u0441\u043a\u0440\u0438\u043f\u0442\u0435 `nano-json`","\u041a\u043b\u0430\u0441\u0441 `.types.Color`","\u041a\u043b\u0430\u0441\u0441 `.types.DotDict`","\u041a\u043e\u043d\u0441\u0442\u0430\u043d\u0442\u0430 `.types.COLORS`"],"changed":[],"fixed":[],"removed":[],"version_id":26,"version":"2.4.3"}

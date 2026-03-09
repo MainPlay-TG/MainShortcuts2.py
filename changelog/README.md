@@ -1,4 +1,16 @@
-# MainShortcuts2
+# mainshortcuts2
+## 2.7.0 (54)
+### Добавлено:
+- Класс `.advanced.NetBroadcastSenderMultiIPv4`
+- Класс `.sql._sql_base.UuidObjectBase`
+- Класс `.term.ColorFormatter`
+- Подмодули `.ex.*_ex`
+- Свойство `.path.Path.pathlib_path`
+- Функция `.special_chars.clock_emoji`
+- Функция `.special_chars.replace2emoji`
+- Функция `.special_chars.upper_time_seconds`
+- Функция `.special_chars.upper_time`
+- Функция `.utils.iter_caller_modules`
 ## 2.6.5 (53)
 ### Исправлено:
 - Ошибка в `.path.Path.type`

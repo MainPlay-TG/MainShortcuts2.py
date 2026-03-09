@@ -1,10 +1,1 @@
-{
-  "added": [],
-  "changed": [],
-  "fixed": [
-    "\u041e\u0448\u0438\u0431\u043a\u0430 \u0432 `.path.Path.type`"
-  ],
-  "removed": [],
-  "version": "2.6.5",
-  "version_id": 53
-}
+{"added":[],"changed":[],"fixed":["\u041e\u0448\u0438\u0431\u043a\u0430 \u0432 `.path.Path.type`"],"removed":[],"version":"2.6.5","version_id":53}

@@ -1,11 +1,1 @@
-{
-  "added": [],
-  "changed": [],
-  "fixed": [
-    "Фильтр в функции `.dir.list_iter`",
-    "Фильтр в функции `.dir.recursive_list_iter`"
-  ],
-  "removed": [],
-  "version_id": 36,
-  "version": "2.4.13"
-}
+{"added":[],"changed":[],"fixed":["\u0424\u0438\u043b\u044c\u0442\u0440 \u0432 \u0444\u0443\u043d\u043a\u0446\u0438\u0438 `.dir.list_iter`","\u0424\u0438\u043b\u044c\u0442\u0440 \u0432 \u0444\u0443\u043d\u043a\u0446\u0438\u0438 `.dir.recursive_list_iter`"],"removed":[],"version_id":36,"version":"2.4.13"}

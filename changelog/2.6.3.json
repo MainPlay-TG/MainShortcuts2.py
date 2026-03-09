@@ -1,10 +1,1 @@
-{
-  "added": [],
-  "changed": [],
-  "fixed": [
-    "Ошибка в `.path.Path.type`"
-  ],
-  "removed": [],
-  "version_id": 51,
-  "version": "2.6.3"
-}
+{"added":[],"changed":[],"fixed":["\u041e\u0448\u0438\u0431\u043a\u0430 \u0432 `.path.Path.type`"],"removed":[],"version_id":51,"version":"2.6.3"}

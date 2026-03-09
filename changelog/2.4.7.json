@@ -1,14 +1,1 @@
-{
-  "added": [
-    "Аргумент `--force` в скрипте `ms2-hash_gen`",
-    "Класс `.win.LnkFile`",
-    "Функция `.path.readlink`"
-  ],
-  "changed": [],
-  "fixed": [
-    "Исправлена запись файлов, которые являются ссылками"
-  ],
-  "removed": [],
-  "version_id": 30,
-  "version": "2.4.7"
-}
+{"added":["\u0410\u0440\u0433\u0443\u043c\u0435\u043d\u0442 `--force` \u0432 \u0441\u043a\u0440\u0438\u043f\u0442\u0435 `ms2-hash_gen`","\u041a\u043b\u0430\u0441\u0441 `.win.LnkFile`","\u0424\u0443\u043d\u043a\u0446\u0438\u044f `.path.readlink`"],"changed":[],"fixed":["\u0418\u0441\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0430 \u0437\u0430\u043f\u0438\u0441\u044c \u0444\u0430\u0439\u043b\u043e\u0432, \u043a\u043e\u0442\u043e\u0440\u044b\u0435 \u044f\u0432\u043b\u044f\u044e\u0442\u0441\u044f \u0441\u0441\u044b\u043b\u043a\u0430\u043c\u0438"],"removed":[],"version_id":30,"version":"2.4.7"}
