@@ -44,9 +44,9 @@ poetry = PoetryFactory().create_poetry(PROJ_DIR)
 log.info("Project: %s %s", poetry.package.name, poetry.package.version)
 # Changelog
 log.info("Formatting changelog...")
-chlogs = prepare_changelog(PROJ_DIR, poetry.package.name)
+chlogs = prepare_changelog(PROJ_CHANGELOG, poetry.package.name)
 if not poetry.package.version in chlogs:
-  log.fatal("Changelog not found")
+  log.fatal("Changelog %s not found", poetry.package.version)
   exit(1)
 # PEP 8
 log.info("Formatting code...")
