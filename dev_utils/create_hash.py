@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 class HashAsIO:
-  def __init__(self, hash: hashlib._Hash):
+  def __init__(self, hash: "hashlib._Hash"):
     self.hash = hash
     self.write = hash.update
 
