@@ -9,8 +9,10 @@ from pathlib import Path
 from pep8_formatter import format_code
 from poetry.factory import Factory as PoetryFactory
 from sys import exit
-log = logging.Logger(__name__,logging.INFO)
+log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
+for i in log.handlers:
+  i.setLevel(logging.INFO)
 # Проверка GitHub Actions
 if os.environ.get("GITHUB_ACTIONS") != "true":
   log.fatal("Allowed only on GitHub Actions")
