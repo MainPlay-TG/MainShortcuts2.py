@@ -1,4 +1,7 @@
 # mainshortcuts2
+## 2.7.1 (55)
+### Добавлено:
+- Подмодуль `.ex.aiohttp_ex`
 ## 2.7.0 (54)
 ### Добавлено:
 - Класс `.advanced.NetBroadcastSenderMultiIPv4`
@@ -404,4 +407,3 @@
 ## 2.0.0 (0)
 ### Добавлено:
 - Создание модуля на основе `MainShortcuts`
-
