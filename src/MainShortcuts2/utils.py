@@ -1061,3 +1061,43 @@ def iter_caller_modules():
       frame = frame.f_back
   finally:
     del frame
+
+
+def parse_shaXsums_hex(lines: str | list[str]):
+  """Парсить файлы в формате `sha256sums.txt`"""
+  if isinstance(lines, str):
+    lines = lines.splitlines()
+  result: dict[str, str] = {}  # filename: hex value
+  for line in lines:
+    line = line.strip()
+    if not line or line.startswith('#'):
+      continue
+    parts = line.replace("  ", " ").split(None, 1)
+    if len(parts) == 2:
+      hex_value, filename = parts
+      result[filename] = hex_value.lower()
+  return result
+
+
+def parse_shaXsums_bytes(lines: str | list[str]):
+  """Парсить файлы в формате `sha256sums.txt`, декодируя хеш"""
+  return {k: bytes.fromhex(v) for k, v in parse_shaXsums_hex(lines).items()}
+
+
+def guess_checksum_alg(digest_len: int):
+  """Найти алгоритм хеширования по длине хеша"""
+  if not "hash_len" in cache:
+    import hashlib
+    c = {}
+    for alg in hashlib.algorithms_available:
+      try:
+        c[alg] = len(hashlib.new(alg).digest())
+      except Exception:
+        pass
+    cache["hash_len"] = c
+  c: dict[str, int] = cache["hash_len"]
+  result: set[str] = set()
+  for k, v in c.items():
+    if digest_len == v:
+      result.add(k)
+  return result

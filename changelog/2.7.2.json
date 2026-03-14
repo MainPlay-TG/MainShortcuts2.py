@@ -1,7 +1,10 @@
 {
   "added": [
     "Класс `.term.Choice`",
-    "Подмодуль `.api.github`"
+    "Подмодуль `.api.github`",
+    "Функция `.utils.guess_checksum_alg`",
+    "Функция `.utils.parse_shaXsums_bytes`",
+    "Функция `.utils.parse_shaXsums_hex`"
   ],
   "changed": [
     "Подмодуль `.ex.aiohttp_ex.web` можно запускать как HTTP сервер для отладки",
