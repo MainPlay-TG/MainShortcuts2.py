@@ -1,4 +1,14 @@
 # mainshortcuts2
+## 2.7.2 (56)
+### Добавлено:
+- Класс `.term.Choice`
+- Подмодуль `.api.github`
+- Функция `.utils.guess_checksum_alg`
+- Функция `.utils.parse_shaXsums_bytes`
+- Функция `.utils.parse_shaXsums_hex`
+### Изменено:
+- Подмодуль `.ex.aiohttp_ex.web` можно запускать как HTTP сервер для отладки
+- Подмодуль `.ex.aiohttp_ex` переименован на `.ex.aiohttp_ex.web`
 ## 2.7.1 (55)
 ### Добавлено:
 - Подмодуль `.ex.aiohttp_ex`
