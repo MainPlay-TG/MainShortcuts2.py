@@ -585,10 +585,7 @@ def disable_warnings():
 
 def is_instance_of_one(obj, *classes: type) -> bool:
   """Это экземпляр одного из классов?"""
-  for i in classes:
-    if isinstance(obj, i):
-      return True
-  return False
+  return isinstance(obj, classes)
 
 
 def is_instance_of_all(obj, *classes: type) -> bool:
@@ -881,14 +878,14 @@ class TempFlag(ms.types.BoolFlag):
 
 class SimpleLogger(logging.Logger):
   """Простой логгер"""
-  CRITICAL: int = logging.CRITICAL
-  DEBUG: int = logging.DEBUG
-  ERROR: int = logging.ERROR
-  FATAL: int = logging.FATAL
-  INFO: int = logging.INFO
-  NOTSET: int = logging.NOTSET
-  WARN: int = logging.WARN
-  WARNING: int = logging.WARNING
+  CRITICAL = logging.CRITICAL
+  DEBUG = logging.DEBUG
+  ERROR = logging.ERROR
+  FATAL = logging.FATAL
+  INFO = logging.INFO
+  NOTSET = logging.NOTSET
+  WARN = logging.WARN
+  WARNING = logging.WARNING
 
   def __init__(self, name: str, level: int = logging.INFO, full_global=False, init_msg=True):
     # Выбрать случайное название

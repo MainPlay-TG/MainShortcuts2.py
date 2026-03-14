@@ -299,3 +299,131 @@ def countful_countdown(time: float, interval: float = 1, format: str = None, rou
 
 
 cls = clear
+
+
+class Choice(ms.ObjectBase):
+  """Промпт пользователю на выбор опций"""
+
+  def __init__(self, choices: dict[str, str | None],
+               aliases: dict[str, str] = None,
+               default: str | set[str] = None,
+               multiple=False,
+               values_in_prompt=True,
+               ):
+    self.choices: dict[str, str | None] = {}
+    for k, v in choices.items():
+      self.add_choice(k, v)
+    self.aliases = aliases or {}
+    if default is None:
+      self.default = None
+    elif isinstance(default, str):
+      self.default = set([default])
+    elif isinstance(default, (list, set, tuple)):
+      self.default = set(default)
+    else:
+      raise TypeError("Default choice must be str, set[str] or None")
+    self.multiple = bool(multiple)
+    self.values_in_prompt = bool(values_in_prompt)
+
+  def add_choice(self, value: str, desc: str | None, override=False):
+    """Добавить пункт для выбора. Описание может быть пустым"""
+    if not isinstance(value, str):
+      raise TypeError("Value must be str")
+    if (desc is not None) and (not isinstance(desc, str)):
+      raise TypeError("The description must be None or str")
+    if (not override) and (value in self.choices):
+      raise ValueError(f"Choice already exists: {value}")
+    self.choices[value] = desc or None
+
+  def _print_choices(self):
+    if not any(self.choices.values()):
+      return
+    for value, desc in self.choices.items():
+      if not desc:
+        desc = "{no description}"
+      print(f"{value}: {desc}")
+
+  def _make_prompt(self):
+    parts = ["Enter choice"]
+    if self.multiple:
+      parts.append("s")
+    if self.values_in_prompt:
+      parts.append(" (")
+      parts.append("/".join(self.choices))
+      parts.append(")")
+    parts.append(": ")
+    return "".join(parts)
+
+  def _prompt(self):
+    result: set[str] = set()
+    split = [i.strip() for i in input(self._make_prompt()).split(",")]
+    for i in split:
+      if i:
+        result.add(i)
+    return result
+
+  def run(self):
+    self._print_choices()
+    while True:
+      print()
+      results = self._prompt()
+      if len(results) == 0:
+        if self.default is None:
+          print("Error: enter the value")
+          continue
+        results = self.default
+      elif (not self.multiple) and len(results) > 1:
+        print("Error: only one choice is allowed")
+        continue
+      completed_results: set[str] = set()
+      not_exist: set[str] = set()
+      for i in results:
+        while i in self.aliases:
+          i = self.aliases[i]
+        if i not in self.choices:
+          not_exist.add(i)
+        completed_results.add(i)
+      if len(not_exist) == 1:
+        print("Error: value %s do not exist" % not_exist.pop())
+        continue
+      elif len(not_exist) > 1:
+        print("Error: values %s do not exist" % ", ".join(not_exist))
+        continue
+      return completed_results
+
+  @classmethod
+  def simple_yes_no(cls, **kw):
+    """Спросить `y` или `n`"""
+    self = cls({"n": None, "y": None}, multiple=False, **kw)
+    for func in (str, str.lower, str.upper):
+      self.aliases[func("Д")] = "y"
+      self.aliases[func("Да")] = "y"
+      self.aliases[func("Н")] = "n"
+      self.aliases[func("Нет")] = "n"
+      self.aliases[func("No")] = "n"
+      self.aliases[func("Yes")] = "y"
+    return self.run().pop() == "y"
+
+  @classmethod
+  def simple_list(cls, choices: set[str], **kw):
+    """Спросить номер пункта"""
+    c = {}
+    for n, i in enumerate(choices):
+      c[str(n + 1)] = i
+    self = cls(c, **kw)
+    return {int(i) for i in self.run()}
+
+  @classmethod
+  def simple_ynAN(cls, **kw):
+    """`yes`/`no`/`All`/`Never`"""
+    self = cls({}, multiple=False, **kw)
+    self.add_choice("y", "Yes")
+    self.add_choice("n", "No")
+    self.add_choice("A", "All")
+    self.add_choice("N", "Never")
+    for func in (str, str.lower, str.upper):
+      self.aliases[func("All")] = "A"
+      self.aliases[func("Never")] = "N"
+      self.aliases[func("No")] = "n"
+      self.aliases[func("Yes")] = "y"
+    return self.run().pop()

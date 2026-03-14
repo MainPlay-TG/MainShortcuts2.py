@@ -1,0 +1,14 @@
+{
+  "added": [
+    "Класс `.term.Choice`",
+    "Подмодуль `.api.github`"
+  ],
+  "changed": [
+    "Подмодуль `.ex.aiohttp_ex.web` можно запускать как HTTP сервер для отладки",
+    "Подмодуль `.ex.aiohttp_ex` переименован на `.ex.aiohttp_ex.web`"
+  ],
+  "fixed": [],
+  "removed": [],
+  "version": "2.7.2",
+  "version_id": 56
+}
