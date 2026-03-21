@@ -2,6 +2,7 @@ import os
 import requests
 from .base import BaseClient, ObjectBase
 from functools import cached_property
+from MainShortcuts2 import ms
 from pathlib import Path
 from typing import IO
 from urllib.parse import urlparse
@@ -12,6 +13,7 @@ __all__ = [
     "UrlInfo",
     "User",
 ]
+MAX_PER_PAGE = 100
 
 
 class _CatBase:
@@ -149,6 +151,15 @@ class Release(_HasUrl):
     self.upload_url: str = self["upload_url"]
     self.zipball_url: str | None = self["zipball_url"]
 
+  @property
+  def asset_names(self):
+    return {i.name for i in self.assets}
+
+  @property
+  def assets_by_name(self):
+    return {i.name: i for i in self.assets}
+
+  @property
   def delete(self):
     self.client.releases.delete(self.url_info.username, self.url_info.repo, self.id)
 
@@ -157,6 +168,9 @@ class Release(_HasUrl):
 
   def update(self, **data):
     return self.client.releases.update(self.url_info.username, self.url_info.repo, self.id, **data)
+
+  def iter_online_assets(self, count=MAX_PER_PAGE):
+    return self.client.release_assets.list_iter(self.url_info.username, self.url_info.repo, self.id, count)
 
 
 class ReleaseAsset(_HasUrl):
@@ -181,6 +195,22 @@ class ReleaseAsset(_HasUrl):
   def delete(self):
     self.client.release_assets.delete(self.url_info.username, self.url_info.repo, self.id)
 
+  def download(self, path, check=True, **kw):
+    kw.setdefault("session", self.client.http)
+    result = ms.utils.download_file(self.browser_download_url, path, **kw)
+    if check:
+      mpath = ms.path.Path(path)
+      if self.size != mpath.size:
+        mpath.delete()
+        raise RuntimeError("The file is corrupted (size difference)")
+      if self.digest:
+        alg, asset_hex = self.digest.split(":", 1)
+        local_hex = mpath.hash_hex(alg)
+        if asset_hex != local_hex:
+          mpath.delete()
+          raise RuntimeError("The file is corrupted (hash difference)")
+    return result
+
   def reload(self):
     return self.client.release_assets.get(self.url_info.username, self.url_info.repo, self.id)
 
@@ -201,10 +231,22 @@ class Client(BaseClient):
       """Get a release asset"""
       return ReleaseAsset(self._c, self._r("GET", owner, repo, asset_id))
 
-    def list(self, owner: str, repo: str, release_id: int, per_page=30, page=1):
+    def list(self, owner: str, repo: str, release_id: int, per_page=MAX_PER_PAGE, page=1):
       """List release assets"""
       resp: list = self._c.request("GET", f"repos/{owner}/{repo}/releases/{release_id}/assets", params={"per_page": per_page, "page": page})
       return [ReleaseAsset(self._c, i) for i in resp]
+
+    def list_iter(self, owner: str, repo: str, release_id: int, count=100):
+      page = 1
+      completed = 0
+      while completed < count:
+        per_page = min(count - completed, MAX_PER_PAGE)
+        releases = self.list(owner, repo, release_id, per_page, page)
+        if not releases:
+          break
+        yield from releases
+        completed += len(releases)
+        page += 1
 
     def update(self, owner: str, repo: str, asset_id: int, *,
                label: str = None,
@@ -297,9 +339,21 @@ class Client(BaseClient):
     def get_latest(self, owner: str, repo: str):
       return Release(self._c, self._r("GET", owner, repo, "latest"))
 
-    def list(self, owner: str, repo: str, per_page=30, page=1, **kw):
+    def list(self, owner: str, repo: str, per_page=MAX_PER_PAGE, page=1):
       resp: list = self._c.request("GET", f"repos/{owner}/{repo}/releases", params={"per_page": per_page, "page": page})
       return [Release(self._c, i) for i in resp]
+
+    def list_iter(self, owner: str, repo: str, count=100):
+      page = 1
+      completed = 0
+      while completed < count:
+        per_page = min(count - completed, MAX_PER_PAGE)
+        releases = self.list(owner, repo, per_page, page)
+        if not releases:
+          break
+        yield from releases
+        completed += len(releases)
+        page += 1
 
     def update(self, owner: str, repo: str, release_id: int,
                body: str = None,
@@ -373,8 +427,10 @@ class Client(BaseClient):
     if kw.get("token"):
       return cls(**kw)  # Токен указан в аргументах
     if allow_no_token:
-      return cls(os.environ.get("GITHUB_TOKEN"), **kw)  # Может быть без токена
-    return cls(os.environ["GITHUB_TOKEN"], **kw)  # Токен обязателен
+      kw["token"] = os.environ.get("GITHUB_TOKEN")
+    else:
+      kw["token"] = os.environ["GITHUB_TOKEN"]
+    return cls(**kw)
 
   def request(self, httpm, apim, raw=False, **kw) -> dict | list | requests.Response:
     if raw:

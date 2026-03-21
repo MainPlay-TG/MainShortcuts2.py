@@ -7,6 +7,7 @@ import os
 import sys
 import time
 from .core import ms
+from contextlib import ExitStack
 from functools import wraps
 from typing import *
 from warnings import warn
@@ -167,12 +168,12 @@ async def async_download_file(url: str, path: str, *, cb_end=return_None, cb_pro
   """Асинхронная функция для скачивания файла | `aiohttp`"""
   kw.setdefault("method", "GET")
   kw["url"] = url
-  async with async_request(**kw) as resp:  # type: ignore
-    if callable(getattr(path, "write", None)):
-      f: IO[bytes] = path
-    else:
-      f = open(path, "wb")
-    with f:
+  with ExitStack() as stack:
+    async with async_request(**kw) as resp:  # type: ignore
+      if callable(getattr(path, "write", None)):
+        f: IO[bytes] = path
+      else:
+        f = stack.enter_context(open(path, "wb"))
       size = 0
       await cb_start(f, resp, size)
       try:
@@ -311,25 +312,25 @@ def sync_download_file(url: str, path: str, *, cb_end=return_None, cb_progress=r
   kw.setdefault("method", "GET")
   kw["stream"] = True
   kw["url"] = url
-  with sync_request(**kw) as resp:
+  with ExitStack() as stack:
+    resp = stack.enter_context(sync_request(**kw))
     if callable(getattr(path, "write", None)):
       f: IO[bytes] = path
     else:
-      f = open(path, "wb")
-    with f:
-      size = 0
-      cb_start(f, resp, size)
-      try:
-        for chunk in resp.iter_content(chunk_size):
-          size += f.write(chunk)
-          cb_progress(f, resp, size)
-      except:
-        f.close()
-        if delete_on_error:
-          if os.path.isfile(path):
-            os.remove(path)
-        raise
-      cb_end(f, resp, size)
+      f = stack.enter_context(open(path, "wb"))
+    size = 0
+    cb_start(f, resp, size)
+    try:
+      for chunk in resp.iter_content(chunk_size):
+        size += f.write(chunk)
+        cb_progress(f, resp, size)
+    except:
+      f.close()
+      if delete_on_error:
+        if os.path.isfile(path):
+          os.remove(path)
+      raise
+    cb_end(f, resp, size)
   return size
 
 

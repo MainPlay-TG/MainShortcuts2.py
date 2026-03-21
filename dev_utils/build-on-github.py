@@ -53,6 +53,9 @@ if log.isEnabledFor(logging.DEBUG):
 if not proj_version in chlogs:
   log.fatal("Changelog %s not found", proj_version)
   exit(1)
+# Информация о версии внутри библиотеки
+module_info_path = Path(PROJ_DIR) / "src/MainShortcuts2/_module_info.py"
+module_info_path.write_text("name=%r\nversion=%r\n" % (proj_name, proj_version))
 # PEP 8
 log.info("Formatting code...")
 format_code(PROJ_DIR)

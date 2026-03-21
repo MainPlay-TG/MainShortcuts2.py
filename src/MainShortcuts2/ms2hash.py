@@ -86,7 +86,8 @@ class Format1:
 
 def hash_gen(args: argparse.Namespace = None):
   if args is None:
-    argp = argparse.ArgumentParser("ms2-hash_gen", description="создание контрольной суммы для файла")
+    argp = argparse.ArgumentParser("ms2-hash_gen", description="Создание контрольной суммы для файла")
+    argp.epilog = "Написано на Python"
     argp.add_argument("files", nargs="+", help="пути к файлам")
     argp.add_argument("-b", "--bar", action="store_true", help="показывать прогрессбар (нужен модуль progressbar2)")
     argp.add_argument("-f", "--force", action="store_true", help="перезаписывать существующие хеши")
@@ -113,7 +114,8 @@ def hash_gen(args: argparse.Namespace = None):
 
 def hash_check(args: argparse.Namespace = None):
   if args is None:
-    argp = argparse.ArgumentParser("ms2-hash_check", description="проверка размера и контрольной суммы файла")
+    argp = argparse.ArgumentParser("ms2-hash_check", description="Проверка размера и контрольной суммы файла")
+    argp.epilog = "Написано на Python"
     argp.add_argument("files", nargs="+", help="пути к файлам")
     argp.add_argument("-b", "--bar", action="store_true", help="показывать прогрессбар (нужен модуль progressbar2)")
     args = argp.parse_args()
