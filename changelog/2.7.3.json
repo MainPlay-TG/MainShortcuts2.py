@@ -1,17 +1,1 @@
-{
-  "added": [
-    "Метод `.api.github.Client.release_assets.list_iter`",
-    "Метод `.api.github.Client.releases.list_iter`",
-    "Метод `.api.github.Release.iter_online_assets`",
-    "Метод `.api.github.ReleaseAsset.download`",
-    "Подмодуль `.ex.urlparse_ex`",
-    "Подмодуль `.java_ext`",
-    "Свойство `.api.github.Release.asset_names`",
-    "Свойство `.api.github.Release.assets_by_name`"
-  ],
-  "changed": [],
-  "fixed": [],
-  "removed": [],
-  "version_id": 57,
-  "version": "2.7.3"
-}
+{"added":["\u041c\u0435\u0442\u043e\u0434 `.api.github.Client.release_assets.list_iter`","\u041c\u0435\u0442\u043e\u0434 `.api.github.Client.releases.list_iter`","\u041c\u0435\u0442\u043e\u0434 `.api.github.Release.iter_online_assets`","\u041c\u0435\u0442\u043e\u0434 `.api.github.ReleaseAsset.download`","\u041f\u043e\u0434\u043c\u043e\u0434\u0443\u043b\u044c `.ex.urlparse_ex`","\u041f\u043e\u0434\u043c\u043e\u0434\u0443\u043b\u044c `.java_ext`","\u0421\u0432\u043e\u0439\u0441\u0442\u0432\u043e `.api.github.Release.asset_names`","\u0421\u0432\u043e\u0439\u0441\u0442\u0432\u043e `.api.github.Release.assets_by_name`"],"changed":[],"fixed":[],"removed":[],"version_id":57,"version":"2.7.3"}

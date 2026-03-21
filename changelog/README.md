@@ -1,4 +1,14 @@
 # mainshortcuts2
+## 2.7.3 (57)
+### Добавлено:
+- Метод `.api.github.Client.release_assets.list_iter`
+- Метод `.api.github.Client.releases.list_iter`
+- Метод `.api.github.Release.iter_online_assets`
+- Метод `.api.github.ReleaseAsset.download`
+- Подмодуль `.ex.urlparse_ex`
+- Подмодуль `.java_ext`
+- Свойство `.api.github.Release.asset_names`
+- Свойство `.api.github.Release.assets_by_name`
 ## 2.7.2 (56)
 ### Добавлено:
 - Класс `.term.Choice`
