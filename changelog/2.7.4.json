@@ -1,14 +1,1 @@
-{
-  "added": [
-    "Класс `.types.BitsTuple`",
-    "Скрипт `ms2-hash_java`",
-    "Функция `.utils.int_size_signed`",
-    "Функция `.utils.int_size_unsigned`",
-    "Функция `.utils.int2bytes`"
-  ],
-  "changed": [],
-  "fixed": [],
-  "removed": [],
-  "version_id": 58,
-  "version": "2.7.4"
-}
+{"added":["\u041a\u043b\u0430\u0441\u0441 `.types.BitsTuple`","\u0421\u043a\u0440\u0438\u043f\u0442 `ms2-hash_java`","\u0424\u0443\u043d\u043a\u0446\u0438\u044f `.utils.int2bytes`","\u0424\u0443\u043d\u043a\u0446\u0438\u044f `.utils.int_size_signed`","\u0424\u0443\u043d\u043a\u0446\u0438\u044f `.utils.int_size_unsigned`"],"changed":[],"fixed":[],"removed":[],"version_id":58,"version":"2.7.4"}

@@ -1,4 +1,11 @@
 # mainshortcuts2
+## 2.7.4 (58)
+### Добавлено:
+- Класс `.types.BitsTuple`
+- Скрипт `ms2-hash_java`
+- Функция `.utils.int2bytes`
+- Функция `.utils.int_size_signed`
+- Функция `.utils.int_size_unsigned`
 ## 2.7.3 (57)
 ### Добавлено:
 - Метод `.api.github.Client.release_assets.list_iter`
