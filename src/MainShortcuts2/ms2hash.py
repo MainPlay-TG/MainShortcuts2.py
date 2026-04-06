@@ -142,3 +142,19 @@ def hash_check(args: argparse.Namespace = None):
     else:
       print("Ошибка: файл " + shlex.quote(file) + " изменён")
     completed.append(file)
+
+
+def run_java_ext(argv: list[str] = None):
+  if argv is None:
+    argv = sys.argv[1:]
+  from MainShortcuts2 import java_ext
+  mgr = java_ext.JavaExtManager("MainPlay-TG", "MS2Hash.java")
+  ver = None
+  for i in mgr.iter_all_versions(1):
+    ver = i
+    break
+  if ver is None:
+    ms.utils.mini_log("Ошибка: не удалось найти версию MS2Hash. Проверьте соединение с GitHub")
+    sys.exit(1)
+  p = ver.run(argv, check=False)
+  sys.exit(p.returncode)

@@ -1,4 +1,5 @@
 """Различные объекты и исключения"""
+from typing import NamedTuple
 
 
 class Base:
@@ -466,6 +467,97 @@ class ThreadsFlag(BoolFlag):
     t = current_thread()
     if t in self.value:
       self.value.remove(t)
+
+
+class BitsTuple(NamedTuple):
+  b0: int
+  b1: int
+  b2: int
+  b3: int
+  b4: int
+  b5: int
+  b6: int
+  b7: int
+
+  def __int__(self):
+    return self.to_byte()
+
+  def __index__(self):
+    return self.to_byte()
+  # Возможны баги
+
+  def __and__(self, other):
+    return int(self) & other
+
+  def __or__(self, other):
+    return int(self) | other
+
+  def __xor__(self, other):
+    return int(self) ^ other
+
+  def __lshift__(self, other):
+    return int(self) << other
+
+  def __rshift__(self, other):
+    return int(self) >> other
+
+  def __invert__(self):
+    return (~int(self)) & 0xFF
+
+  def __rand__(self, other):
+    return other & int(self)
+
+  def __ror__(self, other):
+    return other | int(self)
+
+  def __rxor__(self, other):
+    return other ^ int(self)
+
+  def __rlshift__(self, other):
+    return other << int(self)
+
+  def __rrshift__(self, other):
+    return other >> int(self)
+  # ---
+
+  @classmethod
+  def from_byte(cls, b: int):
+    """Разбить **один** байт на биты"""
+    return cls(*[(b >> i) & 1 for i in range(7, -1, -1)])
+
+  @classmethod
+  def from_bytes_iter(cls, b: bytes):
+    """Разбить **несколько** байт на группы битов (итерация)"""
+    return map(cls.from_byte, b)
+
+  @classmethod
+  def from_bytes(cls, b: bytes):
+    """Разбить **несколько** байт на группы битов"""
+    return list(cls.from_bytes_iter(b))
+
+  def to_byte(self):
+    """Соединить биты в байт"""
+    b = 0
+    for i in self:
+      b = (b << 1) | i
+    return b
+
+  def replace(self, *args: bool | int, **kw: bool | int):
+    for n, bit in enumerate(args):
+      kw[f"b{n}"] = bit
+    fields = set(self._fields)
+    for k in list(kw):
+      if k not in fields:
+        raise ValueError(f"Invalid field: {k}, must be one of {sorted(fields)}")
+      kw[k] = 1 if kw[k] else 0
+    return self._replace(**kw)
+
+  def to_bool_list(self):
+    return list(map(bool, self))
+
+  @classmethod
+  def from_bool_list(cls, l):
+    return cls(*l)
 
 
 COLORS = _COLORS()

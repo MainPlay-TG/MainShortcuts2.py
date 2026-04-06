@@ -1,0 +1,14 @@
+{
+  "added": [
+    "Класс `.types.BitsTuple`",
+    "Скрипт `ms2-hash_java`",
+    "Функция `.utils.int_size_signed`",
+    "Функция `.utils.int_size_unsigned`",
+    "Функция `.utils.int2bytes`"
+  ],
+  "changed": [],
+  "fixed": [],
+  "removed": [],
+  "version_id": 58,
+  "version": "2.7.4"
+}

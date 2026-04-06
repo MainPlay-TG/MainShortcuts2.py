@@ -43,11 +43,7 @@ class CoreConfig(cfg):
 
   def _cu_thread(self):
     try:
-      import requests
-      url = "https://github.com/MainPlay-TG/MainShortcuts2.py/raw/refs/heads/master/src/MainShortcuts2/_module_info.py"
-      with requests.get(url) as resp:
-        resp.raise_for_status()
-        version = self._parse_version(resp.text)
+      version = self._get_github_version()
       if version != _module_info.version:
         mini_log("New MainShortcuts2 version available: %s", version)
         mini_log("Please update by running:")
@@ -57,13 +53,12 @@ class CoreConfig(cfg):
     except:
       return
 
-  def _parse_version(self, code) -> str:
-    import ast
-    tree = ast.parse(code)
-    for node in ast.walk(tree):
-      if isinstance(node, ast.Assign):
-        for target in node.targets:
-          if isinstance(target, ast.Name):
-            if target.id == "version":
-              return ast.literal_eval(node.value)
+  def _get_github_version(self) -> str:
+    from MainShortcuts2.api.github import Client
+    gh = Client.from_env(True)
+    rel = gh.releases.get_latest("MainPlay-TG", "MainShortcuts2.py")
+    for asset in rel.assets:
+      if asset.name == "changelog.json":
+        with gh.http.get(asset.browser_download_url) as resp:
+          return resp.json()["version"]
     return _module_info.version

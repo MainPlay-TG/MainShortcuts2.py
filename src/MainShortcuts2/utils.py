@@ -1102,3 +1102,17 @@ def guess_checksum_alg(digest_len: int):
     if digest_len == v:
       result.add(k)
   return result
+def int_size_unsigned(n: int) :
+  """Минимальное количество байт для неотрицательного `int`"""
+  if n == 0:
+    return 1
+  return (n.bit_length()+7)//8
+def int_size_signed(n: int) -> int:
+  """Минимальное количество байт для `int` с поддержкой отрицательных"""
+  if n == 0:
+    return 1
+  return (n.bit_length() + 8) // 8
+def int2bytes(n: int, byteorder='big',signed=False) -> bytes:
+  """Конвертировать `int` в `bytes` минимального размера"""
+  f=int_size_signed if signed else int_size_unsigned
+  return n.to_bytes(f(n), byteorder=byteorder, signed=signed)

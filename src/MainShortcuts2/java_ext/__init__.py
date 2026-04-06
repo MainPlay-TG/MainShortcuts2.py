@@ -169,12 +169,15 @@ class JavaExtManager(ms.ObjectBase):
 
   def iter_offline_versions(self):
     """Итерация версий из кэша"""
+    info_list: list[InfoDict] = []
     for file in self.dir.iterdir():
       if file.suffix == ".json" and file.is_file():
-        info = InfoDict(file.read_json())
-        ver = self.get_version(info.version)
-        ver.__dict__["info"] = info  # cached_property
-        yield ver
+        info_list.append(InfoDict(file.read_json()))
+    info_list.sort(key=lambda i: i.version_id)
+    for info in info_list[::-1]:
+      ver = self.get_version(info.version)
+      ver.__dict__["info"] = info  # cached_property
+      yield ver
 
   def iter_all_versions(self, online_count=github.MAX_PER_PAGE):
     """Итерация версий из кэша и с GitHub"""
@@ -212,10 +215,13 @@ class JavaExtManager(ms.ObjectBase):
 
   def download_latest(self, count=1, download_jar=True):
     """Скачать последнюю версию (если не скачана)"""
+    results: list[JavaExtVersion] = []
     for ver in self.iter_online_versions(count):
       ver.info  # Скачать файл JSON
       if download_jar:
         ver.jar_path  # Скачать файл JAR
+      results.append(ver)
+    return results
 
 
 class JavaExtVersion(ms.ObjectBase):
