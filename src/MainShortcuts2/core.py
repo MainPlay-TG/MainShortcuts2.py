@@ -192,29 +192,40 @@ class MS2:
       return cls(**kw)
 
   @property
-  def now(self) -> float:
+  def now(self):
     """Текущее локальное время (`timestamp`)"""
     return time()
 
   @property
-  def now_dt(self) -> datetime:
+  def now_dt(self):
     """Текущее локальное время (`datetime`)"""
     return datetime.fromtimestamp(time())
 
   @property
-  def utcnow(self) -> float:
+  def utcnow(self):
     """Текущее время по UTC (`timestamp`)"""
     return self.utcnow_dt.timestamp()
   if timezone is None:
     @property
-    def utcnow_dt(self) -> datetime:
+    def utcnow_dt(self):
       """Текущее время по UTC (`datetime`)"""
       return datetime.utcfromtimestamp(time())
   else:
     @property
-    def utcnow_dt(self) -> datetime:
+    def utcnow_dt(self):
       """Текущее время по UTC (`datetime`)"""
       return datetime.fromtimestamp(time(), timezone.utc)
+
+  @cached_property
+  def ms2dat_v1(self):
+    from . import ms2dat1
+    return ms2dat1
+
+  @cached_property
+  def ms2dat(self):
+    """Авто выбор при загрузке, последняя версия при сохранении"""
+    from . import _ms2dat_auto
+    return _ms2dat_auto
 
 
 ms = MS2()

@@ -1,0 +1,16 @@
+{
+  "added": [
+    "Класс `.ex.aiohttp_ex.web.ApiError`",
+    "Класс `.ex.aiohttp_ex.web.ApiResult`",
+    "Класс `.utils.AsyncSignal`",
+    "Класс `.utils.Filter`",
+    "Класс `.utils.SyncSignal`",
+    "Подмодуль `.ms2dat1`",
+    "Функция `.utils.create_filter`"
+  ],
+  "changed": [],
+  "fixed": [],
+  "removed": [],
+  "version_id": 59,
+  "version": "2.8.0"
+}

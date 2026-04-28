@@ -1122,3 +1122,89 @@ def int2bytes(n: int, byteorder='big', signed=False) -> bytes:
   """Конвертировать `int` в `bytes` минимального размера"""
   f = int_size_signed if signed else int_size_unsigned
   return n.to_bytes(f(n), byteorder=byteorder, signed=signed)
+
+
+class SyncSignal(list):
+  def __init__(self, ignore_errors=False):
+    super().__init__()
+    self.ignore_errors = bool(ignore_errors)
+
+  def send(self, *args, **kw):
+    """Отправить сигнал всем подписчикам"""
+    e = not self.ignore_errors
+    for func in list(self):
+      try:
+        func(*args, **kw)
+      except Exception:
+        if e:
+          raise
+
+
+class AsyncSignal(SyncSignal):
+  async def send(self, *args, **kw):
+    e = not self.ignore_errors
+    for func in list(self):
+      try:
+        await func(*args, **kw)
+      except Exception:
+        if e:
+          raise
+
+
+class Filter:
+  # Спасибо Pyrogram за идею
+  def __call__(self, *a, **b):
+    raise NotImplementedError
+
+  def __invert__(self):
+    return _InvertedFilter(self)
+
+  def __and__(self, other):
+    return _AndFilter(self, other)
+
+  def __or__(self, other):
+    return _OrFilter(self, other)
+
+
+class _InvertedFilter(Filter):
+  def __init__(self, f1: Filter):
+    self.f1 = f1
+
+  def __call__(self, *a, **b):
+    return not self.f1(*a, **b)
+
+
+class _AndFilter(Filter):
+  def __init__(self, f1: Filter, f2: Filter):
+    self.f1 = f1
+    self.f2 = f2
+
+  def __call__(self, *a, **b):
+    return self.f1(*a, **b) and self.f2(*a, **b)
+
+
+class _OrFilter(_AndFilter):
+  def __call__(self, *a, **b):
+    return self.f1(*a, **b) or self.f2(*a, **b)
+
+
+def create_filter(func: Callable, name: str = None, **d) -> Filter:
+  d["__call__"] = func
+  return type(name or func.__name__ or "CustomFilter", (Filter,), d)()
+
+
+filter_all = create_filter(return_True)
+filter_none = create_filter(return_False)
+
+
+class FilterGetAttr(Filter):
+  def __init__(self, name: str):
+    self.name = name
+
+  def __call__(self, obj):
+    return getattr(obj, self.name, False)
+
+
+class FilterGetItem(FilterGetAttr):
+  def __call__(self, obj):
+    return obj[self.name]
