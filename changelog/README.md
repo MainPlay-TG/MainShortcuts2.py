@@ -1,4 +1,13 @@
 # mainshortcuts2
+## 2.8.0 (59)
+### Добавлено:
+- Класс `.ex.aiohttp_ex.web.ApiError`
+- Класс `.ex.aiohttp_ex.web.ApiResult`
+- Класс `.utils.AsyncSignal`
+- Класс `.utils.Filter`
+- Класс `.utils.SyncSignal`
+- Подмодуль `.ms2dat1`
+- Функция `.utils.create_filter`
 ## 2.7.4 (58)
 ### Добавлено:
 - Класс `.types.BitsTuple`
