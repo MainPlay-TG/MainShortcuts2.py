@@ -1,0 +1,15 @@
+{
+  "added": [
+    "Метод `.ex.pathlib_ex.Path.list_relative`",
+    "Метод `.ex.pathlib_ex.Path.walk_relative`",
+    "Подмодуль `.sql.mysql`"
+  ],
+  "changed": [
+    "Обновления и оптимизации подмодуля `.sql.postgresql`",
+    "Обновления и оптимизации подмодуля `.sql.sqlite`"
+  ],
+  "fixed": [],
+  "removed": [],
+  "version_id": 60,
+  "version": "2.8.1"
+}

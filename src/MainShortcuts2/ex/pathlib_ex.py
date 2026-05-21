@@ -1,3 +1,4 @@
+import os
 import pathlib
 import shutil
 from MainShortcuts2 import ms
@@ -11,7 +12,7 @@ class Path(pathlib.Path):
     """Объект `ms.path.Path`"""
     return ms.path.Path(self)
 
-  def size(self, recursive=False, **walk_kw) -> int:
+  def size(self, recursive=False, **walk_kw):
     """Вычислить размер файла/папки"""
     st = self.stat()
     if S_ISREG(st.st_mode):
@@ -19,9 +20,8 @@ class Path(pathlib.Path):
     if recursive:
       if S_ISDIR(st.st_mode):
         result = 0
-        for root, _, filenames in self.walk(**walk_kw):
-          for filename in filenames:
-            result += (root / filename).size()
+        for _, _, files in self.walk2(**walk_kw):
+          result += sum(i.size() for i in files)
         return result
     raise IsADirectoryError(self)
 
@@ -49,9 +49,8 @@ class Path(pathlib.Path):
   def remove(self, missing_ok=True, recursive=False, **rmtree_kw):
     """Удалить файл/папку"""
     if recursive:
-      if self.is_dir():
-        if not self.is_symlink():
-          return shutil.rmtree(fspath(self), **rmtree_kw)
+      if self.is_dir() and not self.is_symlink():
+        return shutil.rmtree(fspath(self), **rmtree_kw)
     self.unlink(missing_ok=missing_ok)
 
   def _get_write_path(self):
@@ -62,7 +61,7 @@ class Path(pathlib.Path):
       tmp = real.with_name(self.name + ".tmp" + ms.utils.randstr(4))
     return tmp, real
 
-  def read_text(self, **kw) -> str:
+  def read_text(self, **kw):
     """Прочитать весь текст из файла"""
     kw.setdefault("encoding", "utf-8")
     with self.open("r", **kw) as f:
@@ -120,6 +119,24 @@ class Path(pathlib.Path):
         else:
           break
 
-  def read_lines(self, remove_ends=False, **kw) -> list[str]:
+  def read_lines(self, remove_ends=False, **kw):
     """Прочитать строки из файла"""
     return list(self.read_lines_iter(remove_ends, **kw))
+
+  def walk_relative(self, **kw):
+    """Рекурсивный обход папок с относительными путями"""
+    self = self.resolve()
+    for root, dirnames, filenames in os.walk(fspath(self), **kw):
+      rel_root = str(Path(root).relative_to(self))
+      if rel_root == ".":
+        rel_root = ""
+      yield rel_root, dirnames, filenames
+
+  def list_relative(self, recursive=False, **kw):
+    """Сканирование папки с относительными путями"""
+    if recursive:
+      for root, dirnames, filenames in self.walk_relative(**kw):
+        yield from [os.path.join(root, i) for i in dirnames]
+        yield from [os.path.join(root, i) for i in filenames]
+    else:
+      yield from os.listdir(self)
