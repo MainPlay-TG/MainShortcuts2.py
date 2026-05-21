@@ -1,4 +1,12 @@
 # mainshortcuts2
+## 2.8.1 (60)
+### Добавлено:
+- Метод `.ex.pathlib_ex.Path.list_relative`
+- Метод `.ex.pathlib_ex.Path.walk_relative`
+- Подмодуль `.sql.mysql`
+### Изменено:
+- Обновления и оптимизации подмодуля `.sql.postgresql`
+- Обновления и оптимизации подмодуля `.sql.sqlite`
 ## 2.8.0 (59)
 ### Добавлено:
 - Класс `.ex.aiohttp_ex.web.ApiError`
