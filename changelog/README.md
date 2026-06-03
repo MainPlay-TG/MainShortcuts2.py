@@ -1,4 +1,7 @@
 # mainshortcuts2
+## 2.8.2 (61)
+### Исправлено:
+- Исправление бага в `.sql.sqlite`
 ## 2.8.1 (60)
 ### Добавлено:
 - Метод `.ex.pathlib_ex.Path.list_relative`
