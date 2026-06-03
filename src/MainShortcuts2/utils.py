@@ -6,10 +6,10 @@ import logging
 import os
 import sys
 import time
+import typing
 from .core import ms
 from contextlib import ExitStack
 from functools import wraps
-from typing import *
 from warnings import warn
 cache = {}
 
@@ -42,7 +42,7 @@ class MiddlewareBase:
     self._result = None
     self._time = None
     self._traceback = None
-    self.completed_with_exc: Union[None, bool] = None
+    self.completed_with_exc: bool | None = None
     self.completed: bool = False
     self.func = func
     self.launched: bool = False
@@ -94,33 +94,33 @@ class MiddlewareBase:
     return self._args
 
   @args.setter
-  def args(self, value: Iterable):
+  def args(self, value):
     if value is None:
       value = []
     self._args = tuple(value)
 
   @property
-  def exception(self) -> None | Exception:
+  def exception(self):
     """Исключение, возникшее в процессе работы функции"""
     self._check_completed()
     return self._exception
 
   @property
-  def kwargs(self) -> dict[str, Any]:
+  def kwargs(self) -> dict[str, typing.Any]:
     """Именованные аргументы, переданные функции"""
     self._check_launched()
     return self._kwargs
 
   @kwargs.setter
-  def kwargs(self, value: dict[str, Any]):
+  def kwargs(self, value):
     if value is None:
       value = {}
-    for k in value.keys():
-      assert type(k) == str
+    for k in value:
+      assert isinstance(k, str)
     self._kwargs = value
 
   @property
-  def result(self) -> Any:
+  def result(self):
     """Результат работы функции"""
     self._check_completed()
     if self.completed_with_exc:
@@ -134,7 +134,7 @@ class MiddlewareBase:
     return self._time
 
   @property
-  def traceback(self) -> None | str:
+  def traceback(self):
     self._check_completed()
     return self._traceback
 
@@ -147,7 +147,7 @@ class MiddlewareBase:
     pass
 
 
-def args2kwargs(func: Callable, args: Iterable = (), kwargs: dict[str, Any] = {}) -> tuple[tuple, dict[str, Any]]:
+def args2kwargs(func: typing.Callable, args=(), kwargs: dict[str, typing.Any] = {}):
   """Преобразовать `args` в `kwargs` | `inspect`"""
   import inspect
   kw = kwargs.copy()
@@ -164,14 +164,14 @@ def args2kwargs(func: Callable, args: Iterable = (), kwargs: dict[str, Any] = {}
   return tuple(args), kw
 
 
-async def async_download_file(url: str, path: str, *, cb_end=return_None, cb_progress=return_None, cb_start=return_None, chunk_size: int = 1024, delete_on_error: bool = True, **kw) -> int:
+async def async_download_file(url: str, path: str, *, cb_end=return_None, cb_progress=return_None, cb_start=return_None, chunk_size: int = 1024, delete_on_error: bool = True, **kw):
   """Асинхронная функция для скачивания файла | `aiohttp`"""
   kw.setdefault("method", "GET")
   kw["url"] = url
   with ExitStack() as stack:
     async with async_request(**kw) as resp:  # type: ignore
       if callable(getattr(path, "write", None)):
-        f: IO[bytes] = path
+        f: typing.IO[bytes] = path
       else:
         f = stack.enter_context(open(path, "wb"))
       size = 0
@@ -212,7 +212,7 @@ async def async_request(method: str, url: str, *, ignore_status: bool = False, s
   return resp
 
 
-def async2sync(func: Callable) -> Callable:
+def async2sync(func: typing.Callable) -> typing.Callable:
   """Превратить асинхронную функцию в синхронную | `asyncio`, `concurrent`"""
   import asyncio
   import concurrent.futures
@@ -230,13 +230,13 @@ def get_my_ip() -> str:
   return ip
 
 
-def is_async(func: Callable) -> bool:
+def is_async(func: typing.Callable) -> bool:
   """Является ли функция асинхронной | `inspect`"""
   import inspect
   return inspect.iscoroutinefunction(func)
 
 
-def is_sync(func: Callable) -> bool:
+def is_sync(func: typing.Callable) -> bool:
   """Является ли функция синхронной | `inspect`"""
   return not is_async(func)
 
@@ -315,7 +315,7 @@ def sync_download_file(url: str, path: str, *, cb_end=return_None, cb_progress=r
   with ExitStack() as stack:
     resp = stack.enter_context(sync_request(**kw))
     if callable(getattr(path, "write", None)):
-      f: IO[bytes] = path
+      f: typing.IO[bytes] = path
     else:
       f = stack.enter_context(open(path, "wb"))
     size = 0
@@ -367,7 +367,7 @@ def sync_request(method: str, url: str, *, ignore_status: bool = False, session=
 request = sync_request
 
 
-def sync2async(func: Callable) -> Callable:
+def sync2async(func: typing.Callable) -> typing.Callable:
   """Превратить синхронную функцию в асинхронную"""
   async def wrapper(*args, **kwargs):
     return func(*args, **kwargs)
@@ -384,7 +384,7 @@ def uuid(format=None, *args, **kwargs) -> str:
   return str(cls(*args, **kwargs))
 
 
-def timedelta(time: Union[int, float, dict]):
+def timedelta(time: int | float | dict):
   """Превратить число/словарь в `timedelta` | `datetime`"""
   import datetime
   if isinstance(time, datetime.timedelta):
@@ -394,7 +394,7 @@ def timedelta(time: Union[int, float, dict]):
   return datetime.timedelta(seconds=time)
 
 
-def shebang_code(code: str, *, exe_name: Union[None, str] = None, exe_path: Union[None, str] = None, none_if_no_changes: bool = False, use_env: bool = True) -> Union[None, str]:
+def shebang_code(code: str, *, exe_name: str | None = None, exe_path: str | None = None, none_if_no_changes: bool = False, use_env: bool = True) -> str | None:
   """Вставить/заменить шебанг в коде. Если указать имя интерпретатора, путь будет найден с помощью `shutil.which`"""
   if (exe_name is None) and (exe_path is None):
     raise TypeError("Specify exe_name or exe_path")
@@ -418,7 +418,7 @@ def shebang_code(code: str, *, exe_name: Union[None, str] = None, exe_path: Unio
   return "#!" + exe_path + "\n" + "\n".join(lines)
 
 
-def shebang_file(path: str, **kw) -> int:
+def shebang_file(path: str, **kw):
   """Вставить/заменить шебанг в файле кода"""
   kw["code"] = ms.file.read(path)
   kw["none_if_no_changes"] = True
@@ -524,21 +524,21 @@ class OnlyOneInstance:
     pass
 
 
-def multi_and(*values: bool) -> bool:
+def multi_and(*values: bool):
   for i in values:
     if not i:
       return False
   return True
 
 
-def multi_or(*values: bool) -> bool:
+def multi_or(*values: bool):
   for i in values:
     if i:
       return True
   return False
 
 
-def is_int(value: float) -> bool:
+def is_int(value: float):
   return value == int(value)
 
 
@@ -546,7 +546,7 @@ def get_self_module(__name__: str):
   return sys.modules[__name__]
 
 
-def check_programs(*progs: str, raise_error: bool = True) -> list[str]:
+def check_programs(*progs: str, raise_error=True) -> list[str]:
   """Проверить наличие программ в `$PATH` | `shutil`"""
   from shutil import which
   failed = []
@@ -584,12 +584,12 @@ def disable_warnings():
   warnings.warn = return_None
 
 
-def is_instance_of_one(obj, *classes: type) -> bool:
+def is_instance_of_one(obj, *classes: type):
   """Это экземпляр одного из классов?"""
   return isinstance(obj, classes)
 
 
-def is_instance_of_all(obj, *classes: type) -> bool:
+def is_instance_of_all(obj, *classes: type):
   """Это экземпляр всех классов?"""
   for i in classes:
     if not isinstance(obj, i):
@@ -725,7 +725,7 @@ def run_pip(*args: str, internal: bool = False, **kw):
       raise PipError()
 
 
-def check_modules(*modules: str, _c: list[str] = None, _m: list[str] = None) -> list[str]:
+def check_modules(*modules: str, _c: list[str] = None, _m: list[str] = None):
   """Проверить наличие модулей. Не проверяет возможность импорта. Возвращает список отсутствующих модулей"""
   import pkg_resources
   checked = [] if _c is None else _c
@@ -761,7 +761,7 @@ def auto_install_modules(*modules, print: bool | str = False, **pip_kw):
     run_pip(*args, **pip_kw)
 
 
-def http_check_range_support(url: str, **kw) -> bool:
+def http_check_range_support(url: str, **kw):
   """Проверить возможность скачать файл по частям"""
   kw.setdefault("headers", {})
   kw["headers"]["Range"] = "bytes=0-1"
@@ -773,7 +773,7 @@ def http_check_range_support(url: str, **kw) -> bool:
       return True
     if "bytes" in resp.headers.get("Accept-Ranges", "").lower():
       return True
-    return False
+  return False
 
 
 class MultiContext:
@@ -1042,7 +1042,7 @@ def sleep(seconds: float):
     time.sleep(seconds)
 
 
-def which_real(cmd: str, **kw) -> str | None:
+def which_real(cmd: str, **kw):
   """Получить реальный путь к исполняемому файлу"""
   from shutil import which
   result = which(cmd, **kw)
@@ -1118,13 +1118,13 @@ def int_size_signed(n: int) -> int:
   return (n.bit_length() + 8) // 8
 
 
-def int2bytes(n: int, byteorder='big', signed=False) -> bytes:
+def int2bytes(n: int, byteorder='big', signed=False):
   """Конвертировать `int` в `bytes` минимального размера"""
   f = int_size_signed if signed else int_size_unsigned
   return n.to_bytes(f(n), byteorder=byteorder, signed=signed)
 
 
-class SyncSignal(list):
+class SyncSignal(typing.List[typing.Callable]):
   def __init__(self, ignore_errors=False):
     super().__init__()
     self.ignore_errors = bool(ignore_errors)
@@ -1188,7 +1188,7 @@ class _OrFilter(_AndFilter):
     return self.f1(*a, **b) or self.f2(*a, **b)
 
 
-def create_filter(func: Callable, name: str = None, **d) -> Filter:
+def create_filter(func: typing.Callable, name: str = None, **d) -> Filter:
   d["__call__"] = func
   return type(name or func.__name__ or "CustomFilter", (Filter,), d)()
 

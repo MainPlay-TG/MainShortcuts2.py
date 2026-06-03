@@ -34,7 +34,7 @@ def wrap_handler(app: "Application", handler: Handler):
       resp = Response(status=500, reason="Internal server error")
     if app.logger.isEnabledFor(DEBUG):
       remote = req.remote or "unknown"
-      if "X-Real-IP" in req.headers:
+      if req.headers.get("X-Real-IP"):
         remote += " (X-Real-IP: %s)" % req.headers["X-Real-IP"]
       status = resp.status if isinstance(resp, StreamResponse) else repr(resp)
       app.logger.debug("Request %s %s from %s, return %s", req.method, req.raw_path, remote, status)

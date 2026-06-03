@@ -9,6 +9,7 @@ STRICT_SUPPORT = sqlite_version_info >= (3, 37, 0)
 # float -> REAL (8 байт)
 # int -> INTEGER (±9.2e18)
 # str -> TEXT
+# Если strict_schema = False, типы всё равно рекомендуется правильно указывать
 
 
 def _gws(where: dict, sep: str = " AND "):
@@ -28,10 +29,10 @@ class Database(SyncDatabaseBase):
       kw["autosave"] = False
       self.db_path = None
     else:
-      self.db_path.parent.any_mkdir()
       self.db_path = Path(path)
-    DatabaseBase.__init__(self, **kw)
+      self.db_path.parent.any_mkdir()
     self.strict_schema = strict_schema
+    DatabaseBase.__init__(self, **kw)
   if TYPE_CHECKING:
     def cursor(self) -> Cursor:
       return super().cursor()
