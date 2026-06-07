@@ -87,6 +87,7 @@ def write_json(path: Path, data, **kw):
     temp_path.replace(path)
   except Exception:
     temp_path.unlink(missing_ok=True)
+    raise
 
 
 def read_changelog(path: Path):
@@ -115,8 +116,10 @@ def prepare_changelog(dir: Path, name: str):
   for file in scan_dirs(dir, json_dir):
     chlog = read_changelog(file)
     result[chlog.version] = chlog
-    write_changelog(json_dir / f"{chlog.version}.json", chlog)
-    file.unlink()
+    json_file = json_dir / f"{chlog.version}.json"
+    write_changelog(json_file, chlog)
+    if not file.samefile(json_file):
+      file.unlink()
     md_file = md_dir / f"{chlog.version}.md"
     if not md_file.exists():
       md_file.write_text(chlog.to_md(name), "utf-8", newline="\n")
