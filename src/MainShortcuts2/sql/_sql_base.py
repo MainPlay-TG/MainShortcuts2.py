@@ -101,11 +101,12 @@ class ObjectBase:
 
 TABLE_NAME = str | ObjectBase | type[ObjectBase]
 gen_uuid = uuid_module.uuid4
-if not typing.TYPE_CHECKING:  # Использовать последнюю версию uuid
-  for i in range(10, 4, -1):
-    j = f"uuid{i}"
-    if callable(getattr(uuid_module, j, None)):
-      gen_uuid = getattr(uuid_module, j)
+if not typing.TYPE_CHECKING:
+  for i in (8,7):
+    j=f"uuid{i}"
+    if hasattr(uuid_module,j):
+      gen_uuid=getattr(uuid_module,j)
+      break
 
 
 class UuidObjectBase(ObjectBase):

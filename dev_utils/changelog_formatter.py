@@ -99,16 +99,27 @@ def write_changelog(path: Path, chlog: Changelog, **kw):
   write_json(path, dict(chlog), **kw)
 
 
+def scan_dirs(*dirs: Path):
+  for i in dirs:
+    for file in i.iterdir():
+      if file.suffix.lower() == ".json" and file.is_file():
+        yield file
+
+
 def prepare_changelog(dir: Path, name: str):
+  json_dir = dir / "json"
+  md_dir = dir / "markdown"
   result: dict[str, Changelog] = {}
-  for file in dir.iterdir():
-    if (file.suffix.lower() == ".json") and file.is_file():
-      chlog = read_changelog(file)
-      result[chlog.version] = chlog
-      write_changelog(file, chlog)
-      md_file = file.with_suffix(".md")
-      if not md_file.exists():
-        md_file.write_text(chlog.to_md(name), "utf-8", newline="\n")
+  json_dir.mkdir(exist_ok=True)
+  md_dir.mkdir(exist_ok=True)
+  for file in scan_dirs(dir, json_dir):
+    chlog = read_changelog(file)
+    result[chlog.version] = chlog
+    write_changelog(json_dir / f"{chlog.version}.json", chlog)
+    file.unlink()
+    md_file = md_dir / f"{chlog.version}.md"
+    if not md_file.exists():
+      md_file.write_text(chlog.to_md(name), "utf-8", newline="\n")
   summary = [f"# {name}"]
   for chlog in sorted(result.values(), key=lambda i: i.version_id, reverse=True):
     summary.extend(chlog.to_summary_md())

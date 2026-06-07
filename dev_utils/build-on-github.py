@@ -59,6 +59,8 @@ module_info_path.write_text("name=%r\nversion=%r\n" % (proj_name, proj_version))
 # PEP 8
 log.info("Formatting code...")
 format_code(PROJ_DIR)
+# Commit
+gh.git.commit_all(proj_version, log)
 # Build
 file_prefix = f"{proj_name}-{proj_version}"
 sdist = PROJ_DIST / f"{file_prefix}.tar.gz"
@@ -76,8 +78,6 @@ for file in PROJ_DIST.iterdir():
     log.debug("Found wheel %s", file.name)
     wheels.add(file)
 log.info("Found sdist and %s wheels", len(wheels))
-# Commit
-gh.git.commit_all(proj_version, log)
 # Release
 log.info("Preparing files for release...")
 chlog = chlogs[proj_version]
