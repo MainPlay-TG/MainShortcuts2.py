@@ -1,6 +1,7 @@
 import os
 import pathlib
 import shutil
+import typing
 from MainShortcuts2 import ms
 from os import fspath
 from stat import S_ISDIR, S_ISREG
@@ -12,7 +13,7 @@ class Path(pathlib.Path):
     """Объект `ms.path.Path`"""
     return ms.path.Path(self)
 
-  def size(self, recursive=False, **walk_kw):
+  def size(self, recursive=False, **walk_kw) -> int:
     """Вычислить размер файла/папки"""
     st = self.stat()
     if S_ISREG(st.st_mode):
@@ -56,7 +57,7 @@ class Path(pathlib.Path):
   def _get_write_path(self):
     """tmp,real"""
     real = self.resolve()
-    tmp = real
+    tmp = real.with_name(self.name + ".tmp" + ms.utils.randstr(4))
     while tmp.exists():
       tmp = real.with_name(self.name + ".tmp" + ms.utils.randstr(4))
     return tmp, real
@@ -71,18 +72,24 @@ class Path(pathlib.Path):
     kw.setdefault("encoding", "utf-8")
     """Записать текст в файл"""
     tmp, real = self._get_write_path()
-    with tmp.open("w", **kw) as f:
-      result = f.write(data)
-    if not tmp.samefile(real):
+    try:
+      with tmp.open("w", **kw) as f:
+        result = f.write(data)
       tmp.replace(real)
+    except:
+      tmp.unlink(True)
+      raise
     return result
 
-  def write_bytes(self, data, **kw) -> int:
+  def write_bytes(self, data: bytes, **kw) -> int:
     tmp, real = self._get_write_path()
-    with tmp.open("wb", **kw) as f:
-      result = f.write(data)
-    if not tmp.samefile(real):
+    try:
+      with tmp.open("wb", **kw) as f:
+        result = f.write(data)
       tmp.replace(real)
+    except:
+      tmp.unlink(True)
+      raise
     return result
 
   def read_json(self, **kw):
@@ -140,3 +147,28 @@ class Path(pathlib.Path):
         yield from [os.path.join(root, i) for i in filenames]
     else:
       yield from os.listdir(self)
+  if not typing.TYPE_CHECKING:
+    def samefile(self, other_path):
+      """Добавление проверки пути к файлу, чтобы не выполнять stat лишний раз"""
+      if os.fspath(self) == os.fspath(other_path):
+        return True
+      return super().samefile(other_path)
+
+  def samestat(self, st2: os.stat_result):
+    """Аналогично `.samefile`, но принимает `stat_result` вместо пути"""
+    st1 = self.stat()
+    return st1.st_dev == st2.st_dev and st1.st_ino == st2.st_ino
+
+  def write_ms2dat(self, data, **kw):
+    """Сохранить данные в последней версии формата MS2Dat"""
+    ms.ms2dat.write_file(data, self, **kw)
+
+  def write_ms2dat_v1(self, data, ms2dat_inst=None, **kw):
+    """Сохранить данные в формате MS2Dat v1"""
+    if ms2dat_inst is None:
+      ms2dat_inst = ms.ms2dat_v1.inst
+    ms2dat_inst.write_file(data, self, **kw)
+
+  def read_ms2dat(self, **kw):
+    """Прочитать данные в формате MS2Dat"""
+    ms.ms2dat.read_file(self, **kw)

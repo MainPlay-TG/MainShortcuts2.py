@@ -18,7 +18,7 @@ data["added"] = []
 data["changed"] = []
 data["fixed"] = []
 data["removed"] = []
-data["version_id"] = len(ms.dir.list(ms.MAIN_DIR, exts=[".json"], func=check_chlog, type="file"))
+data["version_id"] = len(ms.dir.list(ms.MAIN_DIR + "/json", exts=[".json"], func=check_chlog, type="file"))
 if data["version_id"] - 1 in ver_hist:
   print("Предыдущая версия: %(version)s (%(version_id)s)" % ver_hist[data["version_id"] - 1])
 data["version"] = input("Введите название версии > ").strip()

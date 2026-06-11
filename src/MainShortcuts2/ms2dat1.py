@@ -6,6 +6,7 @@ import struct
 import typing
 import uuid
 from io import BytesIO
+from MainShortcuts2.ex.pathlib_ex import Path
 from MainShortcuts2.utils import int_size_unsigned
 HASH_NAMES = None, "sha256", "sha3-256", "sha512"
 HASH_SIZES = 0, 32, 32, 64
@@ -516,8 +517,14 @@ class MS2Dat1:
 
   def write_file(self, obj, path, **kw):
     """Сохранить объект в локальный файл"""
-    with open(path, "wb") as f:
-      self.dump(obj, f, **kw)
+    tmp, real = Path(path)._get_write_path()
+    try:
+      with tmp.open("wb") as f:
+        self.dump(obj, f, **kw)
+      tmp.replace(real)
+    except:
+      tmp.unlink(True)
+      raise
 
 
 class MS2Dat1EncryptExample(MS2Dat1):
