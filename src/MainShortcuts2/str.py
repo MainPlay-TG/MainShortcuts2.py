@@ -1,14 +1,10 @@
 """Работа со строками"""
-from .core import ms
-from typing import *
+import typing
 
 
-def list2str(a: Union[Iterable]) -> list:
+def list2str(a: typing.Iterable[str]):
   """Преобразовать каждый элемент списка в строку"""
-  b = []
-  for i in a:
-    b.append(str(i))
-  return b
+  return [str(i) for i in a]
 
 
 def dict2str(a: dict) -> dict:
@@ -19,13 +15,10 @@ def dict2str(a: dict) -> dict:
   return b
 
 
-class _Replace:
+class replace:
   """Функции для замены текста"""
-
-  def __init__(self):
-    pass
-
-  def multi(self, text: str, d: dict = None, **kw) -> str:
+  @classmethod
+  def multi(cls, text: str, d: dict = None, **kw) -> str:
     """Мульти-замена {"что заменить":"чем заменить"}"""
     if not d is None:
       kw.update(d)
@@ -34,7 +27,8 @@ class _Replace:
       t = t.replace(k, str(v))
     return t
 
-  def all(self, text: str, fr: str, to: str) -> str:
+  @classmethod
+  def all(cls, text: str, fr: str, to: str) -> str:
     """Замена пока заменяемый текст не исчезнет"""
     t = str(text)
     a = str(fr)
@@ -46,4 +40,9 @@ class _Replace:
     return t
 
 
-replace = _Replace()
+def join_list(lst: typing.Iterable[str], midsep=", ", lastsep=" и "):
+  """Объединить список в строку с отличающимся последним разделителем"""
+  lst = [str(i) for i in lst]
+  if len(lst) < 3:
+    return lastsep.join(lst)
+  return midsep.join(lst[:-1]) + lastsep + lst[-1]

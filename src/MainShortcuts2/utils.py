@@ -1,5 +1,6 @@
 """Различные утилиты, иногда требующие сторонних модулей"""
 import atexit
+import base64
 import builtins
 import importlib
 import logging
@@ -7,6 +8,7 @@ import os
 import sys
 import time
 import typing
+import uuid as UuidModule
 from .core import ms
 from contextlib import ExitStack
 from functools import wraps
@@ -1208,3 +1210,69 @@ class FilterGetAttr(Filter):
 class FilterGetItem(FilterGetAttr):
   def __call__(self, obj):
     return obj[self.name]
+
+
+gen_uuid = UuidModule.uuid4
+if not typing.TYPE_CHECKING:
+  # Выбрать быстрейшую функцию
+  for i in (8, 7, 6):
+    j = f"uuid{i}"
+    if hasattr(UuidModule, j):
+      gen_uuid = getattr(UuidModule, j)
+      break
+  del i, j
+
+
+def short_b64encode(s: bytes, **kw):
+  """Кодирование в Base64 с удалением заполнителей"""
+  return base64.b64encode(s, **kw).rstrip(b"=")
+
+
+def short_b64decode(s: bytes, **kw):
+  """Декодирование Base64 с восстановлением заполнителей"""
+  n = -len(s) % 4
+  if n:
+    suffix = ("=" if isinstance(s, str) else b"=") * n
+    return base64.b64decode(s + suffix, **kw)
+  return base64.b64decode(s, **kw)
+
+
+def short_urlsafe_b64encode(s: bytes):
+  """Аналогично `short_b64encode`, но безопасен для URL"""
+  return base64.urlsafe_b64encode(s).rstrip(b"=")
+
+
+def short_urlsafe_b64decode(s: bytes):
+  """Аналогично `short_b64decode`, но безопасен для URL"""
+  n = -len(s) % 4
+  if n:
+    suffix = ("=" if isinstance(s, str) else b"=") * n
+    return base64.urlsafe_b64decode(s + suffix)
+  return base64.urlsafe_b64decode(s)
+
+
+def uuid2bytes(uuid):
+  """Конвертировать UUID в байты"""
+  if isinstance(uuid, bytes):
+    return uuid
+  return uuid2obj(uuid).bytes
+
+
+def uuid2obj(uuid):
+  """Конвертировать UUID в объект"""
+  if isinstance(uuid, UuidModule.UUID):
+    return uuid
+  if isinstance(uuid, bytes):
+    return UuidModule.UUID(bytes=uuid)
+  if isinstance(uuid, memoryview):
+    return UuidModule.UUID(bytes=uuid.tobytes())
+  if isinstance(uuid, str):
+    return UuidModule.UUID(hex=uuid)
+  raise TypeError("Invalid uuid type")
+
+
+def uuid2str(uuid):
+  """Конвертировать UUID в строку"""
+  if isinstance(uuid, str):
+    return uuid
+  return str(uuid2obj(uuid))

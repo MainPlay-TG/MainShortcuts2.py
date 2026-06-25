@@ -24,11 +24,11 @@ def wrap_handler(app: "Application", handler: Handler):
       if isinstance(resp, int):  # Код статуса
         resp = Response(status=resp)
       elif isinstance(resp, ApiResult):  # Результат API обработчика
-        resp = resp.make_resp(req.content_type)
+        resp = resp.make_resp(req.headers.get("Accept"))
       elif isinstance(resp, PATH_TYPES):  # Локальный файл
         resp = FileResponse(resp)
     except ApiResult as exc:  # Результат API исключения
-      resp = exc.make_resp(req.content_type)
+      resp = exc.make_resp(req.headers.get("Accept"))
     except Exception as exc:
       app.logger.exception("Failed to process request", exc_info=exc)
       resp = Response(status=500, reason="Internal server error")
@@ -167,12 +167,16 @@ class ApiResult(BaseException):
     from MainShortcuts2 import ms2dat1
     return "application/x-ms2dat1", ms2dat1.dumps(self.to_dict())
 
-  def make_resp(self, content_type=None):
+  def make_resp(self, accept_header: str = None):
     """Создать ответ в указаном формате, по умолчанию JSON"""
+    use_ms2dat, use_yaml = False, False
+    if accept_header:
+      use_ms2dat = "application/x-ms2dat1" in accept_header
+      use_yaml = ("application/yaml" in accept_header) and ("application/json" not in accept_header)
     try:
-      if content_type == "application/x-ms2dat1":
+      if use_ms2dat:
         ctype, body = self._to_ms2dat1()
-      elif content_type == "application/yaml":
+      elif use_yaml:
         ctype, body = self._to_yaml()
       else:  # Если запрошенный формат не поддерживается
         ctype, body = self._to_json()

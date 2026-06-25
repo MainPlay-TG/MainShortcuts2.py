@@ -1110,3 +1110,34 @@ class NetBroadcastReceiver(_ServerBase):
           break
         self.recv()
     self._stopping = False
+
+
+class SimpleBcrypt:
+  """Упрощение методов `bcrypt`. Библиотека `bcrypt` должна быть доступна
+```
+pip install -U bcrypt
+```"""
+
+  def __init__(self):
+    import bcrypt
+    self._b = bcrypt
+    self.encoding = "utf-8"
+    self.salt_prefix = b"2b"
+    self.salt_rounds = 12
+
+  def _to_bytes(self, s: bytes | str) -> bytes:
+    if isinstance(s, str):
+      return s.encode(self.encoding)
+    return s
+
+  def gen_salt(self):
+    """Сгенерировать соль для хеширования"""
+    return self._b.gensalt(self.salt_rounds, self.salt_prefix)
+
+  def hash_pwd(self, pwd: bytes | str):
+    """Хешировать пароль"""
+    return self._b.hashpw(self._to_bytes(pwd), self.gen_salt())
+
+  def check_pwd(self, pwd: bytes | str, hashed_pwd: bytes | str):
+    """Проверить пароль"""
+    return self._b.checkpw(self._to_bytes(pwd), self._to_bytes(hashed_pwd))
