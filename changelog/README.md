@@ -1,4 +1,18 @@
 # mainshortcuts2
+## 2.8.5 (64)
+### Добавлено:
+- Алиас `.utils.gen_uuid`
+- Класс `.advanced.SimpleBcrypt`
+- Функция `.str.join_list`
+- Функция `.utils.short_b64decode`
+- Функция `.utils.short_b64encode`
+- Функция `.utils.short_urlsafe_b64decode`
+- Функция `.utils.short_urlsafe_b64encode`
+- Функция `.utils.uuid2bytes`
+- Функция `.utils.uuid2obj`
+- Функция `.utils.uuid2str`
+### Исправлено:
+- Выбор формата ответа в `.ex.aiohttp_ex.web.ApiResult`
 ## 2.8.4 (63)
 ### Добавлено:
 - Метод `.ex.pathlib_ex.Path.read_ms2dat`
