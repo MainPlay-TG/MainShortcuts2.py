@@ -1,4 +1,7 @@
 # mainshortcuts2
+## 2.8.7 (66)
+### Исправлено:
+- Очепятка в `.ex.pathlib_ex`
 ## 2.8.6 (65)
 ### Добавлено:
 - Метод `.ex.pathlib_ex.Path.compress_bz2`
