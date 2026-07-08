@@ -2,13 +2,23 @@ import os
 import pathlib
 import shutil
 import typing
+import enum
+from functools import cached_property
 from MainShortcuts2 import ms
 from os import fspath
 from stat import S_ISDIR, S_ISREG
 
 
+class ms2hash_version(enum.IntEnum):
+  LEGACY = enum.auto()
+  V0 = enum.auto()
+  VA = enum.auto()
+  VB = enum.auto()
+  VH = enum.auto()
+
+
 class Path(pathlib.Path):
-  @property
+  @cached_property
   def ms_path(self):
     """Объект `ms.path.Path`"""
     return ms.path.Path(self)
@@ -171,4 +181,88 @@ class Path(pathlib.Path):
 
   def read_ms2dat(self, **kw):
     """Прочитать данные в формате MS2Dat"""
-    ms.ms2dat.read_file(self, **kw)
+    return ms.ms2dat.read_file(self, **kw)
+
+  def copy_to_io(self, fdest: typing.BinaryIO):
+    """Скопировать содержимое в открытый файл"""
+    with self.open("rb") as fsrc:
+      shutil.copyfileobj(fsrc, fdest)
+
+  def _compress(self, opn: typing.Callable[[typing.Self], typing.BinaryIO], suffix: str, dest: os.PathLike = None, keep=False, **kw):
+    if dest is None:
+      dest = self.with_name(self.name + suffix)
+    else:
+      dest = type(self)(dest)
+    with opn(dest, **kw) as f:
+      self.copy_to_io(f)
+    if not keep:
+      self.unlink()
+    return dest
+
+  def compress_bz2(self, dest=None, keep=False, **kw):
+    """Сжать через bzip2"""
+    import bz2
+    return self._compress(bz2.open, ".bz2", dest, keep, mode="wb", **kw)
+
+  def compress_gzip(self, dest=None, keep=False, **kw):
+    """Сжать через gzip"""
+    import gzip
+    return self._compress(gzip.open, ".gz", dest, keep, mode="wb", **kw)
+
+  def compress_lzma(self, / dest=None, keep=False, **kw):
+    """Сжать через lzma"""
+    import lzma
+    return self._compress(lzma.open, ".lzma", dest, keep, mode="wb", **kw)
+
+  def compress_zstd(self, dest=None, keep=False, **kw):
+    """Сжать через zstandard"""
+    import zstandard
+    return self._compress(zstandard.open, ".zst", dest, keep, mode="wb", **kw)
+
+  def hash(self, alg: str, bufsize=2**18):
+    """Хешировать файл одним алгоритмом"""
+    import hashlib
+    with self.open("rb") as f:
+      return hashlib.file_digest(f, alg, _bufsize=bufsize).digest()
+
+  def hash_multi(self, algs: set[str], bufsize=2**18) -> dict[str, bytes]:
+    """Хешировать файл несколькими алгоритмами"""
+    if not algs:
+      return {}
+    import hashlib
+    hashes = {i: hashlib.new(i) for i in algs}
+    updaters = [i.update for i in hashes.values()]
+    with self.open("rb") as f:
+      read = f.read
+      while True:
+        buf = read(bufsize)
+        if not buf:
+          break
+        for upd in updaters:
+          upd(buf)
+    return {k: v.digest() for k, v in hashes.items()}
+
+  def generate_ms2hash(self, alg="sha3-256", overwrite=False, version=ms2hash_version.LEGACY, **kw):
+    """Сгенерировать файл хеша рядом с этим файлом. **Внимание**: версия по умолчанию изменится в будущем обновлении"""
+    if version == ms2hash_version.LEGACY:
+      dest = self.with_name(self.name + ms.ms2hash.HASH_SUFFIX)
+      if dest.exists() and not overwrite:
+        raise FileExistsError(dest)
+      hash = ms.ms2hash.Format1.generate(self, **kw)
+      return dest.write_json(hash.to_dict())
+    from MPL import ms2hash  # WIP, скоро будет в MS2
+    if version == ms2hash_version.V0:
+      v = ms2hash.VERSION_0
+    elif version == ms2hash_version.VA:
+      v = ms2hash.VERSION_A
+    elif version == ms2hash_version.VB:
+      v = ms2hash.VERSION_B
+    elif version == ms2hash_version.VH:
+      v = ms2hash.VERSION_H
+    else:
+      raise ValueError("Invalid hash version: %s" % version)
+    dest = self.with_name(self.name + ms2hash.FILE_SUFFIX)
+    if dest.exists() and not overwrite:
+      raise FileExistsError(dest)
+    hash = ms2hash.HashInfo.from_file(alg, self, **kw)
+    return dest.write_bytes(hash.to_auto(v))

@@ -39,7 +39,10 @@ def _parse_java_version(text: str):
   return list(map(int, text.split("_", 1)[0].split(".")))
 
 
-def detect_java_version(file: Path):
+_java_version_cache: dict[str, list[int]] = {}
+
+
+def _detect_java_version(file: Path):
   release_file = file.parent.parent / "release"
   if release_file.exists():
     try:
@@ -58,13 +61,21 @@ def detect_java_version(file: Path):
     raise RuntimeError("Couldn't determine the Java version") from None
 
 
+def detect_java_version(file: Path):
+  file = file.resolve()
+  version = _java_version_cache.get(os.fspath(file))
+  if not version:
+    version = _java_version_cache[os.fspath(file)] = _detect_java_version(file)
+  return version
+
+
 class IncompatibleJava(Exception):
   pass
 
 
 class InfoDict(dict):
   @property
-  def builded_at(self):
+  def builded_at(self) -> int:
     """Дата сборки релиза (Unix timestamp)"""
     return self["builded_at"]
 
@@ -89,17 +100,17 @@ class InfoDict(dict):
     return self.get("max_java_version")
 
   @property
-  def name(self):
+  def name(self) -> str:
     """Название"""
     return self["name"]
 
   @property
-  def version(self):
+  def version(self) -> str:
     """Название версии"""
     return self["version"]
 
   @property
-  def version_id(self):
+  def version_id(self) -> int:
     """ID версии"""
     return self["version_id"]
 
@@ -121,6 +132,11 @@ class InfoDict(dict):
     """Проверить находится ли ID версии в диапазоне"""
     return bool(min_id <= self.version_id < max_id)
 
+  @property
+  def dependencies(self) -> list[tuple[str, str, str]]:
+    """Зависимости"""
+    return self.get("dependencies") or []
+
 
 class JavaExtManager(ms.ObjectBase):
   """Менеджер версий JAR файла с кешированием"""
@@ -131,8 +147,7 @@ class JavaExtManager(ms.ObjectBase):
     self.version_cache: "dict[str,JavaExtVersion]" = {}
 
   @cached_property
-  def dir(self):
-    """Папка кеша"""
+  def root_dir(self):
     plat = ms.advanced.get_platform()
     if plat.is_mustdie:
       if os.environ.get("LOCALAPPDATA"):
@@ -144,7 +159,16 @@ class JavaExtManager(ms.ObjectBase):
         base = Path(os.environ["XDG_DATA_HOME"])
       else:
         base = Path.home() / ".local/share"
-    result = base / "MainPlay_TG/MainShortcuts2/java_ext_cache_v1" / self.repo[0] / self.repo[1]
+    return base / "MainPlay_TG/MainShortcuts2/java_ext_cache_v1"
+
+  @cached_property
+  def lib_dir(self):
+    return self.root_dir / "lib"
+
+  @cached_property
+  def dir(self):
+    """Папка кеша"""
+    result = self.root_dir / self.repo[0] / self.repo[1]
     return result.resolve().any_mkdir()
 
   def get_version(self, version_name: str):
@@ -154,6 +178,14 @@ class JavaExtManager(ms.ObjectBase):
       if version.info.version == version_name:
         self.version_cache[version_name] = version
     return self.version_cache[version_name]
+
+  def get_lib(self, group_id: str, artifact_id: str, version: str):
+    filename = f"{group_id.replace(".", "/")}/{artifact_id}/{version}/{artifact_id}-{version}.jar"
+    file = self.lib_dir / filename
+    if not file.exists():
+      file.parent.any_mkdir()
+      ms.utils.download_file(f"https://repo1.maven.org/maven2/{filename}", file, session=self.gh.http)
+    return file
 
   def iter_online_releases(self, count=github.MAX_PER_PAGE):
     """Итерация релизов с GitHub"""
@@ -307,33 +339,39 @@ class JavaExtVersion(ms.ObjectBase):
     if not keep_info:
       self.info_path.remove()
 
-  def _popen(self, args, **kw):
+  def _popen(self, args, classpath: list[Path] = None, **kw):
     if not self._java_checked:
       self.info.check_java_file(self.java_bin)
       self._java_checked = True
-    return subprocess.Popen([str(self.java_bin), *args], **kw)
+    cp = os.path.pathsep.join(map(os.fspath, [*self.dependencies_files, *(classpath or [])]))
+    return subprocess.Popen([str(self.java_bin), "-cp", cp, *args], **kw)
 
-  def _run(self, args, **kw) -> subprocess.CompletedProcess:
+  def _run(self, args, classpath: list[Path] = None, **kw) -> subprocess.CompletedProcess:
     kw.setdefault("check", True)
     if not self._java_checked:
       self.info.check_java_file(self.java_bin)
       self._java_checked = True
-    return subprocess.run([str(self.java_bin), *args], **kw)
+    cp = os.path.pathsep.join(map(os.fspath, [*self.dependencies_files, *(classpath or [])]))
+    return subprocess.run([str(self.java_bin), "-cp", cp, *args], **kw)
 
-  def popen_class_raw(self, class_path: str, args: list[str] = [], **kw):
-    return self._popen(["-cp", str(self.jar_path), class_path, *args], **kw)
+  def popen_class_raw(self, class_name: str, args: list[str] = [], **kw):
+    return self._popen([class_name, *args], [self.jar_path], **kw)
 
-  def popen_class(self, class_name: str, args: list[str] = [], **kw):
-    return self.popen_class_raw(self.info.classes[class_name], args, **kw)
+  def popen_class(self, class_alias: str, args: list[str] = [], **kw):
+    return self.popen_class_raw(self.info.classes[class_alias], args, **kw)
 
   def popen(self, args: list[str], **kw):
     return self._popen(["-jar", str(self.jar_path), *args], **kw)
 
-  def run_class_raw(self, class_path: str, args: list[str] = [], **kw):
-    return self._run(["-cp", str(self.jar_path), class_path, *args], **kw)
+  def run_class_raw(self, class_name: str, args: list[str] = [], **kw):
+    return self._run([class_name, *args], [self.jar_path], **kw)
 
-  def run_class(self, class_name: str, args: list[str] = [], **kw):
-    return self.run_class_raw(self.info.classes[class_name], args, **kw)
+  def run_class(self, class_alias: str, args: list[str] = [], **kw):
+    return self.run_class_raw(self.info.classes[class_alias], args, **kw)
 
   def run(self, args: list[str], **kw):
     return self._run(["-jar", str(self.jar_path), *args], **kw)
+
+  @cached_property
+  def dependencies_files(self):
+    return [self.mgr.get_lib(*i) for i in self.info.dependencies]

@@ -337,47 +337,24 @@ class Path(os.PathLike):
     """Открыть файл на чтение/запись"""
     return open(self.path, mode, **kw)
 
-  def hash(self, algorithm: str, chunk_size=ms.file.CHUNK_SIZE) -> bytes:
+  def hash(self, algorithm: str, chunk_size=ms.file.CHUNK_SIZE):
     """Хеш файла (`bytes`)"""
-    import hashlib
-    hash = hashlib.new(algorithm)
-    with self.open_file("rb") as f:
-      rf = f.read  # read func
-      uf = hash.update  # update func
-      while True:
-        b = rf(chunk_size)
-        if not b:
-          break
-        uf(b)
-    return hash.digest()
+    return self.pathlib_path.hash(algorithm, bufsize=chunk_size)
 
-  def hash_hex(self, algorithm: str, **kw) -> str:
+  def hash_hex(self, algorithm: str, **kw):
     """Хеш файла (`bytes.hex()`)"""
     return self.hash(algorithm, **kw).hex()
 
-  def hash_b85(self, algorithm: str, **kw) -> str:
+  def hash_b85(self, algorithm: str, **kw):
     """Хеш файла (`base85`)"""
     from base64 import b85encode
     return b85encode(self.hash(algorithm, **kw)).decode()
 
-  def multi_hash(self, algorithms: list[str], chunk_size=ms.file.CHUNK_SIZE) -> dict[str, bytes]:
+  def multi_hash(self, algorithms: list[str], chunk_size=ms.file.CHUNK_SIZE):
     """Хеш файла (`bytes`) для нескольких алгоритмов"""
-    if not algorithms:
-      return {}
-    import hashlib
-    hashes = {i: hashlib.new(i) for i in set(algorithms)}
-    ufs = [i.update for i in hashes.values()]
-    with self.open_file("rb") as f:
-      rf = f.read  # read func
-      while True:
-        b = rf(chunk_size)
-        if not b:
-          break
-        for uf in ufs:
-          uf(b)
-    return {k: v.digest() for k, v in hashes.items()}
+    return self.pathlib_path.hash_multi(algorithms, bufsize=chunk_size)
 
-  def multi_hash_hex(self, algorithms: list[str], **kw) -> dict[str, str]:
+  def multi_hash_hex(self, algorithms: list[str], **kw):
     """Хеш файла в HEX строке для нескольких алгоритмов"""
     return {k: v.hex() for k, v in self.multi_hash(algorithms, **kw).items()}
 
