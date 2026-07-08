@@ -209,7 +209,7 @@ class Path(pathlib.Path):
     import gzip
     return self._compress(gzip.open, ".gz", dest, keep, mode="wb", **kw)
 
-  def compress_lzma(self, / dest=None, keep=False, **kw):
+  def compress_lzma(self, dest=None, keep=False, **kw):
     """Сжать через lzma"""
     import lzma
     return self._compress(lzma.open, ".lzma", dest, keep, mode="wb", **kw)

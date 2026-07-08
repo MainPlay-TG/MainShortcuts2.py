@@ -1,0 +1,10 @@
+{
+  "added": [],
+  "changed": [],
+  "fixed": [
+    "Очепятка в `.ex.pathlib_ex`"
+  ],
+  "removed": [],
+  "version_id": 66,
+  "version": "2.8.7"
+}
