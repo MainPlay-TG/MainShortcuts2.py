@@ -1,4 +1,9 @@
 # mainshortcuts2
+## 2.8.8 (67)
+### Добавлено:
+- ID этой версии идиотский
+### Исправлено:
+- Определение `.advanced.PlatformInfo.is_linux` под Android
 ## 2.8.7 (66)
 ### Исправлено:
 - Очепятка в `.ex.pathlib_ex`
