@@ -602,7 +602,7 @@ class PlatformInfo(ms.ObjectBase):
   def __init__(self):
     import platform
     self._created_dirs = set()
-    self.is_linux: bool = sys.platform == "linux"
+    self.is_linux: bool = sys.platform in ("linux", "android")
     self.is_macos: bool = sys.platform == "darwin"
     self.is_mustdie: bool = sys.platform == "win32"
     self.is_android: bool = self.is_linux and "ANDROID_ROOT" in os.environ
