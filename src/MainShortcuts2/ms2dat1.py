@@ -106,17 +106,17 @@ class Reader:
   def _read1(self):
     return self._read(1)[0]
 
-  def read_body(self, allow_unknown=False, verify=True) -> typing.Optional[typing.Any]:
-    raw = self._read(self.body_size)
+  def read_body(self, allow_unknown=False, verify=True):
+    body = self._read(self.body_size)  # compressed,encrypted
     if self.encrypted:
-      raw = self.ms2dat.decrypt_body(raw)
-    body = decompress_data(self.compress_type, raw)
+      body = self.ms2dat.decrypt_body(body)  # compressed
+    raw_body = decompress_data(self.compress_type, body)  # raw
     if verify and self.hash_type:
-      reald = hash_data(self.hash_type, body)
+      reald = hash_data(self.hash_type, raw_body)
       saved = self._read(HASH_SIZES[self.hash_type])
       if reald != saved:
         raise ValueError("The file is corrupted")
-    with BytesIO(body) as buf:
+    with BytesIO(raw_body) as buf:
       # Чтение словаря
       d = []
       for i in range(int.from_bytes(buf.read(3), "big")):
@@ -124,7 +124,7 @@ class Reader:
       # Чтение тела
       return self.decode_obj(buf, d, allow_unknown)
 
-  def decode_obj(self, buf: typing.IO[bytes], d: list, allow_unknown=False):
+  def decode_obj(self, buf: typing.IO[bytes], d: list, allow_unknown=False) -> typing.Any | None:
     head = buf.read(1)[0]
     typeid = head >> 4
     sizesize = head & 0b1111
@@ -322,17 +322,17 @@ class Writer:
     # Сохранение объекта
     raw_obj = self.encode_obj(self.obj, sort_keys, use_dict)
     # Тело
-    raw_body = bytearray()
+    raw_body = bytearray()  # raw
     raw_body.extend(len(self.obj_dict).to_bytes(3, "big"))
     for i in self.obj_dict:
       raw_body.extend(i)
     raw_body.extend(raw_obj)
     # Сжатие
-    compress_type, body = compress_data(compress_type, raw_body)
+    compress_type, body = compress_data(compress_type, raw_body)  # compressed
     # Шифрование
     encrypted = 1 if encrypted else 0  # Если дадут bool
     if encrypted:
-      body = self.ms2dat.encrypt_body(body)
+      body = self.ms2dat.encrypt_body(body)  # encrypted
     size = len(body)
     sizesize = int_size_unsigned(size)
     if sizesize > 0b111:
@@ -350,7 +350,7 @@ class Writer:
     self._write(size.to_bytes(sizesize, "big"))
     self._write(body)
     # Хеш
-    self._write(hash_data(hash_type, body))
+    self._write(hash_data(hash_type, raw_body))
 
 
 class CustomType:

@@ -917,7 +917,7 @@ class SimpleLogger(logging.Logger):
     self.info("Python: %s", sys.version)
     self.info("MainShortcuts2: %s", ms.version)
     self.info("Logger: %s", self.name)
-    self.info("Log level: %s (%s)", (level_name, self.level))
+    self.info("Log level: %s (%s)", level_name, self.level)
 
   def _log(self, level, *args, **kw):
     if self.disabled:

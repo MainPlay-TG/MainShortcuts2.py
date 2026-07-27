@@ -1,0 +1,11 @@
+{
+  "added": [],
+  "changed": [],
+  "fixed": [
+    "Первое сообщение в `.utils.SimpleLogger`",
+    "Хеширование в `.ms2dat1`",
+  ],
+  "removed": [],
+  "version_id": 68,
+  "version": "2.8.9"
+}
