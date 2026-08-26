@@ -1,4 +1,8 @@
 # mainshortcuts2
+## 2.9.0 (69)
+### Добавлено:
+- Подмодуль `.ms2dat1crypto`
+- Скрипт `micro-json`
 ## 2.8.9 (68)
 ### Исправлено:
 - Первое сообщение в `.utils.SimpleLogger`
