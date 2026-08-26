@@ -222,6 +222,11 @@ class MS2:
     return ms2dat1
 
   @cached_property
+  def ms2dat_v1_crypto(self):
+    from . import ms2dat1crypto
+    return ms2dat1crypto
+
+  @cached_property
   def ms2dat(self):
     """Авто выбор при загрузке, последняя версия при сохранении"""
     from . import _ms2dat_auto

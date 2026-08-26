@@ -10,6 +10,7 @@ packages = [
 ]
 
 [tool.poetry.scripts]
+micro-json = "MainShortcuts2.__main__:micro_json"
 ms2-app = "MainShortcuts2.ms2app:main"
 ms2-hash_check = "MainShortcuts2.ms2hash:hash_check"
 ms2-hash_gen = "MainShortcuts2.ms2hash:hash_gen"
@@ -23,6 +24,26 @@ nginx-restart = "MainShortcuts2.__main__:nginx_restart"
 
 [tool.poetry.dependencies]
 python = "^3.10"
+
+# Любые синхронные функции с использованием HTTP
+requests = { version = "^2.32.5", optional = true }
+
+# ms2dat1crypto
+cryptography = { version = "^50.0.0", optional = true }
+
+# Все прочие необязательные зависимости
+aiohttp = { version = "^3.14.3", optional = true }
+colorama = { version = "^0.4.6", optional = true }
+json5 = { version = "^0.15.0", optional = true }
+pillow = { version = "^12.3.0", optional = true }
+progressbar2 = { version = "^4.6.0", optional = true }
+psutil = { version = "^7.2.2", optional = true }
+pyside6 = { version = "^6.11.2", optional = true }
+
+[tool.poetry.extras]
+crypto = ["cryptography"]
+full = ["aiohttp","colorama","cryptography","json5","pillow","progressbar2","psutil","pyside6","requests"]
+http = ["requests"]
 
 [build-system]
 build-backend = "poetry.core.masonry.api"

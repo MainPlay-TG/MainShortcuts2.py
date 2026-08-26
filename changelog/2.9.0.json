@@ -1,0 +1,11 @@
+{
+  "added": [
+    "Подмодуль `.ms2dat1crypto`",
+    "Скрипт `micro-json`"
+  ],
+  "changed": [],
+  "fixed": [],
+  "removed": [],
+  "version_id": 69,
+  "version": "2.9.0"
+}

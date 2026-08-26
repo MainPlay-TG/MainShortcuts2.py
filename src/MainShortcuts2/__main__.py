@@ -18,39 +18,32 @@ def import_example():
   print("from MainShortcuts2 import ms")
 
 
-def nano_json(args: argparse.Namespace = None):
-  ms.utils.check_programs("nano")
+def _edit_json_argp(name: str):
+  argp = argparse.ArgumentParser(f"{name}-json")
+  argp.add_argument("-e", "--encoding", default="utf-8", help="кодировка файлов")
+  argp.add_argument("-i", "--indent", default=2, type=int, help="кол-во пробелов для отступа")
+  argp.add_argument("-m", "--mode", choices=ms.json.MODES_ALL, default="p", help="режим сохранения редактирования")
+  argp.add_argument("-s", "--sort", action="store_true", help="сортировать ключи словаря")
+  argp.add_argument("-u", "--no-escape", action="store_false", help="не использовать Unicode Escape")
+  argp.add_argument("files", nargs="+", help="пути к файлам JSON")
+  argp.description = f"форматирование JSON файлов и редактирование в {name}"
+  return argp
+
+
+def _edit_json(args, editor_args: list[str]):
   import subprocess
-  if args is None:
-    argp = argparse.ArgumentParser("nano-json", description="форматирование JSON файлов и редактирование в GNU NANO")
-    argp.add_argument("files", nargs="+", help="пути к файлам JSON")
-    argp.add_argument("--nano-help", action="store_true", help="показать помощь nano")
-    argp.add_argument("-e", "--encoding", default="utf-8", help="кодировка файлов")
-    argp.add_argument("-f", "--rcfile", help="использовать только этот файл для настройки nano")
-    argp.add_argument("-i", "--indent", default=2, type=int, help="кол-во пробелов для отступа")
-    argp.add_argument("-m", "--mode", choices=ms.json.MODES_ALL, default="p", help="режим сохранения редактирования")
-    argp.add_argument("-s", "--sort", action="store_true", help="сортировать ключи словаря")
-    argp.add_argument("-u", "--no-escape", action="store_false", help="не использовать Unicode Escape")
-    args = argp.parse_args()
-  if args.nano_help:
-    return subprocess.call(["nano", "--help"])
-  write_kw = {}
+  editor_args.extend(args.files)
+  write_kw = {"ensure_ascii": False, "mode": "print"}
   write_kw["encoding"] = args.encoding
-  write_kw["ensure_ascii"] = False
   write_kw["indent"] = args.indent
-  write_kw["mode"] = "print"
   write_kw["sort_keys"] = args.sort
-  nano_args = ["nano"]
-  if args.rcfile:
-    nano_args += ["--rcfile", args.rcfile]
-  nano_args += args.files
   for i in args.files:
     try:
       data = ms.json.read(i, encoding=args.encoding)
       ms.json.write(i, data, **write_kw)
-    except Exception as err:
-      print(err, file=sys.stderr)
-  subprocess.call(nano_args)
+    except Exception as exc:
+      print(exc, file=sys.stderr)
+  subprocess.run(editor_args)
   write_kw["ensure_ascii"] = args.no_escape
   write_kw["indent"] = None if args.mode in ms.json.MODES_COMPRESS else args.indent
   write_kw["mode"] = args.mode
@@ -58,8 +51,32 @@ def nano_json(args: argparse.Namespace = None):
     try:
       data = ms.json.read(i, encoding=args.encoding)
       ms.json.write(i, data, **write_kw)
-    except Exception as err:
-      print(err, file=sys.stderr)
+    except Exception as exc:
+      print(exc, file=sys.stderr)
+
+
+def nano_json(args=None):
+  ms.utils.check_programs("nano")
+  if args is None:
+    argp = _edit_json_argp("nano")
+    argp.add_argument("--nano-help", action="store_true", help="показать помощь nano")
+    argp.add_argument("-f", "--rcfile", help="использовать только этот файл для настройки nano")
+    args = argp.parse_args()
+  if args.nano_help:
+    import subprocess
+    return subprocess.run(["nano", "--help"])
+  editor_args = ["nano"]
+  if args.rcfile:
+    editor_args.extend(["--rcfile", args.rcfile])
+  _edit_json(args, editor_args)
+
+
+def micro_json(args=None):
+  ms.utils.check_programs("micro")
+  if args is None:
+    argp = _edit_json_argp("micro")
+    args = argp.parse_args()
+  _edit_json(args, ["micro"])
 
 
 def _check_nginx() -> int:
