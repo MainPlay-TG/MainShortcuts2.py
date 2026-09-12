@@ -37,9 +37,11 @@ def make_insert_sql(table: str, values: dict, modifier=""):
   return f"INSERT {modifier}INTO {table} ({keys}) VALUES ({inserts});", list(values.values())
 
 
-def make_select_sql(table: str, columns: list[str], where: dict):
+def make_select_sql(table: str, columns: str | list[str], where: dict):
   text, params = make_where_string(where)
-  return f"SELECT {','.join(columns)} FROM {table} WHERE {text};", params
+  if not isinstance(columns, str):
+    columns = ','.join(columns)
+  return f"SELECT {columns} FROM {table} WHERE {text};", params
 
 
 def make_update_sql(table: str, values: dict, where: dict):
@@ -84,7 +86,7 @@ class Cursor(sqlite3.Cursor):
   def select_fetchone(self, table: str, columns: list[str], where: dict):
     return self.select(table, columns, where).fetchone()
 
-  def select(self, table: str, columns: list[str], where: dict):
+  def select(self, table: str, columns: str | list[str], where: dict):
     """Выбрать строки из таблицы. Не выполняет `fetch`!"""
     return self.execute(*make_select_sql(table, columns, where))
 

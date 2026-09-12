@@ -1,5 +1,6 @@
 import requests
 import requests.auth
+from functools import cached_property
 from MainShortcuts2 import ms
 USER_AGENTS: dict[str, str] = {}
 USER_AGENTS["Android"] = "Mozilla/5.0 (Linux; Android 13; K) Chrome/128.0.6613.146"
@@ -26,7 +27,6 @@ def setdefattr(obj, attr, value):
 class BaseClient(ms.ObjectBase):
   """Базовый клиент для HTTP API"""
   _enable_cookies: bool
-  _http: requests.Session
   _url_data: dict[str, str]
   _url: str
   cache: "CacheStorage"
@@ -35,7 +35,7 @@ class BaseClient(ms.ObjectBase):
     self._init(**kw)
 
   def _init(self, session: requests.Session = None):
-    setdefattr(self, "_http", session)
+    self.__dict__["http"] = session
     setdefattr(self, "_enable_cookies", False)
     setdefattr(self, "_url_data", {})
     setdefattr(self, "_url", "https://example.com/api/{method}")
@@ -64,12 +64,10 @@ class BaseClient(ms.ObjectBase):
   def _params(self):
     return self.http.params
 
-  @property
-  def http(self) -> requests.Session:
+  @cached_property
+  def http(self):
     """HTTP сессия"""
-    if self._http is None:
-      self._http = requests.Session()
-    return self._http
+    return requests.Session()
 
   def _request(self, http_method: str, api_method: str, *, raise_for_status: bool = True, url_data: dict[str, str] = None, **kw):
     _url_data = self._url_data.copy()
@@ -83,26 +81,18 @@ class BaseClient(ms.ObjectBase):
       result.raise_for_status()
     return result
 
-  def request(self, httpm, apim, **kw) -> requests.Response:
+  def request(self, httpm: str, apim: str, **kw):
     """Отправить запрос к API"""
     return self._request(httpm, apim, **kw)
-
-
-class Base(BaseClient):
-  """Устаревший класс, используйте BaseClient!"""
-  def __init_subclass__(cls, **kw):
-    from warnings import warn
-    warn("Class 'Base' renamed 'BaseClient' starting with version 2.4.6", DeprecationWarning)
-    return BaseClient.__init_subclass__(**kw)
 
 
 class BasicAuthClient(BaseClient):
   """API клиент для авторизации `HTTP Basic`"""
 
-  def _request(self, http_method: str, api_method: str, **kw) -> requests.Response:
+  def _request(self, http_method: str, api_method: str, **kw):
     if self._headers.get("Authorization") is None:
       auth_basic(None, None, client=self)
-    return BaseClient._request(self, http_method, api_method, **kw)
+    return super()._request(http_method, api_method, **kw)
 
   @property
   def username(self) -> str:
@@ -127,9 +117,12 @@ class BasicAuthClient(BaseClient):
 
 class OfflineObjectBase(ms.ObjectBase):
   """API объект из словаря"""
+  _set_by_annotations = False
 
   def __init__(self, raw: dict, *args, **kwargs):
     self.raw = raw
+    if self._set_by_annotations:
+      _set_annotations(self)
     self._init(*args, **kwargs)
 
   def __getitem__(self, k):
@@ -144,8 +137,13 @@ class ObjectBase(OfflineObjectBase):
 
   def __init__(self, client: BaseClient, raw: dict, *args, **kwargs):
     self.client = client.client if isinstance(client, ObjectBase) else client
-    self.raw = raw
-    self._init(*args, **kwargs)
+    super().__init__(raw, *args, **kwargs)
+
+
+def _set_annotations(obj: OfflineObjectBase):
+  for i in type(obj).__annotations__:
+    if not (i.startswith("_") or hasattr(obj, i)):
+      setattr(obj, i, obj[i])
 
 
 class CacheStorage(dict):
