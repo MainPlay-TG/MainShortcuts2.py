@@ -1,0 +1,1 @@
+{"added":["\u0410\u0442\u0440\u0438\u0431\u0443\u0442 `.api.base.OfflineObjectBase._set_by_annotations`"],"changed":[],"fixed":["\u0424\u0443\u043d\u043a\u0446\u0438\u044f `.ex.sqlite_ex.make_select_sql`"],"removed":["\u041a\u043b\u0430\u0441\u0441 `.api.base.Base`"],"version_id":70,"version":"2.9.1"}

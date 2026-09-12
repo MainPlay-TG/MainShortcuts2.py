@@ -1,4 +1,11 @@
 # mainshortcuts2
+## 2.9.1 (70)
+### Добавлено:
+- Атрибут `.api.base.OfflineObjectBase._set_by_annotations`
+### Исправлено:
+- Функция `.ex.sqlite_ex.make_select_sql`
+### Удалено:
+- Класс `.api.base.Base`
 ## 2.9.0 (69)
 ### Добавлено:
 - Подмодуль `.ms2dat1crypto`
