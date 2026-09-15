@@ -32,7 +32,7 @@ class Database(SyncDatabaseBase):
       self.db_path = Path(path)
       self.db_path.parent.any_mkdir()
     self.strict_schema = strict_schema
-    DatabaseBase.__init__(self, **kw)
+    super().__init__(**kw)
   if TYPE_CHECKING:
     def cursor(self) -> Cursor:
       return super().cursor()

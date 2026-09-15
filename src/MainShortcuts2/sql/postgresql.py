@@ -77,7 +77,7 @@ class Database(DatabaseBase):
     kw["password"] = password
     kw["port"] = port
     kw["user"] = user
-    DatabaseBase.__init__(self, **kw)
+    super().__init__(**kw)
     self.ConnectionError = psycopg2.OperationalError, ConnectionError
 
   @classmethod

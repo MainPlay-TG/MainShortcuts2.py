@@ -35,11 +35,12 @@ class BaseClient(ms.ObjectBase):
     self._init(**kw)
 
   def _init(self, session: requests.Session = None):
-    self.__dict__["http"] = session
     setdefattr(self, "_enable_cookies", False)
     setdefattr(self, "_url_data", {})
     setdefattr(self, "_url", "https://example.com/api/{method}")
     setdefattr(self, "cache", CacheStorage())
+    if session:
+      self.__dict__["http"] = session
 
   def __enter__(self):
     return self
