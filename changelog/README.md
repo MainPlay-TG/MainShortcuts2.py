@@ -1,4 +1,8 @@
 # mainshortcuts2
+## 2.9.2 (71)
+### Исправлено:
+- Подклассы в `.sql`
+- Создание сессии в `.api.base`
 ## 2.9.1 (70)
 ### Добавлено:
 - Атрибут `.api.base.OfflineObjectBase._set_by_annotations`
