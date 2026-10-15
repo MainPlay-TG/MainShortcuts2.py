@@ -548,6 +548,16 @@ class MS2Dat1EncryptExample(MS2Dat1):
 
 inst = MS2Dat1()
 """Настройки по умолчанию"""
+inst_compressed = MS2Dat1()
+"""Лучшее сжатие"""
+inst_compressed.set_compress(MS2Dat1.COMPRESS_LZMA)
+inst_compressed.set_hash(MS2Dat1.HASH_SHA3_256)
+inst_compressed.set_use_dict(True)
+inst_fastest = MS2Dat1()
+"""Лучшая скорость"""
+inst_fastest.set_compress(MS2Dat1.COMPRESS_NONE)
+inst_fastest.set_hash(MS2Dat1.HASH_NONE)
+inst_fastest.set_use_dict(False)
 dump = inst.dump
 dumps = inst.dumps
 load = inst.load

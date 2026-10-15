@@ -1,9 +1,6 @@
 """Работа со словарями"""
 from .core import ms
 from typing import *
-# 2.0.0
-
-
 def merge(old: dict, new: dict) -> dict:
   """Рекурсиво объединить словари"""
   out = old.copy()

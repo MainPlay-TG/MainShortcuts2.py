@@ -266,3 +266,14 @@ class Path(pathlib.Path):
       raise FileExistsError(dest)
     hash = ms2hash.HashInfo.from_file(alg, self, **kw)
     return dest.write_bytes(hash.to_auto(v))
+
+  def write_bytes_direct(self, data: bytes, **kw):
+    """Записать байты в файл без атомарной перезаписи"""
+    with self.open("wb", **kw) as f:
+      return f.write(data)
+
+  def write_text_direct(self, data: str, **kw):
+    """Записать текст в файл без атомарной перезаписи"""
+    kw.setdefault("encoding", "utf-8")
+    with self.open("w", **kw) as f:
+      return f.write(data)

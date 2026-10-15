@@ -1,26 +1,30 @@
+import typing
 from MainShortcuts2 import ms
-ver_hist = {}
+from MainShortcuts2.ex.pathlib_ex import Path
+ROOT_DIR = Path(ms.MAIN_DIR)
+JSON_DIR = (ROOT_DIR / "json").any_mkdir()
 
 
-def check_chlog(path: ms.path.Path) -> bool:
-  try:
-    data = ms.json.read(path)
-    if "version_id" in data:
-      ver_hist[data["version_id"]] = data
-      return True
-  except Exception as err:
-    print(err)
-    return False
+class Version(typing.TypedDict):
+  added: list[str]
+  changed: list[str]
+  fixed: list[str]
+  removed: list[str]
+  version_id: int
+  version: str
 
 
-data = {}
-data["added"] = []
-data["changed"] = []
-data["fixed"] = []
-data["removed"] = []
-data["version_id"] = len(ms.dir.list(ms.MAIN_DIR + "/json", exts=[".json"], func=check_chlog, type="file"))
-if data["version_id"] - 1 in ver_hist:
-  print("Предыдущая версия: %(version)s (%(version_id)s)" % ver_hist[data["version_id"] - 1])
-data["version"] = input("Введите название версии > ").strip()
-print('Запись файла "%(version)s.json" с ID версии %(version_id)i' % data)
-ms.json.write(ms.MAIN_DIR + "/" + data["version"] + ".json", data, mode="p")
+@ms.utils.main_func(__name__)
+def main():
+  versions: list[Version] = []
+  for file in JSON_DIR.iterdir():
+    if file.suffix == ".json" and file.is_file():
+      versions.append(Version(file.read_json()))
+  latest = max(versions, key=lambda i: i["version_id"])
+  print("Предыдущая версия: {version} ({version_id})".format(**latest))
+  new_data = {"added": [], "changed": [], "fixed": [], "removed": []}
+  new_data["version_id"] = latest["version_id"] + 1
+  new_data["version"] = input("Название новой версии: ").strip()
+  new_file = ROOT_DIR / "{version}.json".format(**new_data)
+  print("Запись версии {version} ({version_id})".format(**new_data))
+  new_file.write_json(new_data, mode="p")
