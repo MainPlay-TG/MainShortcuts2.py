@@ -1,4 +1,10 @@
 # mainshortcuts2
+## 2.9.3 (72)
+### Добавлено:
+- Константа `.ms2dat1.inst_compressed`
+- Константа `.ms2dat1.inst_fastest`
+- Метод `.ex.pathlib_ex.Path.write_bytes_direct`
+- Метод `.ex.pathlib_ex.Path.write_text_direct`
 ## 2.9.2 (71)
 ### Исправлено:
 - Подклассы в `.sql`
