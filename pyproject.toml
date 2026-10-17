@@ -1,5 +1,5 @@
 [tool.poetry]
-version = "2.9.3"
+version = "2.10.0"
 name = "MainShortcuts2"
 description = "Сокращение и улучшение функций + консольные утилиты"
 authors = ["MainPlay TG <xbox.roman6666666666@gmail.com>"]
@@ -21,6 +21,8 @@ ms2-which_real = "MainShortcuts2.__main__:which_real"
 nano-json = "MainShortcuts2.__main__:nano_json"
 nginx-reload = "MainShortcuts2.__main__:nginx_reload"
 nginx-restart = "MainShortcuts2.__main__:nginx_restart"
+ms2java-launch = "MainShortcuts2.java_launch.__main__:launch"
+ms2java-info = "MainShortcuts2.java_launch.__main__:print_info"
 
 [tool.poetry.dependencies]
 python = "^3.10"
