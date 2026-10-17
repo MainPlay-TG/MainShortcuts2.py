@@ -1,8 +1,8 @@
 from argparse import ArgumentParser
 from MainShortcuts2.ex.pathlib_ex import Path
-from MPL.java_launch import manager
-from MPL.java_launch.infofile import _Dependency
-from MPL.java_launch.util import detect_java_version, find_system_java
+from MainShortcuts2.java_launch import manager
+from MainShortcuts2.java_launch.infofile import _Dependency
+from MainShortcuts2.java_launch.util import detect_java_version, find_system_java
 from MainShortcuts2.utils import main_func
 from subprocess import CompletedProcess
 argp = ArgumentParser()
