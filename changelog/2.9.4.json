@@ -1,0 +1,14 @@
+{
+  "added": [
+    "Метод `.java_ext.InfoDict.latest_offline_version`",
+    "Метод `.java_ext.InfoDict.latest_online_version`",
+    "Подмодуль `.java_launch`"
+  ],
+  "changed": [
+    "Использование нового лаунчера в скрипте `ms2-hash_java`"
+  ],
+  "fixed": [],
+  "removed": [],
+  "version_id": 73,
+  "version": "2.10.0"
+}

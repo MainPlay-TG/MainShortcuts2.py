@@ -84,7 +84,7 @@ class Format1:
     return data
 
 
-def hash_gen(args: argparse.Namespace = None):
+def hash_gen(args=None):
   if args is None:
     argp = argparse.ArgumentParser("ms2-hash_gen", description="Создание контрольной суммы для файла")
     argp.epilog = "Написано на Python"
@@ -112,7 +112,7 @@ def hash_gen(args: argparse.Namespace = None):
     completed.append(file)
 
 
-def hash_check(args: argparse.Namespace = None):
+def hash_check(args=None):
   if args is None:
     argp = argparse.ArgumentParser("ms2-hash_check", description="Проверка размера и контрольной суммы файла")
     argp.epilog = "Написано на Python"
@@ -149,12 +149,15 @@ def run_java_ext(argv: list[str] = None):
     argv = sys.argv[1:]
   from MainShortcuts2 import java_ext
   mgr = java_ext.JavaExtManager("MainPlay-TG", "MS2Hash.java")
-  ver = None
-  for i in mgr.iter_all_versions(1):
-    ver = i
-    break
+  ver = mgr.latest_offline_version() or mgr.latest_online_version()
   if ver is None:
     ms.utils.mini_log("Ошибка: не удалось найти версию MS2Hash. Проверьте соединение с GitHub")
     sys.exit(1)
-  p = ver.run(argv, check=False)
+  if ver.version_name in ("1.0.0", "1.0.1"):
+    # Старые версии не совместимы с новым лаунчером
+    p = ver.run(argv, check=False)
+  else:
+    # Использовать новый лаунчер
+    from MainShortcuts2 import java_launch
+    p = java_launch.manager.launch_file(ver.jar_path, argv)
   sys.exit(p.returncode)
