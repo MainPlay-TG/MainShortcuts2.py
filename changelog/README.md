@@ -1,4 +1,11 @@
 # mainshortcuts2
+## 2.10.0 (73)
+### Добавлено:
+- Метод `.java_ext.InfoDict.latest_offline_version`
+- Метод `.java_ext.InfoDict.latest_online_version`
+- Подмодуль `.java_launch`
+### Изменено:
+- Использование нового лаунчера в скрипте `ms2-hash_java`
 ## 2.9.3 (72)
 ### Добавлено:
 - Константа `.ms2dat1.inst_compressed`
