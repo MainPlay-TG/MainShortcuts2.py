@@ -232,5 +232,10 @@ class MS2:
     from . import _ms2dat_auto
     return _ms2dat_auto
 
+  @cached_property
+  def java_launcher(self):
+    from . import java_launch
+    return java_launch.manager
+
 
 ms = MS2()
