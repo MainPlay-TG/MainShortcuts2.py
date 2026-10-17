@@ -1,4 +1,7 @@
 # mainshortcuts2
+## 2.10.1 (74)
+### Исправлено:
+- hotfix
 ## 2.10.0 (73)
 ### Добавлено:
 - Метод `.java_ext.InfoDict.latest_offline_version`
