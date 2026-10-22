@@ -3,3 +3,4 @@
 .obsidian/*
 .spyproject/*
 .vscode/settings.json
+dist/*

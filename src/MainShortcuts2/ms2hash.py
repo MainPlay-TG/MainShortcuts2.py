@@ -144,7 +144,7 @@ def hash_check(args=None):
     completed.append(file)
 
 
-def run_java_ext(argv: list[str] = None):
+def run_java_ext(argv: list[str] = None, **kw):
   if argv is None:
     argv = sys.argv[1:]
   from MainShortcuts2 import java_ext
@@ -154,10 +154,21 @@ def run_java_ext(argv: list[str] = None):
     ms.utils.mini_log("Ошибка: не удалось найти версию MS2Hash. Проверьте соединение с GitHub")
     sys.exit(1)
   if ver.version_name in ("1.0.0", "1.0.1"):
+    try:
+      ver = mgr.latest_online_version()
+    except Exception as exc:
+      ms.utils.mini_log("Не удалось обновить MS2Hash: %r", exc)
+  if ver.version_name in ("1.0.0", "1.0.1"):
     # Старые версии не совместимы с новым лаунчером
     p = ver.run(argv, check=False)
   else:
     # Использовать новый лаунчер
     from MainShortcuts2 import java_launch
-    p = java_launch.manager.launch_file(ver.jar_path, argv)
+    if ("-b" in argv) or ("--bar" in argv):
+      kw["download_optional"] = True
+    p = java_launch.manager.launch_file(ver.jar_path, argv, **kw)
   sys.exit(p.returncode)
+
+
+def run_ms2sign(argv: list[str] = None):
+  run_java_ext(argv, class_name="ms2sign")

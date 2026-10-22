@@ -40,20 +40,19 @@ class JavaLaunchManager:
 
   def download_depends(self, clazz: _ClassInfo, download_optional=False):
     """Скачать зависимости класса"""
-    queue: set[tuple[str, Path]] = set()
-    for i in clazz.required_depends:
+    depends = clazz.required_depends.copy()
+    if download_optional:
+      depends.update(clazz.optional_depends)
+    for i in list(depends):
+      depends.update(i.recursive_dependencies)
+    queue: dict[str, Path] = {}
+    for i in depends:
       file = self.cache_root / i.file_name
       if not file.exists():
         file.parent.any_mkdir()
-        queue.add((i.file_url, file))
-    if download_optional:
-      for i in clazz.optional_depends:
-        file = self.cache_root / i.file_name
-        if not file.exists():
-          file.parent.any_mkdir()
-          queue.add((i.file_url, file))
+        queue[i.file_url] = file
     with ThreadPoolExecutor() as pool:
-      futures = [pool.submit(self.downloader.download2file, *i) for i in queue]
+      futures = [pool.submit(self.downloader.download2file, url, path) for url, path in queue.items()]
       [i.result() for i in futures]
 
   def launch_file(self, file: Path, args: list[str] = [], *,
